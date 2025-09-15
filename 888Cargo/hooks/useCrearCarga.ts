@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { InfoCliente, InfoCarga, generarCodigoUnico, prepararDatosFormulario } from '../utils/cargaUtils';
+import CargaService from '../services/cargaService.js';
 
 export const useCrearCarga = () => {
   // Estados principales
@@ -86,7 +87,7 @@ export const useCrearCarga = () => {
   };
 
   // Función para preparar datos cuando se carga un Excel
-  const prepararFormularioDesdeExcel = () => {
+  const prepararFormularioDesdeExcel = async () => {
     const datosPreprarados = prepararDatosFormulario(datosExcel, archivoSeleccionado);
     
     setInfoCliente(prev => ({
@@ -94,19 +95,52 @@ export const useCrearCarga = () => {
       ...datosPreprarados.cliente
     }));
     
+    // Generar código automáticamente al preparar el formulario
+    let codigoGenerado = '';
+    try {
+      codigoGenerado = await generarNuevoCodigo();
+    } catch (error) {
+      console.warn('⚠️ [useCrearCarga] Error al generar código automático');
+      codigoGenerado = generarCodigoUnico(); // Fallback
+    }
+    
     setInfoCarga(prev => ({
       ...prev,
-      ...datosPreprarados.carga
+      ...datosPreprarados.carga,
+      codigo_carga: codigoGenerado
     }));
   };
 
-  // Función para generar nuevo código
-  const generarNuevoCodigo = () => {
-    const nuevoCodigo = generarCodigoUnico();
-    setInfoCarga(prev => ({
-      ...prev,
-      codigo_carga: nuevoCodigo
-    }));
+  // Función para generar nuevo código usando el servicio backend
+  const generarNuevoCodigo = async () => {
+    try {
+      console.log('🔢 [useCrearCarga] Generando código desde backend...');
+      const resultado = await CargaService.generarCodigoCarga();
+      
+      if (resultado.success && resultado.codigo_carga) {
+        const nuevoCodigo = resultado.codigo_carga;
+        console.log('✅ [useCrearCarga] Código generado:', nuevoCodigo);
+        
+        setInfoCarga(prev => ({
+          ...prev,
+          codigo_carga: nuevoCodigo
+        }));
+        
+        return nuevoCodigo;
+      } else {
+        console.warn('⚠️ [useCrearCarga] Error del backend, usando código local');
+        throw new Error('Error al generar código desde backend');
+      }
+    } catch (error) {
+      console.warn('⚠️ [useCrearCarga] Fallback a código local:', error);
+      // Fallback a código local si hay error con el backend
+      const nuevoCodigo = generarCodigoUnico();
+      setInfoCarga(prev => ({
+        ...prev,
+        codigo_carga: nuevoCodigo
+      }));
+      return nuevoCodigo;
+    }
   };
 
   return {

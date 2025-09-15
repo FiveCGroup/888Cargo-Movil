@@ -16,6 +16,7 @@ interface ModalPackingListProps {
   guardadoExitoso: boolean;
   datosGuardado?: any;
   onVisualizarPDF?: () => void;
+  bloquearCampos?: boolean;
 }
 
 // Componente de carga (spinner)
@@ -43,7 +44,8 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
   guardandoBD,
   guardadoExitoso,
   datosGuardado,
-  onVisualizarPDF
+  onVisualizarPDF,
+  bloquearCampos = false
 }) => {
   const handleGuardar = () => {
     // Validar campos requeridos
@@ -105,49 +107,53 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
             <View style={styles.campo}>
               <Text style={styles.label}>Nombre del Cliente *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, bloquearCampos && styles.inputBloqueado]}
                 value={infoCliente.nombre_cliente}
                 onChangeText={(valor) => onCambioCliente('nombre_cliente', valor)}
                 placeholder="Nombre completo del cliente"
                 placeholderTextColor="#999"
+                editable={!bloquearCampos}
               />
             </View>
 
             <View style={styles.campo}>
               <Text style={styles.label}>Correo Electrónico *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, bloquearCampos && styles.inputBloqueado]}
                 value={infoCliente.correo_cliente}
                 onChangeText={(valor) => onCambioCliente('correo_cliente', valor)}
                 placeholder="cliente@ejemplo.com"
                 placeholderTextColor="#999"
                 keyboardType="email-address"
                 autoCapitalize="none"
+                editable={!bloquearCampos}
               />
             </View>
 
             <View style={styles.campo}>
               <Text style={styles.label}>Teléfono *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, bloquearCampos && styles.inputBloqueado]}
                 value={infoCliente.telefono_cliente}
                 onChangeText={(valor) => onCambioCliente('telefono_cliente', valor)}
                 placeholder="+57 300 123 4567"
                 placeholderTextColor="#999"
                 keyboardType="phone-pad"
+                editable={!bloquearCampos}
               />
             </View>
 
             <View style={styles.campo}>
               <Text style={styles.label}>Dirección de Entrega *</Text>
               <TextInput
-                style={[styles.input, styles.inputMultiline]}
+                style={[styles.input, styles.inputMultiline, bloquearCampos && styles.inputBloqueado]}
                 value={infoCliente.direccion_entrega}
                 onChangeText={(valor) => onCambioCliente('direccion_entrega', valor)}
                 placeholder="Dirección completa donde se entregará la mercancía"
                 placeholderTextColor="#999"
                 multiline
                 numberOfLines={3}
+                editable={!bloquearCampos}
               />
             </View>
           </View>
@@ -163,19 +169,21 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
               <Text style={styles.label}>Código del Packing List *</Text>
               <View style={styles.inputConBoton}>
                 <TextInput
-                  style={[styles.input, styles.inputCodigo]}
+                  style={[styles.input, styles.inputCodigo, bloquearCampos && styles.inputBloqueado]}
                   value={infoCarga.codigo_carga}
                   onChangeText={(valor) => onCambioCarga('codigo_carga', valor)}
                   placeholder="PL-2024-..."
                   placeholderTextColor="#999"
                   autoCapitalize="characters"
+                  editable={!bloquearCampos}
                 />
                 <TouchableOpacity 
-                  style={styles.botonGenerar}
+                  style={[styles.botonGenerar, bloquearCampos && styles.botonBloqueado]}
                   onPress={onGenerarCodigo}
+                  disabled={bloquearCampos}
                 >
-                  <Ionicons name="refresh" size={16} color="#007bff" />
-                  <Text style={styles.textoBotonGenerar}>Generar</Text>
+                  <Ionicons name="refresh" size={16} color={bloquearCampos ? "#ccc" : "#007bff"} />
+                  <Text style={[styles.textoBotonGenerar, bloquearCampos && styles.textoBloqueado]}>Generar</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -183,13 +191,14 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
             <View style={styles.campo}>
               <Text style={styles.label}>Dirección de Destino *</Text>
               <TextInput
-                style={[styles.input, styles.inputMultiline]}
+                style={[styles.input, styles.inputMultiline, bloquearCampos && styles.inputBloqueado]}
                 value={infoCarga.direccion_destino}
                 onChangeText={(valor) => onCambioCarga('direccion_destino', valor)}
                 placeholder="Ciudad o dirección de destino de la carga"
                 placeholderTextColor="#999"
                 multiline
                 numberOfLines={2}
+                editable={!bloquearCampos}
               />
             </View>
           </View>
@@ -460,6 +469,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
+  },
+  // Estilos para campos bloqueados
+  inputBloqueado: {
+    backgroundColor: '#f5f5f5',
+    color: '#666',
+    borderColor: '#e0e0e0',
+  },
+  botonBloqueado: {
+    backgroundColor: '#f5f5f5',
+    opacity: 0.6,
+  },
+  textoBloqueado: {
+    color: '#ccc',
   },
 });
 

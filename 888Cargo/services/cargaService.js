@@ -80,9 +80,7 @@ class CargaService {
         const response = await fetch(`${baseUrl}/cargas/procesar-excel`, {
           method: 'POST',
           body: formData,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          // NO especificar Content-Type para FormData - se establece automáticamente
           signal: controller.signal
         });
 
@@ -164,16 +162,21 @@ class CargaService {
   }
 
   // Guardar packing list completo con QR
-  async guardarPackingListConQR(datosCompletos) {
-    console.log('💾 [CargaService] Guardando packing list completo...');
+  async guardarPackingListConQR(datos, metadata) {
+    console.log('💾 [CargaService] Guardando packing list completo con QRs...');
+    console.log('📦 [CargaService] Datos:', datos ? datos.length : 0, 'filas');
+    console.log('📋 [CargaService] Metadata:', metadata);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/cargas/guardar-completo`, {
+      const response = await fetch(`${API_BASE_URL}/cargas/guardar-packing-list`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(datosCompletos)
+        body: JSON.stringify({
+          datos,
+          metadata
+        })
       });
 
       if (!response.ok) {
@@ -183,10 +186,32 @@ class CargaService {
 
       const resultado = await response.json();
       console.log('✅ [CargaService] Packing list guardado exitosamente');
+      console.log('📊 [CargaService] Resultados:', resultado.data);
       return resultado;
     } catch (error) {
       console.error('❌ [CargaService] Error al guardar:', error);
       throw new Error(`Error al guardar: ${error.message}`);
+    }
+  }
+
+  // Generar código único para carga
+  async generarCodigoCarga() {
+    console.log('🔢 [CargaService] Generando código único de carga...');
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/cargas/generar-codigo`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const resultado = await response.json();
+      console.log('✅ [CargaService] Código generado:', resultado.codigo_carga);
+      return resultado;
+    } catch (error) {
+      console.error('❌ [CargaService] Error al generar código:', error);
+      throw new Error(`Error al generar código: ${error.message}`);
     }
   }
 
@@ -209,6 +234,48 @@ class CargaService {
     } catch (error) {
       console.error('❌ [CargaService] Conectividad FAILED:', error);
       throw new Error(`Error de conectividad: ${error.message}`);
+    }
+  }
+
+  // Obtener datos de QR de una carga
+  async obtenerQRDataDeCarga(idCarga) {
+    console.log('🏷️ [CargaService] Obteniendo datos de QR para carga:', idCarga);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/cargas/${idCarga}/qrs`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const resultado = await response.json();
+      console.log('✅ [CargaService] Datos de QR obtenidos:', resultado.data?.length || 0, 'QRs');
+      return resultado;
+    } catch (error) {
+      console.error('❌ [CargaService] Error al obtener QRs:', error);
+      throw new Error(`Error al obtener códigos QR: ${error.message}`);
+    }
+  }
+
+  // Obtener información meta de una carga
+  async obtenerCargaMeta(idCarga) {
+    console.log('📋 [CargaService] Obteniendo información de carga:', idCarga);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/cargas/${idCarga}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const resultado = await response.json();
+      console.log('✅ [CargaService] Información de carga obtenida');
+      return resultado;
+    } catch (error) {
+      console.error('❌ [CargaService] Error al obtener info de carga:', error);
+      throw new Error(`Error al obtener información de carga: ${error.message}`);
     }
   }
 }

@@ -69,7 +69,7 @@ const VisualizarQr: React.FC = () => {
       setGenerandoPDF(true);
       
       // Generar PDF a través del servicio
-      const response = await fetch(`http://10.0.2.2:3100/api/qr/pdf-carga/${idCarga}?useOptimized=true&nocache=${Date.now()}`);
+      const response = await fetch(`http://10.0.2.2:3102/api/qr/pdf-carga/${idCarga}?useOptimized=true&nocache=${Date.now()}`);
       
       if (!response.ok) {
         throw new Error('Error al generar PDF');
@@ -114,7 +114,7 @@ const VisualizarQr: React.FC = () => {
   const handleCompartirQR = async (qrCode: string, descripcion: string) => {
     try {
       // Crear un QR individual y compartirlo
-      const qrUrl = `http://10.0.2.2:3100/api/qr/imagen/${encodeURIComponent(qrCode)}`;
+      const qrUrl = `http://10.0.2.2:3102/api/qr/imagen/${encodeURIComponent(qrCode)}`;
       
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(qrUrl, {
@@ -229,7 +229,7 @@ const VisualizarQr: React.FC = () => {
               <View style={styles.qrImageContainer}>
                 <Image
                   source={{ 
-                    uri: `http://10.0.2.2:3100/api/qr/imagen/${encodeURIComponent(item.qr_code)}?size=200`
+                    uri: `http://10.0.2.2:3102/api/qr/imagen/${encodeURIComponent(item.qr_code)}?size=200`
                   }}
                   style={styles.qrImage}
                   resizeMode="contain"

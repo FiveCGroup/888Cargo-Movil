@@ -130,30 +130,35 @@ const CrearCarga = () => {
       console.log('📊 [CrearCarga] Resultado del procesamiento:', resultado);
 
       if (resultado.success && resultado.data) {
-        const { datosExcel, estadisticas } = resultado.data;
+        // Los datos vienen directamente en resultado.data, estadísticas están en resultado.estadisticas
+        const datosExcel = resultado.data;
+        const estadisticas = (resultado as any).estadisticas;
+        const filasConError = (resultado as any).filasConError || [];
+        
+        console.log('📊 [CrearCarga] Datos procesados:', {
+          datosExcel: datosExcel?.length || 0,
+          estadisticas,
+          filasConError: filasConError?.length || 0
+        });
         
         setDatosExcel(datosExcel || []);
-        setFilasConError([]);
+        setFilasConError(filasConError);
         setEstadisticasCarga(estadisticas || {
           totalFilas: datosExcel?.length || 0,
           filasValidas: (datosExcel?.length || 1) - 1,
-          filasConError: 0
+          filasConError: filasConError?.length || 0
         });
         
         // Preparar formulario con datos del Excel
-        prepararFormularioDesdeExcel();
+        await prepararFormularioDesdeExcel();
         
         Alert.alert(
           'Éxito', 
-          `Archivo procesado correctamente!\n\n` +
-          `Total filas: ${(datosExcel?.length || 1)}\n` +
-          `Productos: ${(estadisticas?.filasValidas || 0)}\n` +
-          `Columnas: ${(estadisticas?.columnas || 0)}\n` +
-          `${estadisticas?.filasEncabezado ? `Encabezados: ${estadisticas.filasEncabezado} filas` : ''}`,
+          `Archivo procesado correctamente!\n\nLos datos están listos para guardar. Revisa las estadísticas en la sección "Resumen del archivo".`,
           [{ text: 'OK', onPress: () => setMostrarFormulario(true) }]
         );
       } else {
-        const errorMsg = resultado.error || 'Error al procesar el archivo';
+        const errorMsg = (resultado as any).error || 'Error al procesar el archivo';
         setError(errorMsg);
         Alert.alert('Error', errorMsg);
       }
@@ -183,14 +188,25 @@ const CrearCarga = () => {
     }
   };
 
-  const handleGenerarNuevoCodigo = () => {
-    generarNuevoCodigo();
+  const handleGenerarNuevoCodigo = async () => {
+    try {
+      await generarNuevoCodigo();
+    } catch (error) {
+      console.warn('⚠️ [CrearCarga] Error al generar código:', error);
+    }
   };
 
   // Función para visualizar QRs
   const handleVisualizarQR = () => {
-    if (datosGuardado?.idCarga) {
-      router.push(`/visualizar-qr/${datosGuardado.idCarga}` as any);
+    console.log('🔍 [CrearCarga] Datos guardado disponibles:', JSON.stringify(datosGuardado, null, 2));
+    const idCarga = datosGuardado?.carga?.id_carga || datosGuardado?.idCarga;
+    console.log('🔍 [CrearCarga] ID carga extraído:', idCarga);
+    if (idCarga) {
+      console.log('🏷️ [CrearCarga] Navegando a visualizar QRs, ID carga:', idCarga);
+      router.push(`/visualizar-qr/${idCarga}` as any);
+    } else {
+      console.warn('⚠️ [CrearCarga] No hay ID de carga disponible para visualizar QRs');
+      Alert.alert('Error', 'No se pudo obtener el ID de la carga para visualizar los QRs');
     }
   };
 
@@ -201,7 +217,7 @@ const CrearCarga = () => {
       if (resultado.success) {
         Alert.alert('Conectividad OK', 'Servidor respondiendo correctamente');
       } else {
-        Alert.alert('Error de Conectividad', resultado.error || 'No se puede conectar al servidor');
+        Alert.alert('Error de Conectividad', (resultado as any).error || 'No se puede conectar al servidor');
       }
     } catch (error) {
       Alert.alert('Error', 'Error al probar conectividad');
@@ -227,31 +243,47 @@ const CrearCarga = () => {
     setError('');
 
     try {
-      const datosCompletos = {
+      // Preparar datos en el formato correcto para el nuevo endpoint
+      const metadata = {
         codigo_carga: infoCarga.codigo_carga,
-        cliente: infoCliente,
-        carga: {
-          ...infoCarga,
-          archivo_original: archivoSeleccionado?.name || ''
-        },
-        items: datosExcel.slice(1), // Excluir headers
-        estadisticas: estadisticasCarga
+        id_cliente: 1, // Por defecto, ajustar según tu lógica
+        direccion_destino: infoCarga.direccion_destino || '',
+        ciudad_destino: infoCarga.direccion_destino || '', // Usar dirección destino como ciudad por ahora
+        archivo_original: archivoSeleccionado?.name || 'archivo.xlsx'
       };
 
-      const resultado = await CargaService.guardarPackingListConQR(datosCompletos);
+      console.log('💾 [CrearCarga] Guardando con nuevo formato...');
+      console.log('📦 [CrearCarga] Datos Excel:', datosExcel.length, 'filas');
+      console.log('📋 [CrearCarga] Metadata:', metadata);
+
+      // Usar el nuevo método con formato correcto
+      const resultado = await CargaService.guardarPackingListConQR(datosExcel, metadata);
 
       if (resultado.success) {
         setGuardadoExitoso(true);
         setDatosGuardado(resultado.data);
-        Alert.alert('Éxito', 'Packing list guardado correctamente con códigos QR generados');
+        
+        const { articulos_creados, cajas_creadas, qrs_creados } = resultado.data;
+        
+        Alert.alert(
+          'Éxito', 
+          `Packing list guardado correctamente!\n\n` +
+          `✅ Artículos: ${articulos_creados}\n` +
+          `📦 Cajas: ${cajas_creadas}\n` +
+          `🏷️ QRs generados: ${qrs_creados}`,
+          [
+            { text: 'Ver QRs', onPress: handleVisualizarQR },
+            { text: 'OK', style: 'default' }
+          ]
+        );
       } else {
         setError(resultado.error || 'Error al guardar');
         Alert.alert('Error', resultado.error || 'Error al guardar el packing list');
       }
-    } catch (error) {
-      console.error('Error al guardar:', error);
+    } catch (error: any) {
+      console.error('❌ [CrearCarga] Error al guardar:', error);
       setError('Error al guardar en base de datos');
-      Alert.alert('Error', 'Error al guardar en base de datos');
+      Alert.alert('Error', `Error al guardar: ${error?.message || 'Error desconocido'}`);
     } finally {
       setGuardandoBD(false);
     }
@@ -371,7 +403,7 @@ const CrearCarga = () => {
                 • Filas válidas: {estadisticasCarga.filasValidas}
               </Text>
               <Text style={styles.estadisticasTexto}>
-                • Filas con errores: {estadisticasCarga.filasConErrores}
+                • Filas con errores: {estadisticasCarga.filasConError || 0}
               </Text>
             </View>
           )}
@@ -401,6 +433,7 @@ const CrearCarga = () => {
         guardadoExitoso={guardadoExitoso}
         datosGuardado={datosGuardado}
         onVisualizarPDF={handleVisualizarQR}
+        bloquearCampos={guardadoExitoso}
       />
     </View>
   );
