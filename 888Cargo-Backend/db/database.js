@@ -107,42 +107,100 @@ export const initDatabase = async () => {
         // Crear tabla de cargas
         await query(`
             CREATE TABLE IF NOT EXISTS cargas (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id_carga INTEGER PRIMARY KEY AUTOINCREMENT,
                 codigo_carga TEXT UNIQUE NOT NULL,
                 id_cliente INTEGER NOT NULL,
+                direccion_destino TEXT,
+                ciudad_destino TEXT,
+                archivo_original TEXT,
+                fecha_inicio DATETIME DEFAULT CURRENT_TIMESTAMP,
+                fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                estado TEXT DEFAULT 'Pendiente',
                 total_items INTEGER DEFAULT 0,
                 peso_total REAL DEFAULT 0,
                 valor_total REAL DEFAULT 0,
-                direccion_destino TEXT,
-                fecha_envio DATE,
-                estado TEXT DEFAULT 'Pendiente',
-                archivo_original TEXT,
-                fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                cbm_total REAL DEFAULT 0,
                 creado_por INTEGER,
                 FOREIGN KEY (id_cliente) REFERENCES clientes(id),
                 FOREIGN KEY (creado_por) REFERENCES users(id)
             )
         `);
 
-        // Crear tabla de items del packing list
+        // Crear tabla de artículos del packing list
         await query(`
-            CREATE TABLE IF NOT EXISTS packing_list_items (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+            CREATE TABLE IF NOT EXISTS articulo_packing_list (
+                id_articulo INTEGER PRIMARY KEY AUTOINCREMENT,
                 id_carga INTEGER NOT NULL,
-                item_numero INTEGER NOT NULL,
-                descripcion TEXT NOT NULL,
-                cantidad INTEGER DEFAULT 1,
-                peso REAL DEFAULT 0,
-                medidas TEXT,
-                valor REAL DEFAULT 0,
-                qr_code TEXT,
+                secuencia INTEGER,
+                fecha TEXT,
+                marca_cliente TEXT,
+                tel_cliente TEXT,
+                ciudad_destino TEXT,
+                phto TEXT,
+                cn TEXT,
+                ref_art TEXT,
+                descripcion_espanol TEXT,
+                descripcion_chino TEXT,
+                unit TEXT,
+                precio_unit REAL DEFAULT 0,
+                precio_total REAL DEFAULT 0,
+                material TEXT,
+                unidades_empaque INTEGER DEFAULT 0,
+                marca_producto TEXT,
+                cajas INTEGER DEFAULT 0,
+                cant_por_caja INTEGER DEFAULT 0,
+                cant_total INTEGER DEFAULT 0,
+                largo REAL DEFAULT 0,
+                ancho REAL DEFAULT 0,
+                alto REAL DEFAULT 0,
+                cbm REAL DEFAULT 0,
+                cbmtt REAL DEFAULT 0,
+                gw REAL DEFAULT 0,
+                gwtt REAL DEFAULT 0,
+                serial TEXT,
+                imagen_url TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (id_carga) REFERENCES cargas(id)
+                FOREIGN KEY (id_carga) REFERENCES cargas(id_carga) ON DELETE CASCADE
+            )
+        `);
+
+        // Crear tabla de cajas
+        await query(`
+            CREATE TABLE IF NOT EXISTS caja (
+                id_caja INTEGER PRIMARY KEY AUTOINCREMENT,
+                id_articulo INTEGER NOT NULL,
+                numero_caja INTEGER NOT NULL,
+                total_cajas INTEGER NOT NULL,
+                cantidad_en_caja INTEGER DEFAULT 0,
+                cbm REAL DEFAULT 0,
+                gw REAL DEFAULT 0,
+                descripcion_contenido TEXT,
+                observaciones TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (id_articulo) REFERENCES articulo_packing_list(id_articulo) ON DELETE CASCADE
+            )
+        `);
+
+        // Crear tabla de QR codes
+        await query(`
+            CREATE TABLE IF NOT EXISTS qr (
+                id_qr INTEGER PRIMARY KEY AUTOINCREMENT,
+                id_caja INTEGER NOT NULL,
+                codigo_qr TEXT UNIQUE NOT NULL,
+                tipo_qr TEXT DEFAULT 'caja',
+                datos_qr TEXT,
+                estado TEXT DEFAULT 'generado',
+                url_imagen TEXT,
+                formato TEXT DEFAULT 'PNG',
+                tamaño INTEGER DEFAULT 200,
+                nivel_correccion TEXT DEFAULT 'M',
+                fecha_generacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (id_caja) REFERENCES caja(id_caja) ON DELETE CASCADE
             )
         `);
 
         console.log('✅ [DB] Base de datos móvil inicializada correctamente');
-        console.log('✅ [DB] Tablas creadas: users, clientes, cargas, packing_list_items');
+        console.log('✅ [DB] Tablas creadas: users, clientes, cargas, articulo_packing_list, caja, qr');
         
         // Retornar la instancia de la base de datos para uso en los controladores
         return db;

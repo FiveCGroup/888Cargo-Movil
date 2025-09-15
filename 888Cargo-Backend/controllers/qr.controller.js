@@ -1,36 +1,33 @@
-import QRCode from 'qrcode';
-import { initDatabase } from '../db/database.js';
+import * as QRModel from '../models/qr.model.js';
+import * as CargaModel from '../models/carga.model.js';
+import * as CajaModel from '../models/caja.model.js';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-// Obtener datos QR de una carga
-export const obtenerQRDataDeCarga = async (req, res) => {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ================== CONTROLADORES QR ==================
+
+// Obtener QRs por carga
+export const obtenerQRsPorCarga = async (req, res) => {
     try {
-        const { idCarga } = req.params;
-        console.log(`🏷️ [QR Controller] Obteniendo QRs de carga ID: ${idCarga}`);
+        const { id_carga } = req.params;
+        console.log(`🏷️ [QR Controller] Obteniendo QRs de carga ID: ${id_carga}`);
         
-        const db = await initDatabase();
+        const qrs = await QRModel.getQRsByCarga(id_carga);
         
-        const query = `
-            SELECT 
-                id,
-                item_numero,
-                descripcion,
-                qr_code
-            FROM packing_list_items
-            WHERE id_carga = ?
-            ORDER BY item_numero ASC
-        `;
-        
-        const qrData = db.prepare(query).all(idCarga);
-        
-        console.log(`🏷️ [QR Controller] Encontrados ${qrData.length} códigos QR`);
+        console.log(`✅ [QR Controller] Encontrados ${qrs.length} códigos QR`);
         
         res.json({
             success: true,
-            data: qrData
+            data: qrs,
+            total: qrs.length
         });
         
     } catch (error) {
-        console.error('❌ [QR Controller] Error al obtener QR data:', error);
+        console.error('❌ [QR Controller] Error al obtener QRs:', error);
         res.status(500).json({
             success: false,
             message: 'Error al obtener códigos QR',
@@ -39,134 +36,140 @@ export const obtenerQRDataDeCarga = async (req, res) => {
     }
 };
 
-// Generar imagen QR dinámica
-export const obtenerImagenQR = async (req, res) => {
+// Obtener QR por caja
+export const obtenerQRPorCaja = async (req, res) => {
     try {
-        const { qrCode } = req.params;
-        const { size = 200 } = req.query;
+        const { id_caja } = req.params;
+        console.log(`🏷️ [QR Controller] Obteniendo QR de caja ID: ${id_caja}`);
         
-        console.log(`📷 [QR Controller] Generando imagen QR (tamaño: ${size}px)`);
+        const qr = await QRModel.getQRByCaja(id_caja);
         
-        // Generar imagen QR
-        const qrOptions = {
-            type: 'png',
-            quality: 0.92,
-            width: parseInt(size),
-            color: {
-                dark: '#000000',
-                light: '#FFFFFF'
-            }
-        };
+        if (!qr) {
+            return res.status(404).json({
+                success: false,
+                message: 'QR no encontrado para esta caja'
+            });
+        }
         
-        const qrBuffer = await QRCode.toBuffer(qrCode, qrOptions);
+        console.log(`✅ [QR Controller] QR encontrado: ${qr.codigo_qr}`);
         
-        // Enviar imagen
-        res.set({
-            'Content-Type': 'image/png',
-            'Content-Length': qrBuffer.length,
-            'Cache-Control': 'public, max-age=31557600' // Cache por 1 año
+        res.json({
+            success: true,
+            data: qr
         });
         
-        res.send(qrBuffer);
-        
     } catch (error) {
-        console.error('❌ [QR Controller] Error al generar imagen QR:', error);
+        console.error('❌ [QR Controller] Error al obtener QR por caja:', error);
         res.status(500).json({
             success: false,
-            message: 'Error al generar imagen QR',
+            message: 'Error al obtener QR',
             error: error.message
         });
     }
 };
 
-// Generar QR data para una carga (si no existen)
-export const generarQRDataParaCarga = async (req, res) => {
+// Servir imagen QR (sin autenticación)
+export const servirImagenQR = async (req, res) => {
     try {
-        const { idCarga } = req.params;
-        console.log(`🔄 [QR Controller] Generando QRs para carga ID: ${idCarga}`);
+        const { filename } = req.params;
+        console.log(`📷 [QR Controller] Sirviendo imagen QR: ${filename}`);
         
-        const db = await initDatabase();
+        const imagePath = path.join(__dirname, '..', 'qr-images', filename);
         
-        // Verificar si ya existen QRs
-        const existentes = db.prepare(`
-            SELECT COUNT(*) as count 
-            FROM packing_list_items 
-            WHERE id_carga = ? AND qr_code IS NOT NULL AND qr_code != ''
-        `).get(idCarga);
-        
-        if (existentes.count > 0) {
-            return res.json({
-                success: true,
-                message: 'Los códigos QR ya existen para esta carga',
-                data: { qrs_existentes: existentes.count }
-            });
-        }
-        
-        // Obtener información de la carga
-        const cargaInfo = db.prepare(`
-            SELECT c.codigo_carga, c.total_items
-            FROM cargas c
-            WHERE c.id = ?
-        `).get(idCarga);
-        
-        if (!cargaInfo) {
+        // Verificar que el archivo existe
+        if (!fs.existsSync(imagePath)) {
+            console.log(`❌ [QR Controller] Imagen QR no encontrada: ${filename}`);
             return res.status(404).json({
                 success: false,
-                message: 'Carga no encontrada'
+                message: 'Imagen QR no encontrada'
             });
         }
         
-        // Obtener items sin QR
-        const items = db.prepare(`
-            SELECT id, item_numero, descripcion
-            FROM packing_list_items
-            WHERE id_carga = ?
-            ORDER BY item_numero ASC
-        `).all(idCarga);
+        // Servir archivo
+        res.sendFile(imagePath);
         
-        // Generar QRs para cada item
-        const updateItem = db.prepare(`
-            UPDATE packing_list_items 
-            SET qr_code = ?
-            WHERE id = ?
-        `);
+    } catch (error) {
+        console.error('❌ [QR Controller] Error al servir imagen QR:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al servir imagen QR',
+            error: error.message
+        });
+    }
+};
+
+// Obtener estadísticas de QRs
+export const obtenerEstadisticasQR = async (req, res) => {
+    try {
+        const { id_carga } = req.params;
+        console.log(`📊 [QR Controller] Obteniendo estadísticas QR de carga: ${id_carga}`);
         
-        let qrsGenerados = 0;
+        const estadisticas = await QRModel.getEstadisticasQRs(id_carga);
         
-        for (const item of items) {
-            const qrData = {
-                carga: cargaInfo.codigo_carga,
-                item: item.item_numero,
-                descripcion: item.descripcion,
-                timestamp: Date.now()
-            };
-            
-            const qrCode = JSON.stringify(qrData);
-            
-            try {
-                updateItem.run(qrCode, item.id);
-                qrsGenerados++;
-            } catch (error) {
-                console.error(`❌ Error al actualizar QR para item ${item.item_numero}:`, error);
-            }
-        }
-        
-        console.log(`✅ [QR Controller] ${qrsGenerados} QRs generados`);
+        console.log(`✅ [QR Controller] Estadísticas QR obtenidas`);
         
         res.json({
             success: true,
-            message: `${qrsGenerados} códigos QR generados correctamente`,
-            data: {
-                qrs_generados: qrsGenerados,
-                total_items: items.length
-            }
+            data: estadisticas
         });
         
     } catch (error) {
-        console.error('❌ [QR Controller] Error al generar QRs:', error);
+        console.error('❌ [QR Controller] Error al obtener estadísticas QR:', error);
         res.status(500).json({
             success: false,
-            message: 'Error al generar códigos QR',
+            message: 'Error al obtener estadísticas QR',
+            error: error.message
+        });
+    }
+};
+
+// Regenerar QR para caja
+export const regenerarQRCaja = async (req, res) => {
+    try {
+        const { id_caja } = req.params;
+        console.log(`🔄 [QR Controller] Regenerando QR para caja: ${id_caja}`);
+        
+        // Obtener información de la caja
+        const caja = await CajaModel.getCajaById(id_caja);
+        if (!caja) {
+            return res.status(404).json({
+                success: false,
+                message: 'Caja no encontrada'
+            });
+        }
+        
+        // Eliminar QR anterior si existe
+        const qrAnterior = await QRModel.getQRByCaja(id_caja);
+        if (qrAnterior) {
+            await QRModel.deleteQR(qrAnterior.id_qr);
+        }
+        
+        // Crear nuevo QR
+        const cajaInfo = {
+            numero_caja: caja.numero_caja,
+            cant_por_caja: caja.cant_por_caja,
+            ref_art: caja.ref_art || '',
+            descripcion_espanol: caja.descripcion_espanol || '',
+            descripcion_chino: caja.descripcion_chino || '',
+            codigo_carga: caja.codigo_carga || '',
+            ciudad_destino: caja.ciudad_destino || ''
+        };
+        
+        const nuevoQR = await QRModel.createQRForCaja(id_caja, cajaInfo);
+        
+        console.log(`✅ [QR Controller] QR regenerado: ${nuevoQR.codigo_qr}`);
+        
+        res.json({
+            success: true,
+            data: nuevoQR,
+            message: 'QR regenerado exitosamente'
+        });
+        
+    } catch (error) {
+        console.error('❌ [QR Controller] Error al regenerar QR:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al regenerar QR',
             error: error.message
         });
     }
@@ -175,73 +178,49 @@ export const generarQRDataParaCarga = async (req, res) => {
 // Validar QR escaneado
 export const validarQREscaneado = async (req, res) => {
     try {
-        const { qrData } = req.body;
-        console.log(`🔍 [QR Controller] Validando QR escaneado`);
+        const { codigo_qr } = req.body;
+        console.log(`🔍 [QR Controller] Validando QR escaneado: ${codigo_qr}`);
         
-        if (!qrData) {
+        if (!codigo_qr) {
             return res.status(400).json({
                 success: false,
-                message: 'Datos QR requeridos'
+                message: 'Código QR requerido'
             });
         }
         
-        let parsedData;
-        try {
-            parsedData = JSON.parse(qrData);
-        } catch (error) {
-            return res.status(400).json({
-                success: false,
-                message: 'Formato de QR inválido'
-            });
-        }
+        // Buscar QR en base de datos
+        const qr = await QRModel.getQRByCodigo(codigo_qr);
         
-        const db = await initDatabase();
-        
-        // Buscar el item por código QR
-        const query = `
-            SELECT 
-                pli.id,
-                pli.item_numero,
-                pli.descripcion,
-                pli.cantidad,
-                pli.peso,
-                pli.medidas,
-                pli.valor,
-                c.codigo_carga,
-                c.direccion_destino,
-                cl.nombre_cliente
-            FROM packing_list_items pli
-            JOIN cargas c ON pli.id_carga = c.id
-            JOIN clientes cl ON c.id_cliente = cl.id
-            WHERE pli.qr_code = ?
-        `;
-        
-        const item = db.prepare(query).get(qrData);
-        
-        if (!item) {
+        if (!qr) {
             return res.status(404).json({
                 success: false,
-                message: 'Código QR no encontrado en el sistema'
+                message: 'QR no válido o no encontrado'
             });
         }
         
-        console.log(`✅ [QR Controller] QR válido para item: ${item.descripcion}`);
+        // Obtener información completa de la caja y carga
+        const caja = await CajaModel.getCajaById(qr.id_caja);
+        const carga = caja ? await CargaModel.getCargaById(caja.id_articulo) : null;
+        
+        console.log(`✅ [QR Controller] QR válido encontrado`);
         
         res.json({
             success: true,
-            message: 'Código QR válido',
             data: {
-                item: item,
-                qr_data: parsedData,
-                validado_en: new Date().toISOString()
-            }
+                qr,
+                caja,
+                carga,
+                valido: true,
+                fecha_validacion: new Date().toISOString()
+            },
+            message: 'QR válido'
         });
         
     } catch (error) {
         console.error('❌ [QR Controller] Error al validar QR:', error);
         res.status(500).json({
             success: false,
-            message: 'Error al validar código QR',
+            message: 'Error al validar QR',
             error: error.message
         });
     }

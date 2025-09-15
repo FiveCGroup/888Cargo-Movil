@@ -4,24 +4,16 @@ import {
     procesarExcel, 
     guardarPackingListConQR, 
     buscarPackingList,
-    obtenerPackingList,
-    obtenerCargaMeta
+    generarCodigoCarga,
+    obtenerCargaPorId,
+    obtenerQRsDeCarga
 } from '../controllers/carga.controller.js';
 import { authenticateToken } from '../utils/auth.middleware.js';
 
 const router = express.Router();
 
 // Configuración de multer para subida de archivos
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/'); // Asegúrate de que esta carpeta existe
-    },
-    filename: (req, file, cb) => {
-        const timestamp = Date.now();
-        const originalName = file.originalname.replace(/\s+/g, '_'); // Reemplazar espacios
-        cb(null, `${timestamp}_${originalName}`);
-    }
-});
+const storage = multer.memoryStorage(); // Usar memoria en lugar de disco para mayor compatibilidad
 
 const upload = multer({ 
     storage: storage,
@@ -44,14 +36,11 @@ const upload = multer({
     }
 });
 
-// Aplicar middleware de autenticación a todas las rutas
-router.use(authenticateToken);
-
-// POST /api/cargas/procesar-excel - Procesar archivo Excel
+// POST /api/cargas/procesar-excel - Procesar archivo Excel (sin autenticación para móvil)
 router.post('/procesar-excel', upload.single('excelFile'), async (req, res) => {
     console.log('🚀 [Carga Routes] POST /procesar-excel iniciado');
     console.log('📄 [Carga Routes] Archivo:', req.file ? req.file.filename : 'No hay archivo');
-    console.log('👤 [Carga Routes] Usuario:', req.user ? req.user.id : 'No user');
+    console.log('� [Carga Routes] Petición desde móvil (sin autenticación)');
     
     try {
         await procesarExcel(req, res);
@@ -65,14 +54,14 @@ router.post('/procesar-excel', upload.single('excelFile'), async (req, res) => {
     }
 });
 
-// POST /api/cargas/guardar-packing-list - Guardar packing list con QR
+// POST /api/cargas/guardar-packing-list - Guardar packing list con QR (sin autenticación para móvil)
 router.post('/guardar-packing-list', async (req, res) => {
     console.log('🚀 [Carga Routes] POST /guardar-packing-list iniciado');
     console.log('📦 [Carga Routes] Datos recibidos:', {
         hasData: !!req.body.data,
-        hasMetadata: !!req.body.metadata,
-        userId: req.user ? req.user.id : 'No user'
+        hasMetadata: !!req.body.metadata
     });
+    console.log('📱 [Carga Routes] Petición desde móvil (sin autenticación)');
     
     try {
         await guardarPackingListConQR(req, res);
@@ -86,16 +75,16 @@ router.post('/guardar-packing-list', async (req, res) => {
     }
 });
 
-// GET /api/cargas/buscar - Buscar packing lists
-router.get('/buscar', async (req, res) => {
-    console.log('🚀 [Carga Routes] GET /buscar iniciado');
-    console.log('🔍 [Carga Routes] Query params:', req.query);
-    console.log('👤 [Carga Routes] Usuario:', req.user ? req.user.id : 'No user');
+// GET /api/cargas/buscar/:codigo - Buscar packing list por código (sin autenticación para móvil)
+router.get('/buscar/:codigo', async (req, res) => {
+    console.log('🚀 [Carga Routes] GET /buscar/:codigo iniciado');
+    console.log('🔍 [Carga Routes] Código:', req.params.codigo);
+    console.log('� [Carga Routes] Petición desde móvil (sin autenticación)');
     
     try {
         await buscarPackingList(req, res);
     } catch (error) {
-        console.error('❌ [Carga Routes] Error en buscar:', error);
+        console.error('❌ [Carga Routes] Error en buscar por código:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor',
@@ -104,16 +93,20 @@ router.get('/buscar', async (req, res) => {
     }
 });
 
-// GET /api/cargas/:id - Obtener packing list específico
-router.get('/:id', async (req, res) => {
-    console.log('🚀 [Carga Routes] GET /:id iniciado');
-    console.log('🆔 [Carga Routes] ID solicitado:', req.params.id);
-    console.log('👤 [Carga Routes] Usuario:', req.user ? req.user.id : 'No user');
+// GET /api/cargas/generar-codigo - Generar código único para carga (sin autenticación para móvil)
+router.get('/generar-codigo', async (req, res) => {
+    console.log('🚀 [Carga Routes] GET /generar-codigo iniciado');
+    console.log('� [Carga Routes] Petición desde móvil (sin autenticación)');
     
     try {
-        await obtenerPackingList(req, res);
+        const codigoCarga = generarCodigoCarga();
+        res.json({
+            success: true,
+            codigo_carga: codigoCarga,
+            message: 'Código generado exitosamente'
+        });
     } catch (error) {
-        console.error('❌ [Carga Routes] Error en obtener packing list:', error);
+        console.error('❌ [Carga Routes] Error al generar código:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor',
@@ -122,16 +115,34 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// GET /api/cargas/:id/metadata - Obtener metadata de carga
-router.get('/:id/metadata', async (req, res) => {
-    console.log('🚀 [Carga Routes] GET /:id/metadata iniciado');
-    console.log('🆔 [Carga Routes] ID carga:', req.params.id);
-    console.log('👤 [Carga Routes] Usuario:', req.user ? req.user.id : 'No user');
+// GET /api/cargas/:idCarga - Obtener información de una carga (sin autenticación para móvil)
+router.get('/:idCarga', async (req, res) => {
+    console.log('🚀 [Carga Routes] GET /:idCarga iniciado');
+    console.log('📋 [Carga Routes] ID de carga:', req.params.idCarga);
+    console.log('📱 [Carga Routes] Petición desde móvil (sin autenticación)');
     
     try {
-        await obtenerCargaMeta(req, res);
+        await obtenerCargaPorId(req, res);
     } catch (error) {
-        console.error('❌ [Carga Routes] Error en obtener metadata:', error);
+        console.error('❌ [Carga Routes] Error al obtener carga:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor',
+            error: error.message
+        });
+    }
+});
+
+// GET /api/cargas/:idCarga/qrs - Obtener QRs de una carga (sin autenticación para móvil)
+router.get('/:idCarga/qrs', async (req, res) => {
+    console.log('🚀 [Carga Routes] GET /:idCarga/qrs iniciado');
+    console.log('🏷️ [Carga Routes] ID de carga:', req.params.idCarga);
+    console.log('📱 [Carga Routes] Petición desde móvil (sin autenticación)');
+    
+    try {
+        await obtenerQRsDeCarga(req, res);
+    } catch (error) {
+        console.error('❌ [Carga Routes] Error al obtener QRs:', error);
         res.status(500).json({
             success: false,
             message: 'Error interno del servidor',
