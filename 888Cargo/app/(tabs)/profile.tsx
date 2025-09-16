@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '../../hooks/useAuth';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/Colors';
 import { createThemeStyles } from '../../constants/Theme';
@@ -7,33 +7,10 @@ import { useColorScheme } from '../../hooks/useColorScheme';
 import Logo888Cargo from '../../components/Logo888Cargo';
 
 export default function ProfileScreen() {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const colorScheme = useColorScheme();
     const themeStyles = createThemeStyles(colorScheme ?? 'light');
     const colors = Colors[colorScheme ?? 'light'];
-
-    const handleLogout = () => {
-        Alert.alert(
-            'Cerrar Sesión',
-            '¿Estás seguro que deseas cerrar sesión?',
-            [
-                {
-                    text: 'Cancelar',
-                    style: 'cancel'
-                },
-                {
-                    text: 'Cerrar Sesión',
-                    style: 'destructive',
-                    onPress: async () => {
-                        const result = await logout();
-                        if (!result.success) {
-                            Alert.alert('Error', 'Error al cerrar sesión');
-                        }
-                    }
-                }
-            ]
-        );
-    };
 
     return (
         <View style={[themeStyles.container, styles.container]}>
@@ -90,13 +67,6 @@ export default function ProfileScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
-
-            <TouchableOpacity 
-                style={[themeStyles.button, themeStyles.buttonDanger, styles.logoutButton]}
-                onPress={handleLogout}
-            >
-                <Text style={themeStyles.buttonText}>🚪 Cerrar Sesión</Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -157,9 +127,5 @@ const styles = StyleSheet.create({
     menuItemText: {
         fontSize: FontSizes.base,
         fontWeight: '500',
-    },
-    logoutButton: {
-        padding: Spacing.lg,
-        alignItems: 'center',
     },
 });

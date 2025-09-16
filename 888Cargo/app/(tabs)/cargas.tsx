@@ -199,7 +199,7 @@ const CrearCarga = () => {
   // Función para visualizar QRs
   const handleVisualizarQR = () => {
     console.log('🔍 [CrearCarga] Datos guardado disponibles:', JSON.stringify(datosGuardado, null, 2));
-    const idCarga = datosGuardado?.carga?.id_carga || datosGuardado?.idCarga;
+    const idCarga = datosGuardado?.carga?.id || datosGuardado?.carga?.id_carga || datosGuardado?.idCarga;
     console.log('🔍 [CrearCarga] ID carga extraído:', idCarga);
     if (idCarga) {
       console.log('🏷️ [CrearCarga] Navegando a visualizar QRs, ID carga:', idCarga);
@@ -263,7 +263,18 @@ const CrearCarga = () => {
         setGuardadoExitoso(true);
         setDatosGuardado(resultado.data);
         
-        const { articulos_creados, cajas_creadas, qrs_creados } = resultado.data;
+        // Extraer estadísticas correctas del backend
+        const estadisticas = resultado.data.estadisticas || {};
+        const articulos_creados = estadisticas.articulos_creados || 0;
+        const cajas_creadas = estadisticas.cajas_generadas || 0;
+        const qrs_creados = estadisticas.qrs_generados || 0;
+        
+        console.log('📊 [CrearCarga] Estadísticas procesadas:', {
+          articulos_creados,
+          cajas_creadas,
+          qrs_creados,
+          estadisticas_completas: estadisticas
+        });
         
         Alert.alert(
           'Éxito', 

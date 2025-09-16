@@ -15,6 +15,10 @@ interface QRData {
   qr_code: string;
   descripcion: string;
   item_numero: number;
+  numero_caja: number;
+  total_cajas: number;
+  ref_art?: string;
+  id_articulo?: number;
   url_imagen?: string;
 }
 
@@ -37,16 +41,79 @@ const VisualizarQr: React.FC = () => {
   const cargarDatosQR = async () => {
     try {
       setLoading(true);
-      const resultado = await CargaService.obtenerQRDataDeCarga(idCarga!);
+      console.log('📄 [VisualizarQr] Cargando QR data para carga:', idCarga);
+      
+      let resultado = await CargaService.obtenerQRDataDeCarga(idCarga!);
+      
+      // Si falla por autenticación, intentar obtener de otra manera
+      if (!resultado.success && resultado.error?.includes('403') || resultado.error?.includes('401') || resultado.error?.includes('token') || resultado.error?.includes('acceso denegado')) {
+        console.warn('⚠️ [VisualizarQr] Error de autenticación, requiere login');
+        setError('Error de autenticación. Por favor, vuelve a hacer login.');
+        return;
+      }
+      
+      console.log('📄 [VisualizarQr] Resultado completo:', JSON.stringify(resultado, null, 2));
       
       if (resultado.success) {
-        setQrData(resultado.data || []);
+        // Corregir la estructura de datos - el backend devuelve resultado.data.qrs
+        const datosQR = resultado.data?.qrs || [];
+        console.log('📄 [VisualizarQr] Datos QR procesados:', datosQR.length, 'elementos');
+        console.log('📄 [VisualizarQr] Primer elemento:', datosQR[0]);
+        console.log('📄 [VisualizarQr] Estructura completa resultado.data:', resultado.data);
+        
+        if (datosQR.length === 0) {
+          console.warn('⚠️ [VisualizarQr] No se encontraron QRs para esta carga');
+          setError('No se encontraron códigos QR para esta carga. Verifica que la carga se haya guardado correctamente.');
+          return;
+        }
+        
+        // Mapear los datos y asignar números de artículo correctos
+        console.log('🔍 [VisualizarQr] Datos QR raw antes del mapeo:', datosQR.map((qr: any) => ({
+          id_qr: qr.id_qr,
+          id_articulo: qr.id_articulo,
+          numero_caja: qr.numero_caja,
+          total_cajas: qr.total_cajas,
+          descripcion: qr.descripcion_espanol
+        })));
+        
+        // Crear un mapa de id_articulo a número de artículo secuencial
+        const articulosUnicos = [...new Set(datosQR.map((qr: any) => qr.id_articulo))];
+        console.log('🔍 [VisualizarQr] Artículos únicos encontrados:', articulosUnicos);
+        
+        const articuloNumeroMap = new Map();
+        articulosUnicos.forEach((idArticulo, index) => {
+          articuloNumeroMap.set(idArticulo, index + 1);
+          console.log(`🔍 [VisualizarQr] Artículo ID ${idArticulo} -> Número ${index + 1}`);
+        });
+        
+        const qrDataMapeada = datosQR.map((qr: any) => ({
+          id: qr.id_qr,
+          item_numero: articuloNumeroMap.get(qr.id_articulo), // Número del artículo
+          qr_code: qr.codigo_qr,
+          descripcion: qr.descripcion_espanol || qr.ref_art || `Caja ${qr.numero_caja}`,
+          numero_caja: qr.numero_caja,
+          total_cajas: qr.total_cajas,
+          ref_art: qr.ref_art,
+          id_articulo: qr.id_articulo
+        }));
+        
+        console.log('🔍 [VisualizarQr] Datos finales mapeados:', qrDataMapeada.map((item: any) => ({
+          id: item.id,
+          item_numero: item.item_numero,
+          numero_caja: item.numero_caja,
+          total_cajas: item.total_cajas,
+          id_articulo: item.id_articulo
+        })));
+        
+        console.log('📄 [VisualizarQr] Datos mapeados:', qrDataMapeada.length, 'QRs');
+        setQrData(qrDataMapeada);
       } else {
+        console.error('📄 [VisualizarQr] Error en resultado:', resultado.error);
         setError(resultado.error || 'Error al cargar códigos QR');
       }
     } catch (error) {
-      console.error('Error al cargar QR data:', error);
-      setError('Error al cargar códigos QR');
+      console.error('📄 [VisualizarQr] Error al cargar QR data:', error);
+      setError(`Error al cargar códigos QR: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -67,45 +134,50 @@ const VisualizarQr: React.FC = () => {
   const handleGenerarPDF = async () => {
     try {
       setGenerandoPDF(true);
+      console.log('📄 [VisualizarQr] Iniciando descarga de PDF para carga:', idCarga);
       
-      // Generar PDF a través del servicio
-      const response = await fetch(`http://10.0.2.2:3102/api/qr/pdf-carga/${idCarga}?useOptimized=true&nocache=${Date.now()}`);
+      // Usar el servicio de carga que tiene la lógica adaptada del proyecto web
+      const resultado = await CargaService.descargarPDFQRs(idCarga!, true); // true para versión optimizada
       
-      if (!response.ok) {
+      if (!resultado.success) {
         throw new Error('Error al generar PDF');
       }
 
-      const blob = await response.blob();
+      // Guardar el PDF en el sistema de archivos móvil
+      const fileUri = FileSystem.documentDirectory + resultado.data.filename;
       
-      // Guardar en sistema de archivos
-      const filename = `QR-Codes-Carga-${idCarga}-${Date.now()}.pdf`;
-      const fileUri = FileSystem.documentDirectory + filename;
+      await FileSystem.writeAsStringAsync(fileUri, resultado.data.base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
       
-      // Convertir blob a base64
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64Data = (reader.result as string).split(',')[1];
-        
-        await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-          encoding: FileSystem.EncodingType.Base64,
+      console.log('✅ [VisualizarQr] PDF guardado en:', fileUri);
+      
+      // Compartir archivo
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Códigos QR de la Carga',
         });
         
-        // Compartir archivo
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri, {
-            mimeType: 'application/pdf',
-            dialogTitle: 'Códigos QR de la Carga',
-          });
-        } else {
-          Alert.alert('Éxito', `PDF guardado en: ${fileUri}`);
-        }
-      };
-      
-      reader.readAsDataURL(blob);
+        Alert.alert(
+          'Éxito', 
+          'PDF generado y compartido exitosamente',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Éxito', 
+          `PDF guardado exitosamente en:\n${fileUri}`,
+          [{ text: 'OK' }]
+        );
+      }
       
     } catch (error) {
-      console.error('Error al generar PDF:', error);
-      Alert.alert('Error', 'No se pudo generar el PDF');
+      console.error('❌ [VisualizarQr] Error al generar PDF:', error);
+      Alert.alert(
+        'Error', 
+        `No se pudo generar el PDF: ${error instanceof Error ? error.message : String(error)}`
+      );
     } finally {
       setGenerandoPDF(false);
     }
@@ -113,8 +185,15 @@ const VisualizarQr: React.FC = () => {
 
   const handleCompartirQR = async (qrCode: string, descripcion: string) => {
     try {
-      // Crear un QR individual y compartirlo
-      const qrUrl = `http://10.0.2.2:3102/api/qr/imagen/${encodeURIComponent(qrCode)}`;
+      // Encontrar el item QR para obtener el ID
+      const qrItem = qrData?.find(item => item.qr_code === qrCode);
+      if (!qrItem) {
+        Alert.alert('Error', 'No se pudo encontrar el QR para compartir');
+        return;
+      }
+      
+      // Crear un QR individual y compartirlo usando el ID
+      const qrUrl = `http://10.0.2.2:4000/api/qr/image/${qrItem.id}?width=400`;
       
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(qrUrl, {
@@ -212,45 +291,61 @@ const VisualizarQr: React.FC = () => {
 
         {/* Grid de códigos QR */}
         <View style={styles.gridContainer}>
-          {qrData.map((item, index) => (
-            <View key={item.id} style={styles.qrCard}>
-              {/* Header de la card */}
-              <View style={styles.qrCardHeader}>
-                <Text style={styles.qrNumero}>#{item.item_numero}</Text>
-                <TouchableOpacity
-                  onPress={() => handleCompartirQR(item.qr_code, item.descripcion)}
-                  style={styles.botonCompartir}
-                >
-                  <Ionicons name="share" size={16} color="#007bff" />
-                </TouchableOpacity>
-              </View>
+          {qrData && qrData.length > 0 ? (
+            qrData.map((item, index) => (
+              <View key={item.id} style={styles.qrCard}>
+                {/* Header de la card */}
+                <View style={styles.qrCardHeader}>
+                  <Text style={styles.qrNumero}>
+                    Item #{item.item_numero} - Caja {item.numero_caja} de {item.total_cajas}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleCompartirQR(item.qr_code, item.descripcion)}
+                    style={styles.botonCompartir}
+                  >
+                    <Ionicons name="share" size={16} color="#007bff" />
+                  </TouchableOpacity>
+                </View>
 
-              {/* Imagen QR */}
-              <View style={styles.qrImageContainer}>
-                <Image
-                  source={{ 
-                    uri: `http://10.0.2.2:3102/api/qr/imagen/${encodeURIComponent(item.qr_code)}?size=200`
-                  }}
-                  style={styles.qrImage}
-                  resizeMode="contain"
-                />
-              </View>
+                {/* Imagen QR */}
+                <View style={styles.qrImageContainer}>
+                  <Image
+                    source={{ 
+                      uri: `http://10.0.2.2:4000/api/qr/image/${item.id}?width=200`
+                    }}
+                    style={styles.qrImage}
+                    resizeMode="contain"
+                    onError={(error) => {
+                      console.error('❌ Error cargando imagen QR:', error);
+                      console.log('🔍 URL que falló:', `http://10.0.2.2:4000/api/qr/image/${item.id}`);
+                    }}
+                  />
+                </View>
 
-              {/* Descripción */}
-              <View style={styles.qrDescripcion}>
-                <Text style={styles.qrTexto} numberOfLines={2} ellipsizeMode="tail">
-                  {item.descripcion || `Item ${item.item_numero}`}
-                </Text>
-              </View>
+                {/* Descripción */}
+                <View style={styles.qrDescripcion}>
+                  <Text style={styles.qrTexto} numberOfLines={2} ellipsizeMode="tail">
+                    {item.descripcion || `Item ${item.item_numero}`}
+                  </Text>
+                </View>
 
-              {/* Código QR (texto) */}
-              <View style={styles.qrCodigo}>
-                <Text style={styles.qrCodigoTexto} numberOfLines={1} ellipsizeMode="middle">
-                  {item.qr_code}
-                </Text>
+                {/* Código QR (texto) */}
+                <View style={styles.qrCodigo}>
+                  <Text style={styles.qrCodigoTexto} numberOfLines={1} ellipsizeMode="middle">
+                    {item.qr_code}
+                  </Text>
+                </View>
               </View>
+            ))
+          ) : (
+            <View style={styles.centrado}>
+              <Ionicons name="qr-code-outline" size={64} color="#ccc" />
+              <Text style={styles.textoSinDatos}>No hay códigos QR disponibles</Text>
+              <Text style={styles.textoSinDatosSubtitulo}>
+                Los códigos QR se generan automáticamente al guardar la carga
+              </Text>
             </View>
-          ))}
+          )}
         </View>
 
         {/* Espacio adicional al final */}
@@ -385,13 +480,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   qrNumero: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
     color: '#007bff',
     backgroundColor: '#e3f2fd',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
+    flex: 1,
+    textAlign: 'center',
   },
   botonCompartir: {
     padding: 4,
@@ -448,6 +545,19 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  textoSinDatos: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 15,
+    fontWeight: '500',
+  },
+  textoSinDatosSubtitulo: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 5,
   },
   espacioFinal: {
     height: 40,

@@ -17,7 +17,7 @@ const getApiUrl = () => {
       return process.env.EXPO_PUBLIC_API_URL_PROD || 'https://api.888cargo.com/api';
     case 'development':
     default:
-      return process.env.EXPO_PUBLIC_API_URL_LOCAL || 'http://192.168.58.100:3100/api';
+      return process.env.EXPO_PUBLIC_API_URL_LOCAL || 'http://192.168.58.100:4000/api';
   }
 };
 

@@ -37,35 +37,12 @@ export default function Dashboard({
     onNavigateToQRScanner,
     onNavigateToProfile
 }: DashboardProps) {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const [pressedCard, setPressedCard] = useState<number | null>(null);
 
     const colorScheme = useColorScheme();
     const themeStyles = createThemeStyles(colorScheme ?? 'light');
     const colors = Colors[colorScheme ?? 'light'];
-
-    const handleLogout = () => {
-        Alert.alert(
-            'Cerrar Sesión',
-            '¿Estás seguro que deseas cerrar sesión?',
-            [
-                {
-                    text: 'Cancelar',
-                    style: 'cancel'
-                },
-                {
-                    text: 'Cerrar Sesión',
-                    style: 'destructive',
-                    onPress: async () => {
-                        const result = await logout();
-                        if (!result.success) {
-                            Alert.alert('Error', 'Error al cerrar sesión');
-                        }
-                    }
-                }
-            ]
-        );
-    };
 
     const dashboardCards: DashboardCard[] = [
         {
@@ -109,19 +86,13 @@ export default function Dashboard({
     return (
         <View style={themeStyles.container}>
             {/* Header estilo web */}
-            <View style={[themeStyles.navBar, styles.header]}>
+            <View style={[styles.header]}>
                 <View>
                     <Text style={[styles.welcomeText, { color: colors.textLight }]}>¡Hola!</Text>
                     <Text style={[styles.userNameText, { color: colors.textLight }]}>
                         {user?.name || user?.email || 'Usuario'}
                     </Text>
                 </View>
-                <TouchableOpacity
-                    style={[themeStyles.button, themeStyles.buttonDanger, styles.logoutButton]}
-                    onPress={handleLogout}
-                >
-                    <Text style={themeStyles.buttonText}>Salir</Text>
-                </TouchableOpacity>
             </View>
 
             <ScrollView
@@ -190,10 +161,15 @@ export default function Dashboard({
 const styles = StyleSheet.create({
     header: {
         paddingVertical: Spacing.lg,
+        paddingHorizontal: Spacing.lg, // Agregar padding horizontal
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: Spacing.md,
+        backgroundColor: '#17243f', // Fondo azul oscuro
+        marginHorizontal: -Spacing.lg, // Extender a los bordes
+        marginTop: -Spacing.lg, // Extender hacia arriba
+        paddingTop: 60, // Espacio para la status bar
     },
     welcomeText: {
         fontSize: FontSizes.base,
@@ -203,11 +179,6 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.lg,
         fontWeight: '700',
         marginTop: Spacing.xs,
-    },
-    logoutButton: {
-        paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.sm,
-        minWidth: 80,
     },
     content: {
         flex: 1,

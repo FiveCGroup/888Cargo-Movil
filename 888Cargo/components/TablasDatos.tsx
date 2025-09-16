@@ -13,10 +13,38 @@ const TablasDatos: React.FC<TablasDatosProps> = ({ datosExcel, filasConError }) 
   const datosProcessados = useMemo(() => {
     if (!datosExcel || datosExcel.length <= 1) return { headers: [], rows: [] };
     
-    const headers = datosExcel[0] || [];
-    const rows = datosExcel.slice(1);
+    const originalHeaders = datosExcel[0] || [];
+    const originalRows = datosExcel.slice(1);
     
-    return { headers, rows };
+    // Detectar si hay celda combinada "MEDIDA DE CAJA" seguida de celdas vacías
+    const medidaCajaIndex = originalHeaders.findIndex(header => 
+      header && header.toString().toLowerCase().includes('medida de caja')
+    );
+    
+    if (medidaCajaIndex !== -1) {
+      // Verificar si las siguientes 2 columnas están vacías (indicando celda combinada)
+      const siguienteColumna1 = originalHeaders[medidaCajaIndex + 1];
+      const siguienteColumna2 = originalHeaders[medidaCajaIndex + 2];
+      
+      const esCeldaCombinada = (
+        (!siguienteColumna1 || siguienteColumna1.toString().trim() === '') &&
+        (!siguienteColumna2 || siguienteColumna2.toString().trim() === '')
+      );
+      
+      if (esCeldaCombinada) {
+        // Crear nuevos headers para la celda combinada
+        const newHeaders = [...originalHeaders];
+        newHeaders[medidaCajaIndex] = 'Largo';
+        newHeaders[medidaCajaIndex + 1] = 'Ancho';
+        newHeaders[medidaCajaIndex + 2] = 'Alto';
+        
+        // Los datos ya están en las columnas correctas, solo actualizar headers
+        return { headers: newHeaders, rows: originalRows };
+      }
+    }
+    
+    // Si no hay celda combinada "MEDIDA DE CAJA", retornar datos originales
+    return { headers: originalHeaders, rows: originalRows };
   }, [datosExcel]);
 
   // Mapeo de anchos fijos por columna para alineación perfecta

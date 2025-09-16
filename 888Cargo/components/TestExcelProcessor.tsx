@@ -47,7 +47,7 @@ const TestExcelProcessor = () => {
           `Archivo procesado correctamente!\n\nFilas: ${response.data.estadisticas?.totalFilas || 0}\nProductos: ${response.data.estadisticas?.filasValidas || 0}`
         );
       } else {
-        Alert.alert('Error', response.error || 'Error al procesar archivo');
+        Alert.alert('Error', (response as any).error || 'Error al procesar archivo');
       }
     } catch (error) {
       console.error('❌ [TestComponent] Error:', error);
