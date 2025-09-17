@@ -1,4 +1,4 @@
-import { Tabs, Redirect } from 'expo-router';
+import { Tabs, Redirect, router } from 'expo-router';
 import React from 'react';
 import { Platform, View, ActivityIndicator, Text, Alert, TouchableOpacity } from 'react-native';
 
@@ -30,9 +30,22 @@ export default function TabLayout() {
           text: 'Cerrar Sesión',
           style: 'destructive',
           onPress: async () => {
-            const result = await logout();
-            if (!result.success) {
-              Alert.alert('Error', 'Error al cerrar sesión');
+            try {
+              console.log('🚪 [TabLayout] Iniciando proceso de logout...');
+              const result = await logout();
+              
+              if (result.success) {
+                console.log('✅ [TabLayout] Logout exitoso, redirigiendo...');
+                // Forzar redirección a la pantalla de login
+                router.replace('/login');
+              } else {
+                console.warn('⚠️ [TabLayout] Error en logout pero continuando...');
+                // Aún así redirigir porque el estado local se limpió
+                router.replace('/login');
+              }
+            } catch (error) {
+              console.error('❌ [TabLayout] Error en handleLogout:', error);
+              Alert.alert('Error', 'Error al cerrar sesión. Intenta nuevamente.');
             }
           }
         }
@@ -111,23 +124,21 @@ export default function TabLayout() {
               <TouchableOpacity
                 style={{
                   flex: 1,
-                  justifyContent: 'center',
                   alignItems: 'center',
-                  backgroundColor: '#dc3545',
-                  marginHorizontal: 4,
-                  marginVertical: 6,
-                  borderRadius: 8,
-                  paddingVertical: 8,
+                  paddingTop: 6, // Mismo padding top que usan los tabs nativos
+                  paddingBottom: 6,
+                  paddingHorizontal: 2,
                 }}
                 onPress={handleLogout}
-                activeOpacity={0.7}
+                activeOpacity={0.6}
               >
-                <IconSymbol size={24} name="power" color="#ffffff" />
+                <IconSymbol size={28} name="power" color="#dc3545" />
                 <Text style={{ 
-                  color: '#ffffff', 
-                  fontSize: 11, 
-                  marginTop: 2, 
-                  fontWeight: '600' 
+                  color: '#dc3545',
+                  fontSize: 12,
+                  marginTop: 2, // Reducir spacing para coincidir con tabs nativos
+                  fontWeight: '600',
+                  textAlign: 'center',
                 }}>
                   Salir
                 </Text>

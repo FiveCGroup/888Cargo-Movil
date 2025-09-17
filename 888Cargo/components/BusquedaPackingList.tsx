@@ -11,6 +11,7 @@ interface BusquedaPackingListProps {
   busquedaLoading: boolean;
   mostrandoResultados: boolean;
   resultadosBusqueda: any[];
+  error?: string; // Agregado para manejo de errores
   botonRegreso?: React.ReactNode;
 }
 
@@ -23,29 +24,47 @@ const BusquedaPackingList: React.FC<BusquedaPackingListProps> = ({
   busquedaLoading,
   mostrandoResultados,
   resultadosBusqueda,
+  error,
   botonRegreso
 }) => {
-  const renderResultado = ({ item }: { item: any }) => (
-    <View style={styles.resultadoItem}>
-      <View style={styles.resultadoInfo}>
-        <Text style={styles.resultadoCodigo}>{item.codigo_carga}</Text>
-        <Text style={styles.resultadoCliente}>{item.nombre_cliente}</Text>
-        <Text style={styles.resultadoFecha}>
-          Creado: {new Date(item.fecha_creacion).toLocaleDateString('es-CO')}
-        </Text>
-        <Text style={styles.resultadoItems}>
-          {item.total_items || 0} items
-        </Text>
+  const renderResultado = ({ item }: { item: any }) => {
+    // Manejar diferentes estructuras de datos según venga de la búsqueda mejorada
+    const datos = item.articulos ? item : { articulos: item }; // Compatibilidad con estructura antigua
+    const cliente = datos.cliente || item;
+    const carga = datos.carga || item;
+    const estadisticas = datos.estadisticas || {};
+    
+    return (
+      <View style={styles.resultadoItem}>
+        <View style={styles.resultadoInfo}>
+          <Text style={styles.resultadoCodigo}>
+            {carga.codigo_carga || item.codigo_carga || 'N/A'}
+          </Text>
+          <Text style={styles.resultadoCliente}>
+            {cliente.nombre_cliente || item.nombre_cliente || 'Cliente no especificado'}
+          </Text>
+          <Text style={styles.resultadoFecha}>
+            Creado: {new Date(carga.fecha_creacion || item.fecha_creacion || Date.now()).toLocaleDateString('es-CO')}
+          </Text>
+          <Text style={styles.resultadoItems}>
+            {estadisticas.total_articulos || datos.articulos?.length || item.total_items || 0} artículos
+          </Text>
+          {estadisticas.total_peso_kg && (
+            <Text style={styles.resultadoPeso}>
+              Peso: {parseFloat(estadisticas.total_peso_kg).toFixed(2)} kg
+            </Text>
+          )}
+        </View>
+        <TouchableOpacity
+          style={styles.botonVerDetalles}
+          onPress={() => onVerDetalles(carga.id || item.id)}
+        >
+          <Ionicons name="eye" size={20} color="#fff" />
+          <Text style={styles.textoBotonVer}>Ver</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        style={styles.botonVerDetalles}
-        onPress={() => onVerDetalles(item.id)}
-      >
-        <Ionicons name="eye" size={20} color="#fff" />
-        <Text style={styles.textoBotonVer}>Ver</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -114,15 +133,23 @@ const BusquedaPackingList: React.FC<BusquedaPackingListProps> = ({
             </Text>
           </View>
 
+          {/* Mostrar error si existe */}
+          {error && (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle" size={20} color="#dc3545" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           {resultadosBusqueda.length > 0 ? (
             <FlatList
               data={resultadosBusqueda}
               renderItem={renderResultado}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item, index) => (item.id || index).toString()}
               showsVerticalScrollIndicator={false}
               style={styles.lista}
             />
-          ) : (
+          ) : !error && (
             <View style={styles.sinResultados}>
               <Ionicons name="document-outline" size={48} color="#ccc" />
               <Text style={styles.textoSinResultados}>
@@ -273,6 +300,11 @@ const styles = StyleSheet.create({
     color: '#28a745',
     fontWeight: '600',
   },
+  resultadoPeso: {
+    fontSize: 12,
+    color: '#6c757d',
+    fontWeight: '500',
+  },
   botonVerDetalles: {
     backgroundColor: '#28a745',
     paddingHorizontal: 15,
@@ -304,6 +336,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     textAlign: 'center',
+  },
+  errorContainer: {
+    backgroundColor: '#f8d7da',
+    borderColor: '#f5c6cb',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#721c24',
+    fontSize: 14,
+    marginLeft: 10,
+    flex: 1,
   },
 });
 

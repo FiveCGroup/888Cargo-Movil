@@ -233,28 +233,6 @@ class CargaService {
     }
   }
 
-  // Test de conectividad
-  async testConectividad() {
-    console.log('🔗 [CargaService] Probando conectividad...');
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/health`, {
-        method: 'GET'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ [CargaService] Conectividad OK:', data);
-      return { success: true, data };
-    } catch (error) {
-      console.error('❌ [CargaService] Conectividad FAILED:', error);
-      throw new Error(`Error de conectividad: ${error.message}`);
-    }
-  }
-
   // Obtener datos de QR de una carga
   async obtenerQRDataDeCarga(idCarga) {
     console.log('🏷️ [CargaService] Obteniendo datos de QR para carga:', idCarga);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -9,7 +9,6 @@ import BusquedaPackingList from '../../components/BusquedaPackingList';
 import TablasDatos from '../../components/TablasDatos';
 import ModalPackingList from '../../components/ModalPackingList';
 import Logo888Cargo from '../../components/Logo888Cargo';
-import TestExcelProcessor from '../../components/TestExcelProcessor';
 
 // Hooks y servicios
 import { useCrearCarga } from '../../hooks/useCrearCarga';
@@ -17,9 +16,6 @@ import CargaService from '../../services/cargaService.js';
 import { validarArchivoExcel, validarFormularioCarga } from '../../utils/cargaUtils';
 
 const CrearCarga = () => {
-  // Estado para modo debug
-  const [modoDebug, setModoDebug] = useState(false);
-  
   // Usar el custom hook para manejar el estado
   const {
     codigoCarga, setCodigoCarga,
@@ -50,30 +46,120 @@ const CrearCarga = () => {
     router.push('/');
   };
 
-  // Funciones de búsqueda
+  // Funciones de búsqueda - Mejorada con lógica de la web
   const handleBuscarPackingList = async () => {
+    // Validación de entrada
     if (!codigoCarga.trim()) {
       Alert.alert('Error', 'Por favor ingresa un código de packing list');
       return;
     }
 
-    setBusquedaLoading(true);
+    console.log('🔍 [CrearCarga] Iniciando búsqueda de packing list:', codigoCarga);
+    
+    // Limpiar estados previos
     setError('');
+    setResultadosBusqueda([]);
+    setMostrandoResultados(false);
+    setBusquedaLoading(true);
 
     try {
-      const resultado = await CargaService.buscarPackingList(codigoCarga);
+      const resultado = await CargaService.buscarPackingList(codigoCarga.trim());
       
-      if (resultado.success) {
-        setResultadosBusqueda(resultado.data);
-        setMostrandoResultados(true);
+      console.log('📊 [CrearCarga] Resultado de búsqueda:', resultado);
+      
+      if (resultado.success && resultado.data) {
+        // El backend devuelve un array de resultados en resultado.data
+        const datos = Array.isArray(resultado.data) ? resultado.data : [resultado.data];
+        
+        if (datos.length > 0) {
+          console.log('✅ [CrearCarga] Se encontraron', datos.length, 'packing list(s)');
+          
+          // Formatear datos para compatibilidad con el componente
+          const datosFormateados = datos.map((item: any) => ({
+            // Datos básicos de la carga
+            id: item.id_carga,
+            codigo_carga: item.codigo_carga,
+            fecha_creacion: item.fecha_inicio,
+            ciudad_destino: item.ciudad_destino,
+            archivo_original: item.archivo_original,
+            
+            // Información del cliente
+            nombre_cliente: item.cliente?.nombre_cliente || 'Cliente no especificado',
+            id_cliente: item.cliente?.id_cliente,
+            correo_cliente: item.cliente?.correo_cliente,
+            telefono_cliente: item.cliente?.telefono_cliente,
+            
+            // Estadísticas
+            total_items: item.estadisticas?.total_articulos || item.estadisticas?.articulos_creados || 0,
+            peso_total_kg: item.estadisticas?.peso_total || 0,
+            volumen_total_m3: item.estadisticas?.cbm_total || 0,
+            precio_total: item.estadisticas?.precio_total_carga || 0,
+            total_cajas: item.estadisticas?.total_cajas || 0,
+            
+            // Estructura completa para compatibilidad
+            carga: {
+              id: item.id_carga,
+              codigo_carga: item.codigo_carga,
+              fecha_creacion: item.fecha_inicio,
+              ciudad_destino: item.ciudad_destino
+            },
+            cliente: item.cliente,
+            estadisticas: {
+              total_articulos: item.estadisticas?.total_articulos || item.estadisticas?.articulos_creados || 0,
+              total_peso_kg: item.estadisticas?.peso_total || 0,
+              total_volumen_m3: item.estadisticas?.cbm_total || 0
+            }
+          }));
+          
+          setResultadosBusqueda(datosFormateados);
+          setMostrandoResultados(true);
+          
+          // Mensaje de éxito
+          const totalArticulos = datosFormateados.reduce((sum: number, item: any) => sum + (item.total_items || 0), 0);
+          Alert.alert(
+            'Búsqueda exitosa', 
+            `Se encontraron ${datosFormateados.length} packing list(s) con ${totalArticulos} artículos en total`
+          );
+        } else {
+          console.log('⚠️ [CrearCarga] Respuesta exitosa pero sin resultados');
+          setError('No se encontraron packing lists con ese código');
+          setResultadosBusqueda([]);
+          setMostrandoResultados(true);
+        }
       } else {
-        setError(resultado.error || 'No se encontraron resultados');
+        // Manejar caso de no encontrado como en la web
+        const mensajeError = resultado.message || resultado.error || 'No se encontró el packing list especificado';
+        console.log('❌ [CrearCarga] Packing list no encontrado:', mensajeError);
+        
+        setError(mensajeError);
         setResultadosBusqueda([]);
         setMostrandoResultados(true);
+        
+        Alert.alert('No encontrado', mensajeError);
       }
-    } catch (error) {
-      console.error('Error en búsqueda:', error);
-      setError('Error al buscar el packing list');
+    } catch (error: any) {
+      console.error('❌ [CrearCarga] Error en búsqueda:', error);
+      
+      // Manejo de errores más detallado como en la web
+      let mensajeError = 'Error al buscar el packing list';
+      
+      if (error.message) {
+        if (error.message.includes('Network')) {
+          mensajeError = 'Error de conexión. Verifica tu conexión a internet';
+        } else if (error.message.includes('404')) {
+          mensajeError = 'Packing list no encontrado';
+        } else if (error.message.includes('500')) {
+          mensajeError = 'Error del servidor. Intenta nuevamente';
+        } else {
+          mensajeError = error.message;
+        }
+      }
+      
+      setError(mensajeError);
+      setResultadosBusqueda([]);
+      setMostrandoResultados(true);
+      
+      Alert.alert('Error', mensajeError);
     } finally {
       setBusquedaLoading(false);
     }
@@ -210,20 +296,6 @@ const CrearCarga = () => {
     }
   };
 
-  // Función para probar conectividad
-  const probarConectividad = async () => {
-    try {
-      const resultado = await CargaService.testConectividad();
-      if (resultado.success) {
-        Alert.alert('Conectividad OK', 'Servidor respondiendo correctamente');
-      } else {
-        Alert.alert('Error de Conectividad', (resultado as any).error || 'No se puede conectar al servidor');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Error al probar conectividad');
-    }
-  };
-
   // Funciones de guardado
   const handleGuardarEnBD = async () => {
     // Validar formulario
@@ -308,21 +380,7 @@ const CrearCarga = () => {
           <Ionicons name="arrow-back" size={24} color="#007bff" />
         </TouchableOpacity>
         <Logo888Cargo size="small" layout="horizontal" showText={true} />
-        <TouchableOpacity onPress={() => setModoDebug(!modoDebug)} style={styles.botonDebug}>
-          <Ionicons name="bug" size={20} color={modoDebug ? "#ff6b6b" : "#999"} />
-        </TouchableOpacity>
       </View>
-
-      {/* Modo Debug */}
-      {modoDebug && (
-        <View style={styles.debugContainer}>
-          <Text style={styles.debugTitle}>🧪 Modo Debug</Text>
-          <TestExcelProcessor />
-        </View>
-      )}
-
-      {/* Contenido normal */}
-      {!modoDebug && (
 
       <ScrollView style={styles.contenido} showsVerticalScrollIndicator={false}>
         {/* Sección de búsqueda */}
@@ -335,6 +393,7 @@ const CrearCarga = () => {
           busquedaLoading={busquedaLoading}
           mostrandoResultados={mostrandoResultados}
           resultadosBusqueda={resultadosBusqueda}
+          error={error}
         />
 
         {/* Separador */}
@@ -343,12 +402,6 @@ const CrearCarga = () => {
           <Text style={styles.textoSeparador}>O</Text>
           <View style={styles.lineaSeparador} />
         </View>
-
-        {/* Botón de test de conectividad */}
-        <TouchableOpacity style={styles.botonTest} onPress={probarConectividad}>
-          <Ionicons name="wifi" size={20} color="#007bff" />
-          <Text style={styles.textoBotonTest}>Probar Conexión</Text>
-        </TouchableOpacity>
 
         {/* Sección de crear nueva carga */}
         <View style={styles.seccion}>
@@ -428,7 +481,6 @@ const CrearCarga = () => {
           />
         )}
       </ScrollView>
-      )}
 
       {/* Modal de datos del packing list */}
       <ModalPackingList
@@ -476,24 +528,6 @@ const styles = StyleSheet.create({
   },
   espaciador: {
     width: 34,
-  },
-  botonDebug: {
-    padding: 8,
-    borderRadius: 6,
-  },
-  debugContainer: {
-    flex: 1,
-    backgroundColor: '#f0f8ff',
-    margin: 10,
-    borderRadius: 10,
-    padding: 15,
-  },
-  debugTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-    textAlign: 'center',
   },
   contenido: {
     flex: 1,
@@ -584,23 +618,6 @@ const styles = StyleSheet.create({
   textoBotonFormulario: {
     color: '#007bff',
     fontSize: 12,
-    fontWeight: '600',
-  },
-  botonTest: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#e8f4f8',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginHorizontal: 20,
-    marginBottom: 15,
-    gap: 8,
-  },
-  textoBotonTest: {
-    color: '#007bff',
-    fontSize: 14,
     fontWeight: '600',
   },
   errorContainer: {

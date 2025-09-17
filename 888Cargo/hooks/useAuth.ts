@@ -135,29 +135,37 @@ export function useAuth() {
 
     const logout = async () => {
         try {
+            console.log('🚪 [useAuth] Iniciando logout...');
+            
+            // Llamar al servicio de logout
             const result = await AuthService.logout();
             
-            // Limpiar estado local independientemente del resultado del servidor
-            setAuthState({
+            // Limpiar estado local del hook SIEMPRE
+            const cleanState = {
                 isLoading: false,
                 isAuthenticated: false,
                 token: null,
                 user: null,
                 error: null
-            });
+            };
             
-            if (result.success) {
-                console.log('✅ Sesión cerrada exitosamente');
-            } else {
-                console.log('⚠️ Error en logout del servidor, pero sesión local limpiada');
+            setAuthState(cleanState);
+            
+            // También limpiar el estado global del AuthService por si acaso
+            try {
+                (globalThis as any)['__888cargo_auth__'] = cleanState;
+            } catch (e) {
+                console.warn('No se pudo limpiar estado global:', e);
             }
             
-            // Siempre retornar éxito ya que el estado local se limpió
+            console.log('✅ [useAuth] Estado limpiado, logout completado');
+            
+            // Siempre retornar éxito porque el estado local está limpio
             return { success: true };
         } catch (error) {
-            console.error('❌ Error en logout:', error);
+            console.error('❌ [useAuth] Error en logout:', error);
             
-            // Aún así limpiar el estado local
+            // Forzar limpieza del estado local incluso si hay error
             setAuthState({
                 isLoading: false,
                 isAuthenticated: false,
@@ -166,7 +174,8 @@ export function useAuth() {
                 error: null
             });
             
-            return { success: true }; // Retornar éxito porque limpiamos el estado local
+            // Retornar éxito porque el estado local está limpio
+            return { success: true };
         }
     };
 

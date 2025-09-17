@@ -63,12 +63,21 @@ export const useCrearCarga = () => {
     });
   };
 
+  // Función para limpiar búsquedas - Mejorada con lógica de la web
   const limpiarBusqueda = () => {
+    console.log('🧹 [useCrearCarga] Limpiando búsqueda completa...');
+    
+    // Limpiar todos los estados relacionados con búsqueda
     setCodigoCarga('');
     setResultadosBusqueda([]);
     setMostrandoResultados(false);
     setBusquedaLoading(false);
     setError('');
+    
+    console.log('✅ [useCrearCarga] Búsqueda limpiada correctamente');
+    
+    // Mostrar confirmación como en la web
+    // Alert no está disponible en hooks, se maneja en el componente si es necesario
   };
 
   // Funciones de manejo de cambios
