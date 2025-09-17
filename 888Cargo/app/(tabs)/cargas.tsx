@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { router } from 'expo-router';
@@ -9,9 +9,11 @@ import BusquedaPackingList from '../../components/BusquedaPackingList';
 import TablasDatos from '../../components/TablasDatos';
 import ModalPackingList from '../../components/ModalPackingList';
 import Logo888Cargo from '../../components/Logo888Cargo';
+import CustomAlert from '../../components/CustomAlert';
 
 // Hooks y servicios
 import { useCrearCarga } from '../../hooks/useCrearCarga';
+import useCustomAlert from '../../hooks/useCustomAlert';
 import CargaService from '../../services/cargaService.js';
 import { validarArchivoExcel, validarFormularioCarga } from '../../utils/cargaUtils';
 
@@ -39,6 +41,9 @@ const CrearCarga = () => {
     prepararFormularioDesdeExcel, generarNuevoCodigo
   } = useCrearCarga();
 
+  // Hook para alertas personalizados
+  const { alertState, hideAlert, showError, showSuccess, showInfo, showWarning } = useCustomAlert();
+
   // =============== FUNCIONES DE MANEJO ===============
 
   // Funciones de navegación
@@ -50,7 +55,7 @@ const CrearCarga = () => {
   const handleBuscarPackingList = async () => {
     // Validación de entrada
     if (!codigoCarga.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un código de packing list');
+      showError('Error', 'Por favor ingresa un código de packing list');
       return;
     }
 
@@ -116,7 +121,7 @@ const CrearCarga = () => {
           
           // Mensaje de éxito
           const totalArticulos = datosFormateados.reduce((sum: number, item: any) => sum + (item.total_items || 0), 0);
-          Alert.alert(
+          showSuccess(
             'Búsqueda exitosa', 
             `Se encontraron ${datosFormateados.length} packing list(s) con ${totalArticulos} artículos en total`
           );
@@ -135,7 +140,7 @@ const CrearCarga = () => {
         setResultadosBusqueda([]);
         setMostrandoResultados(true);
         
-        Alert.alert('No encontrado', mensajeError);
+        showWarning('No encontrado', mensajeError);
       }
     } catch (error: any) {
       console.error('❌ [CrearCarga] Error en búsqueda:', error);
@@ -159,7 +164,7 @@ const CrearCarga = () => {
       setResultadosBusqueda([]);
       setMostrandoResultados(true);
       
-      Alert.alert('Error', mensajeError);
+      showError('Error', mensajeError);
     } finally {
       setBusquedaLoading(false);
     }
@@ -191,7 +196,7 @@ const CrearCarga = () => {
         });
 
         if (!validacion.esValido) {
-          Alert.alert('Error', validacion.error);
+          showError('Error', validacion.error || 'Error de validación');
           return;
         }
 
@@ -200,7 +205,7 @@ const CrearCarga = () => {
       }
     } catch (error) {
       console.error('Error al seleccionar archivo:', error);
-      Alert.alert('Error', 'Error al seleccionar el archivo');
+      showError('Error', 'Error al seleccionar el archivo');
     }
   };
 
@@ -238,7 +243,7 @@ const CrearCarga = () => {
         // Preparar formulario con datos del Excel
         await prepararFormularioDesdeExcel();
         
-        Alert.alert(
+        showSuccess(
           'Éxito', 
           `Archivo procesado correctamente!\n\nLos datos están listos para guardar. Revisa las estadísticas en la sección "Resumen del archivo".`,
           [{ text: 'OK', onPress: () => setMostrarFormulario(true) }]
@@ -246,13 +251,13 @@ const CrearCarga = () => {
       } else {
         const errorMsg = (resultado as any).error || 'Error al procesar el archivo';
         setError(errorMsg);
-        Alert.alert('Error', errorMsg);
+        showError('Error', errorMsg);
       }
     } catch (error) {
       console.error('❌ [CrearCarga] Error al procesar Excel:', error);
       const errorMsg = 'Error al procesar el archivo Excel';
       setError(errorMsg);
-      Alert.alert('Error', errorMsg);
+      showError('Error', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -261,7 +266,7 @@ const CrearCarga = () => {
   // Funciones de formulario
   const handleMostrarFormulario = () => {
     if (datosExcel.length === 0) {
-      Alert.alert('Error', 'Primero debes cargar un archivo Excel');
+      showError('Error', 'Primero debes cargar un archivo Excel');
       return;
     }
     setMostrarFormulario(true);
@@ -292,7 +297,7 @@ const CrearCarga = () => {
       router.push(`/visualizar-qr/${idCarga}` as any);
     } else {
       console.warn('⚠️ [CrearCarga] No hay ID de carga disponible para visualizar QRs');
-      Alert.alert('Error', 'No se pudo obtener el ID de la carga para visualizar los QRs');
+      showError('Error', 'No se pudo obtener el ID de la carga para visualizar los QRs');
     }
   };
 
@@ -302,12 +307,12 @@ const CrearCarga = () => {
     const validacion = validarFormularioCarga(infoCliente, infoCarga);
     
     if (!validacion.esValido) {
-      Alert.alert('Error de validación', validacion.errores.join('\n'));
+      showError('Error de validación', validacion.errores.join('\n'));
       return;
     }
 
     if (datosExcel.length <= 1) {
-      Alert.alert('Error', 'No hay datos válidos para guardar');
+      showError('Error', 'No hay datos válidos para guardar');
       return;
     }
 
@@ -348,7 +353,7 @@ const CrearCarga = () => {
           estadisticas_completas: estadisticas
         });
         
-        Alert.alert(
+        showSuccess(
           'Éxito', 
           `Packing list guardado correctamente!\n\n` +
           `✅ Artículos: ${articulos_creados}\n` +
@@ -361,12 +366,12 @@ const CrearCarga = () => {
         );
       } else {
         setError(resultado.error || 'Error al guardar');
-        Alert.alert('Error', resultado.error || 'Error al guardar el packing list');
+        showError('Error', resultado.error || 'Error al guardar el packing list');
       }
     } catch (error: any) {
       console.error('❌ [CrearCarga] Error al guardar:', error);
       setError('Error al guardar en base de datos');
-      Alert.alert('Error', `Error al guardar: ${error?.message || 'Error desconocido'}`);
+      showError('Error', `Error al guardar: ${error?.message || 'Error desconocido'}`);
     } finally {
       setGuardandoBD(false);
     }
@@ -497,6 +502,15 @@ const CrearCarga = () => {
         datosGuardado={datosGuardado}
         onVisualizarPDF={handleVisualizarQR}
         bloquearCampos={guardadoExitoso}
+      />
+      
+      <CustomAlert
+        visible={alertState.visible}
+        title={alertState.title}
+        message={alertState.message}
+        type={alertState.type}
+        buttons={alertState.buttons}
+        onClose={hideAlert}
       />
     </View>
   );

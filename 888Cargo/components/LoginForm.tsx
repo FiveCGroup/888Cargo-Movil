@@ -5,7 +5,6 @@ import {
     TextInput,
     TouchableOpacity,
     StyleSheet,
-    Alert,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
@@ -16,6 +15,8 @@ import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/Colors';
 import { createThemeStyles } from '../constants/Theme';
 import { useColorScheme } from '../hooks/useColorScheme';
 import Logo888Cargo from './Logo888Cargo';
+import CustomAlert from './CustomAlert';
+import useCustomAlert from '../hooks/useCustomAlert';
 
 interface LoginFormProps {
     onLoginSuccess?: () => void;
@@ -35,13 +36,14 @@ export default function LoginForm({
     const [passwordFocused, setPasswordFocused] = useState(false);
     
     const { login, isLoading, error, clearError } = useAuth();
+    const { alertState, hideAlert, showError, showSuccess, showInfo } = useCustomAlert();
     const colorScheme = useColorScheme();
     const themeStyles = createThemeStyles(colorScheme ?? 'light');
     const colors = Colors[colorScheme ?? 'light'];
 
     const handleLogin = async () => {
         if (!email.trim() || !password.trim()) {
-            Alert.alert('Error', 'Por favor ingresa email y contraseña');
+            showError('Error', 'Por favor ingresa email y contraseña');
             return;
         }
 
@@ -50,11 +52,16 @@ export default function LoginForm({
         const result = await login(email.trim(), password);
         
         if (result.success) {
-            Alert.alert('Éxito', 'Sesión iniciada correctamente', [
-                { text: 'OK', onPress: onLoginSuccess }
-            ]);
+            // Navegar inmediatamente al dashboard
+            if (onLoginSuccess) {
+                onLoginSuccess();
+            }
+            // Mostrar mensaje de éxito después de la navegación
+            setTimeout(() => {
+                showSuccess('Éxito', 'Sesión iniciada correctamente');
+            }, 100);
         } else {
-            Alert.alert('Error', result.error || 'Error al iniciar sesión');
+            showError('Error', result.error || 'Error al iniciar sesión');
         }
     };
 
@@ -62,7 +69,7 @@ export default function LoginForm({
         if (onNavigateToForgotPassword) {
             onNavigateToForgotPassword();
         } else {
-            Alert.alert('Información', 'Funcionalidad de recuperación pendiente');
+            showInfo('Información', 'Funcionalidad de recuperación pendiente');
         }
     };
 
@@ -70,7 +77,7 @@ export default function LoginForm({
         if (onNavigateToRegister) {
             onNavigateToRegister();
         } else {
-            Alert.alert('Información', 'Funcionalidad de registro pendiente');
+            showInfo('Información', 'Funcionalidad de registro pendiente');
         }
     };
 
@@ -196,6 +203,15 @@ export default function LoginForm({
                     </View>
                 </View>
             </ScrollView>
+            
+            <CustomAlert
+                visible={alertState.visible}
+                title={alertState.title}
+                message={alertState.message}
+                type={alertState.type}
+                buttons={alertState.buttons}
+                onClose={hideAlert}
+            />
         </KeyboardAvoidingView>
     );
 }
