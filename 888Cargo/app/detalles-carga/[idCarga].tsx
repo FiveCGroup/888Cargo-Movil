@@ -34,7 +34,7 @@ const DetallesCarga: React.FC = () => {
       }
       
       // Cargar datos del packing list
-      const resultadoPacking = await CargaService.obtenerPackingList(idCarga!);
+      const resultadoPacking = await CargaService.buscarPackingList(idCarga!);
       if (resultadoPacking.success) {
         setPackingListData(resultadoPacking.data || []);
       }

@@ -12,9 +12,9 @@ let API_BASE_URL;
 if (Platform.OS === 'android') {
   API_BASE_URL = 'http://10.0.2.2:4000/api'; // Para emulador Android - Backend web
 } else if (Platform.OS === 'ios') {
-  API_BASE_URL = 'http://localhost:4000/api'; // Para simulador iOS - Backend web
+  API_BASE_URL = 'http://192.168.58.106:4000/api'; // Para simulador iOS - Backend web con IP real
 } else {
-  API_BASE_URL = 'http://localhost:4000/api'; // Para web/otros - Backend web
+  API_BASE_URL = 'http://192.168.58.106:4000/api'; // Para web/otros - Backend web con IP real
 }
 
 console.log('🔧 [CargaService] Plataforma detectada:', Platform.OS);
@@ -39,8 +39,9 @@ class CargaService {
     // URLs a probar en orden de preferencia (BACKEND WEB)
     const urlsToTry = [
       API_BASE_URL,
-      'http://localhost:4000/api',  // Fallback para todas las plataformas - Backend web
-      'http://10.0.2.2:4000/api'   // Fallback Android - Backend web
+      'http://192.168.58.106:4000/api',  // IP real de la máquina - Backend web
+      'http://localhost:4000/api',       // Fallback local - Backend web
+      'http://10.0.2.2:4000/api'        // Fallback Android - Backend web
     ];
 
     let ultimoError = null;
