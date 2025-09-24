@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { InfoCliente, InfoCarga } from '../utils/cargaUtils';
+import { modalPackingListStyles as styles } from '../styles/components/ModalPackingList.styles';
+import { IconSizes, IconColors } from '../constants/Icons';
 
 interface ModalPackingListProps {
   mostrar: boolean;
@@ -23,7 +25,7 @@ interface ModalPackingListProps {
 const LoadingOverlay: React.FC<{ message: string }> = ({ message }) => (
   <View style={styles.loadingOverlay}>
     <View style={styles.loadingContainer}>
-      <ActivityIndicator size="large" color="#007bff" />
+      <ActivityIndicator size="large" color={IconColors.primary} />
       <Text style={styles.loadingTitle}>{message}</Text>
       <Text style={styles.loadingSubtitle}>
         Por favor espera, esto puede tomar unos momentos...
@@ -90,7 +92,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onCerrar} style={styles.botonCerrar}>
-            <Ionicons name="close" size={24} color="#666" />
+            <Ionicons name="close" size={IconSizes.lg} color={IconColors.secondary} />
           </TouchableOpacity>
           <Text style={styles.titulo}>Datos del Packing List</Text>
           <View style={styles.espaciador} />
@@ -100,7 +102,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
           {/* Sección Cliente */}
           <View style={styles.seccion}>
             <View style={styles.seccionHeader}>
-              <Ionicons name="person" size={20} color="#007bff" />
+              <Ionicons name="person" size={IconSizes.md} color={IconColors.primary} />
               <Text style={styles.seccionTitulo}>Información del Cliente</Text>
             </View>
 
@@ -111,7 +113,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
                 value={infoCliente.nombre_cliente}
                 onChangeText={(valor) => onCambioCliente('nombre_cliente', valor)}
                 placeholder="Nombre completo del cliente"
-                placeholderTextColor="#999"
+                placeholderTextColor={IconColors.muted}
                 editable={!bloquearCampos}
               />
             </View>
@@ -123,7 +125,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
                 value={infoCliente.correo_cliente}
                 onChangeText={(valor) => onCambioCliente('correo_cliente', valor)}
                 placeholder="cliente@ejemplo.com"
-                placeholderTextColor="#999"
+                placeholderTextColor={IconColors.muted}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 editable={!bloquearCampos}
@@ -137,7 +139,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
                 value={infoCliente.telefono_cliente}
                 onChangeText={(valor) => onCambioCliente('telefono_cliente', valor)}
                 placeholder="+57 300 123 4567"
-                placeholderTextColor="#999"
+                placeholderTextColor={IconColors.muted}
                 keyboardType="phone-pad"
                 editable={!bloquearCampos}
               />
@@ -150,7 +152,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
                 value={infoCliente.direccion_entrega}
                 onChangeText={(valor) => onCambioCliente('direccion_entrega', valor)}
                 placeholder="Dirección completa donde se entregará la mercancía"
-                placeholderTextColor="#999"
+                placeholderTextColor={IconColors.muted}
                 multiline
                 numberOfLines={3}
                 editable={!bloquearCampos}
@@ -161,7 +163,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
           {/* Sección Carga */}
           <View style={styles.seccion}>
             <View style={styles.seccionHeader}>
-              <Ionicons name="cube" size={20} color="#28a745" />
+              <Ionicons name="cube" size={20} color={IconColors.success} />
               <Text style={styles.seccionTitulo}>Información de la Carga</Text>
             </View>
 
@@ -173,7 +175,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
                   value={infoCarga.codigo_carga}
                   onChangeText={(valor) => onCambioCarga('codigo_carga', valor)}
                   placeholder="PL-2024-..."
-                  placeholderTextColor="#999"
+                  placeholderTextColor={IconColors.muted}
                   autoCapitalize="characters"
                   editable={!bloquearCampos}
                 />
@@ -182,7 +184,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
                   onPress={onGenerarCodigo}
                   disabled={bloquearCampos}
                 >
-                  <Ionicons name="refresh" size={16} color={bloquearCampos ? "#ccc" : "#007bff"} />
+                  <Ionicons name="refresh" size={IconSizes.sm} color={bloquearCampos ? IconColors.light : IconColors.primary} />
                   <Text style={[styles.textoBotonGenerar, bloquearCampos && styles.textoBloqueado]}>Generar</Text>
                 </TouchableOpacity>
               </View>
@@ -195,7 +197,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
                 value={infoCarga.direccion_destino}
                 onChangeText={(valor) => onCambioCarga('direccion_destino', valor)}
                 placeholder="Ciudad o dirección de destino de la carga"
-                placeholderTextColor="#999"
+                placeholderTextColor={IconColors.muted}
                 multiline
                 numberOfLines={2}
                 editable={!bloquearCampos}
@@ -221,10 +223,10 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
                   disabled={guardandoBD}
                 >
                   {guardandoBD ? (
-                    <ActivityIndicator size="small" color="#fff" />
+                    <ActivityIndicator size="small" color={IconColors.white} />
                   ) : (
                     <>
-                      <Ionicons name="save" size={18} color="#fff" />
+                      <Ionicons name="save" size={18} color={IconColors.white} />
                       <Text style={styles.textoBotonGuardar}>Guardar</Text>
                     </>
                   )}
@@ -236,7 +238,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
                   style={[styles.boton, styles.botonCerrarExito]}
                   onPress={onCerrar}
                 >
-                  <Ionicons name="checkmark" size={18} color="#fff" />
+                  <Ionicons name="checkmark" size={18} color={IconColors.white} />
                   <Text style={styles.textoBotonCerrarExito}>Cerrar</Text>
                 </TouchableOpacity>
 
@@ -245,7 +247,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
                     style={[styles.boton, styles.botonPDF]}
                     onPress={onVisualizarPDF}
                   >
-                    <Ionicons name="qr-code" size={18} color="#fff" />
+                    <Ionicons name="qr-code" size={18} color={IconColors.white} />
                     <Text style={styles.textoBotonPDF}>Ver QRs</Text>
                   </TouchableOpacity>
                 )}
@@ -257,7 +259,7 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
           {guardadoExitoso && datosGuardado && (
             <View style={styles.exitoContainer}>
               <View style={styles.exitoIcono}>
-                <Ionicons name="checkmark-circle" size={48} color="#28a745" />
+                <Ionicons name="checkmark-circle" size={48} color={IconColors.success} />
               </View>
               <Text style={styles.exitoTitulo}>¡Packing List Guardado!</Text>
               <Text style={styles.exitoMensaje}>
@@ -279,210 +281,6 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  botonCerrar: {
-    padding: 5,
-  },
-  titulo: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-  },
-  espaciador: {
-    width: 34, // Mismo ancho que el botón cerrar para centrar el título
-  },
-  contenido: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  seccion: {
-    marginVertical: 20,
-  },
-  seccionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  seccionTitulo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginLeft: 8,
-  },
-  campo: {
-    marginBottom: 15,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 16,
-    backgroundColor: '#fff',
-  },
-  inputMultiline: {
-    textAlignVertical: 'top',
-    minHeight: 80,
-  },
-  inputConBoton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  inputCodigo: {
-    flex: 1,
-  },
-  botonGenerar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#007bff',
-    borderRadius: 6,
-    gap: 4,
-  },
-  textoBotonGenerar: {
-    color: '#007bff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  botonesContainer: {
-    flexDirection: 'row',
-    gap: 15,
-    paddingVertical: 20,
-    paddingBottom: 40,
-  },
-  boton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 15,
-    borderRadius: 8,
-    gap: 8,
-  },
-  botonCancelar: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  botonGuardar: {
-    backgroundColor: '#007bff',
-  },
-  botonCerrarExito: {
-    backgroundColor: '#28a745',
-  },
-  botonPDF: {
-    backgroundColor: '#6f42c1',
-  },
-  textoBotonCancelar: {
-    color: '#666',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  textoBotonGuardar: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  textoBotonCerrarExito: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  textoBotonPDF: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  exitoContainer: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    marginVertical: 10,
-  },
-  exitoIcono: {
-    marginBottom: 10,
-  },
-  exitoTitulo: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#28a745',
-    marginBottom: 8,
-  },
-  exitoMensaje: {
-    fontSize: 14,
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  exitoDetalle: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    padding: 30,
-  },
-  loadingTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#007bff',
-    marginTop: 15,
-    marginBottom: 8,
-  },
-  loadingSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  // Estilos para campos bloqueados
-  inputBloqueado: {
-    backgroundColor: '#f5f5f5',
-    color: '#666',
-    borderColor: '#e0e0e0',
-  },
-  botonBloqueado: {
-    backgroundColor: '#f5f5f5',
-    opacity: 0.6,
-  },
-  textoBloqueado: {
-    color: '#ccc',
-  },
-});
+
 
 export default ModalPackingList;

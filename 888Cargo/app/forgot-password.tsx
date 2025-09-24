@@ -4,7 +4,6 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    StyleSheet,
     Alert,
     ActivityIndicator,
     KeyboardAvoidingView,
@@ -16,6 +15,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/Colors';
 import { createThemeStyles } from '../constants/Theme';
 import { useColorScheme } from '../hooks/useColorScheme';
+import { forgotPasswordScreenStyles as styles } from '../styles/screens/ForgotPasswordScreen.styles';
 
 export default function ForgotPasswordScreen() {
     const [email, setEmail] = useState('');
@@ -152,43 +152,4 @@ export default function ForgotPasswordScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    scrollContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-    },
-    headerContainer: {
-        alignItems: 'center',
-        marginBottom: Spacing.xl,
-    },
-    instructionText: {
-        fontSize: FontSizes.sm,
-        textAlign: 'center',
-        marginBottom: Spacing.xl,
-        lineHeight: 20,
-    },
-    inputContainer: {
-        marginBottom: Spacing.lg,
-    },
-    backContainer: {
-        alignItems: 'center',
-        marginTop: Spacing.lg,
-        paddingTop: Spacing.md,
-    },
-    backLinkContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        borderTopWidth: 1,
-        paddingTop: Spacing.md,
-    },
-    backText: {
-        fontSize: FontSizes.sm,
-    },
-    backLink: {
-        fontSize: FontSizes.sm,
-        fontWeight: '600',
-    },
-});
+

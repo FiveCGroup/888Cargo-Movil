@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Image, Text, StyleSheet, ViewStyle, TextStyle, ImageStyle } from 'react-native';
+import { View, Image, Text, ViewStyle, TextStyle, ImageStyle } from 'react-native';
 import { Colors, FontSizes, Spacing } from '../constants/Colors';
 import { useColorScheme } from '../hooks/useColorScheme';
+import { logo888CargoStyles as styles } from '../styles/components/Logo888Cargo.styles';
 
 interface Logo888CargoProps {
   size?: 'small' | 'medium' | 'large';
@@ -81,19 +82,4 @@ export default function Logo888Cargo({
   );
 }
 
-const styles = StyleSheet.create({
-  verticalContainer: {
-    alignItems: 'center',
-  },
-  horizontalContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logo: {
-    borderRadius: 8,
-  },
-  logoText: {
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-});
+

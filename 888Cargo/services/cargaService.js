@@ -73,7 +73,7 @@ class CargaService {
         // Realizar petición al servidor real con timeout alto
         const controller = new AbortController();
         timeoutId = setTimeout(() => {
-          console.log('⏰ [CargaService] Timeout alcanzado, cancelando petición...');
+          console.log('[TIMEOUT] [CargaService] Timeout alcanzado, cancelando petición...');
           controller.abort();
         }, timeoutMs);
 
@@ -165,7 +165,7 @@ class CargaService {
   async guardarPackingListConQR(datos, metadata) {
     console.log('💾 [CargaService] Guardando packing list completo con QRs...');
     console.log('📦 [CargaService] Datos:', datos ? datos.length : 0, 'filas');
-    console.log('📋 [CargaService] Metadata:', metadata);
+    console.log('[INFO] [CargaService] Metadata:', metadata);
     
     try {
       // Estructurar los datos en el formato que espera el backend
@@ -186,7 +186,7 @@ class CargaService {
         }
       };
 
-      console.log('🔄 [CargaService] Payload estructurado para backend:', JSON.stringify(payloadBackend, null, 2));
+      console.log('[SYNC] [CargaService] Payload estructurado para backend:', JSON.stringify(payloadBackend, null, 2));
 
       const response = await fetch(`${API_BASE_URL}/carga/guardar-con-qr`, {
         method: 'POST',
@@ -272,7 +272,7 @@ class CargaService {
 
   // Obtener información meta de una carga
   async obtenerCargaMeta(idCarga) {
-    console.log('📋 [CargaService] Obteniendo información de carga:', idCarga);
+    console.log('[INFO] [CargaService] Obteniendo información de carga:', idCarga);
     
     try {
       const response = await fetch(`${API_BASE_URL}/carga/carga/${idCarga}`);
@@ -313,7 +313,7 @@ class CargaService {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ [CargaService] Error HTTP al descargar PDF:', response.status, errorText);
+        console.error('[ERROR] [CargaService] Error HTTP al descargar PDF:', response.status, errorText);
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
@@ -333,7 +333,7 @@ class CargaService {
       const base64String = btoa(binaryString);
       const versionSuffix = useOptimized ? 'optimized' : 'legacy';
       
-      console.log('✅ [CargaService] PDF descargado exitosamente, tamaño:', base64String.length, 'caracteres');
+      console.log('[SUCCESS] [CargaService] PDF descargado exitosamente, tamaño:', base64String.length, 'caracteres');
       return { 
         success: true, 
         data: {
@@ -344,7 +344,7 @@ class CargaService {
         message: `PDF ${useOptimized ? 'optimizado' : 'legacy'} descargado exitosamente` 
       };
     } catch (error) {
-      console.error('❌ [CargaService] Error al descargar PDF:', error);
+      console.error('[ERROR] [CargaService] Error al descargar PDF:', error);
       throw new Error(`Error al descargar PDF de QRs: ${error.message}`);
     }
   }

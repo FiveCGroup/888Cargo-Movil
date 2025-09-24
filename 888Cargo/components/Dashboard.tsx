@@ -2,21 +2,23 @@ import React, { useState } from 'react';
 import {
     Alert,
     ScrollView,
-    StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
-import { BorderRadius, Colors, FontSizes, Spacing } from '../constants/Colors';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Colors, Spacing } from '../constants/Colors';
 import { createThemeStyles } from '../constants/Theme';
 import { useAuth } from '../hooks/useAuth';
 import { useColorScheme } from '../hooks/useColorScheme';
 import Logo888Cargo from './Logo888Cargo';
+import { dashboardStyles } from '../styles/components/Dashboard.styles';
+import { IconSizes } from '../constants/Icons';
 
 interface DashboardCard {
     title: string;
-    value: string;
-    icon: string;
+    iconName: string;
+    iconLibrary?: 'MaterialIcons' | 'Ionicons';
     onPress?: () => void;
 }
 
@@ -47,38 +49,38 @@ export default function Dashboard({
     const dashboardCards: DashboardCard[] = [
         {
             title: 'Gestión de Cargas',
-            value: '📦',
-            icon: '📦',
+            iconName: 'inventory-2',
+            iconLibrary: 'MaterialIcons',
             onPress: onNavigateToCargas
         },
         {
             title: 'Escanear QR',
-            value: '📱',
-            icon: '📱',
+            iconName: 'qr-code-scanner',
+            iconLibrary: 'MaterialIcons',
             onPress: onNavigateToQRScanner
         },
         {
             title: 'Mi Perfil',
-            value: '👤',
-            icon: '👤',
+            iconName: 'person',
+            iconLibrary: 'MaterialIcons',
             onPress: onNavigateToProfile
         },
         {
             title: 'Configuración',
-            value: '⚙️',
-            icon: '⚙️',
+            iconName: 'settings',
+            iconLibrary: 'MaterialIcons',
             onPress: () => Alert.alert('Info', 'Configuración pendiente')
         },
         {
             title: 'Reportes',
-            value: '📊',
-            icon: '📊',
+            iconName: 'analytics',
+            iconLibrary: 'MaterialIcons',
             onPress: () => Alert.alert('Info', 'Reportes pendiente')
         },
         {
             title: 'Ayuda',
-            value: '❓',
-            icon: '❓',
+            iconName: 'help',
+            iconLibrary: 'MaterialIcons',
             onPress: () => Alert.alert('Ayuda', 'Contacta soporte: soporte@888cargo.com')
         }
     ];
@@ -86,39 +88,39 @@ export default function Dashboard({
     return (
         <View style={themeStyles.container}>
             {/* Header estilo web */}
-            <View style={[styles.header]}>
+            <View style={[dashboardStyles.header]}>
                 <View>
-                    <Text style={[styles.welcomeText, { color: colors.textLight }]}>¡Hola!</Text>
-                    <Text style={[styles.userNameText, { color: colors.textLight }]}>
+                    <Text style={[dashboardStyles.welcomeText, { color: colors.textLight }]}>¡Hola!</Text>
+                    <Text style={[dashboardStyles.userNameText, { color: colors.textLight }]}>
                         {user?.name || user?.email || 'Usuario'}
                     </Text>
                 </View>
             </View>
 
             <ScrollView
-                style={styles.content}
+                style={dashboardStyles.content}
                 showsVerticalScrollIndicator={false}
             >
                 {/* Título principal con logo */}
-                <View style={styles.titleContainer}>
+                <View style={dashboardStyles.titleContainer}>
                     <Logo888Cargo 
                         size="medium" 
                         showText={true}
                         layout="horizontal"
                         style={{ marginBottom: Spacing.sm }}
                     />
-                    <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+                    <Text style={[dashboardStyles.subtitle, { color: colors.textMuted }]}>
                         Soluciones de Logística y Transporte
                     </Text>
                 </View>
 
                 {/* Cards principales con distribución fija de 2 columnas */}
-                <View style={styles.cardsContainer}>
+                <View style={dashboardStyles.cardsContainer}>
                     {dashboardCards.map((card, index) => (
                         <TouchableOpacity
                             key={index}
                             style={[
-                                styles.dashboardCard,
+                                dashboardStyles.dashboardCard,
                                 { backgroundColor: colors.cardBackground, borderColor: colors.border },
                                 pressedCard === index && { 
                                     borderColor: colors.primary,
@@ -131,20 +133,18 @@ export default function Dashboard({
                             disabled={!card.onPress}
                         >
                             <View style={[
-                                styles.cardIcon,
+                                dashboardStyles.cardIcon,
                                 { backgroundColor: colors.cardBackground },
                                 pressedCard === index && { backgroundColor: colors.primary }
                             ]}>
-                                <Text style={[
-                                    styles.cardIconText,
-                                    { color: colors.text },
-                                    pressedCard === index && { color: colors.textLight }
-                                ]}>
-                                    {card.value}
-                                </Text>
+                                <MaterialIcons 
+                                    name={card.iconName as any} 
+                                    size={36} 
+                                    color={pressedCard === index ? colors.textLight : colors.primary}
+                                />
                             </View>
                             <Text style={[
-                                styles.cardTitle,
+                                dashboardStyles.cardTitle,
                                 { color: colors.text },
                                 pressedCard === index && { color: colors.textLight }
                             ]}>
@@ -157,85 +157,3 @@ export default function Dashboard({
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    header: {
-        paddingVertical: Spacing.lg,
-        paddingHorizontal: Spacing.lg, // Agregar padding horizontal
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: Spacing.md,
-        backgroundColor: '#17243f', // Fondo azul oscuro
-        marginHorizontal: -Spacing.lg, // Extender a los bordes
-        marginTop: -Spacing.lg, // Extender hacia arriba
-        paddingTop: 60, // Espacio para la status bar
-    },
-    welcomeText: {
-        fontSize: FontSizes.base,
-        fontWeight: '500',
-    },
-    userNameText: {
-        fontSize: FontSizes.lg,
-        fontWeight: '700',
-        marginTop: Spacing.xs,
-    },
-    content: {
-        flex: 1,
-        paddingHorizontal: Spacing.lg,
-    },
-    titleContainer: {
-        alignItems: 'center',
-        marginBottom: Spacing.xl,
-        paddingTop: Spacing.md,
-    },
-    subtitle: {
-        fontSize: FontSizes.base,
-        fontWeight: '400',
-        marginTop: Spacing.sm,
-        textAlign: 'center',
-    },
-    cardsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        paddingBottom: Spacing.xl,
-        paddingHorizontal: Spacing.md,
-        justifyContent: 'space-between',
-    },
-    dashboardCard: {
-        width: '47%', // Fijo para 2 columnas exactas
-        minHeight: 130,
-        marginBottom: Spacing.lg,
-        borderRadius: BorderRadius.lg,
-        borderWidth: 2,
-        padding: Spacing.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    cardIcon: {
-        width: 55,
-        height: 55,
-        borderRadius: BorderRadius.full,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: Spacing.sm,
-    },
-    cardIconText: {
-        fontSize: 26,
-    },
-    cardTitle: {
-        fontSize: FontSizes.sm,
-        fontWeight: '600',
-        textAlign: 'center',
-        marginTop: Spacing.xs,
-        lineHeight: FontSizes.sm * 1.2,
-    },
-});

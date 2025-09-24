@@ -4,18 +4,20 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    StyleSheet,
     Alert,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/Colors';
+import { Colors } from '../constants/Colors';
 import { createThemeStyles } from '../constants/Theme';
 import { useColorScheme } from '../hooks/useColorScheme';
 import Logo888Cargo from './Logo888Cargo';
+import { registerFormStyles } from '../styles/components/RegisterForm.styles';
+import { IconSizes, IconColors } from '../constants/Icons';
 
 interface RegisterFormProps {
     onRegisterSuccess?: () => void;
@@ -181,14 +183,14 @@ export default function RegisterForm({
         const isFocused = focusedField === field;
         
         return (
-            <View style={styles.inputContainer}>
-                <View style={styles.inputWrapper}>
+            <View style={registerFormStyles.inputContainer}>
+                <View style={registerFormStyles.inputWrapper}>
                     <TextInput
                         style={[
                             themeStyles.input,
                             isFocused && themeStyles.inputFocused,
                             hasError && themeStyles.inputError,
-                            options.showPasswordToggle && styles.passwordInput
+                            options.showPasswordToggle && registerFormStyles.passwordInput
                         ]}
                         placeholder={placeholder}
                         placeholderTextColor={colors.textMuted}
@@ -205,7 +207,7 @@ export default function RegisterForm({
                     
                     {options.showPasswordToggle && (
                         <TouchableOpacity
-                            style={styles.showPasswordButton}
+                            style={registerFormStyles.showPasswordButton}
                             onPress={() => {
                                 if (field === 'password') {
                                     setShowPassword(!showPassword);
@@ -215,15 +217,19 @@ export default function RegisterForm({
                             }}
                             disabled={isLoading}
                         >
-                            <Text style={styles.showPasswordText}>
-                                {(field === 'password' ? showPassword : showConfirmPassword) ? '👁️' : '👁️‍🗨️'}
+                            <Text style={registerFormStyles.showPasswordText}>
+                                <MaterialIcons 
+                                    name={(field === 'password' ? showPassword : showConfirmPassword) ? 'visibility' : 'visibility-off'} 
+                                    size={24} 
+                                    color={IconColors.secondary} 
+                                />
                             </Text>
                         </TouchableOpacity>
                     )}
                 </View>
                 
                 {hasError && (
-                    <Text style={[themeStyles.errorText, styles.fieldError]}>
+                    <Text style={[themeStyles.errorText, registerFormStyles.fieldError]}>
                         {formErrors[field]}
                     </Text>
                 )}
@@ -236,10 +242,10 @@ export default function RegisterForm({
             style={themeStyles.authContainer}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <ScrollView contentContainerStyle={registerFormStyles.scrollContainer}>
                 <View style={themeStyles.authContent}>
                     {/* Header con logo */}
-                    <View style={styles.headerContainer}>
+                    <View style={registerFormStyles.headerContainer}>
                         <Logo888Cargo 
                             size="large" 
                             showText={true}
@@ -290,7 +296,7 @@ export default function RegisterForm({
                             style={[
                                 themeStyles.button,
                                 isLoading && themeStyles.buttonDisabled,
-                                styles.registerButton
+                                registerFormStyles.registerButton
                             ]}
                             onPress={handleRegister}
                             disabled={isLoading}
@@ -303,16 +309,16 @@ export default function RegisterForm({
                         </TouchableOpacity>
 
                         {/* Login Link */}
-                        <View style={styles.loginContainer}>
-                            <View style={[styles.loginLinkContainer, { borderColor: colors.border }]}>
-                                <Text style={[styles.loginText, { color: colors.textSecondary }]}>
+                        <View style={registerFormStyles.loginContainer}>
+                            <View style={[registerFormStyles.loginLinkContainer, { borderColor: colors.border }]}>
+                                <Text style={[registerFormStyles.loginText, { color: colors.textSecondary }]}>
                                     ¿Ya tienes cuenta?{' '}
                                 </Text>
                                 <TouchableOpacity
                                     onPress={handleLogin}
                                     disabled={isLoading}
                                 >
-                                    <Text style={[styles.loginLink, { color: colors.primary }]}>
+                                    <Text style={[registerFormStyles.loginLink, { color: colors.primary }]}>
                                         Iniciar Sesión
                                     </Text>
                                 </TouchableOpacity>
@@ -324,60 +330,3 @@ export default function RegisterForm({
         </KeyboardAvoidingView>
     );
 }
-
-const styles = StyleSheet.create({
-    scrollContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-    },
-    headerContainer: {
-        alignItems: 'center',
-        marginBottom: Spacing.xl,
-    },
-    inputContainer: {
-        marginBottom: Spacing.md,
-    },
-    inputWrapper: {
-        position: 'relative',
-    },
-    passwordInput: {
-        marginBottom: 0,
-    },
-    showPasswordButton: {
-        position: 'absolute',
-        right: Spacing.md,
-        top: Spacing.md,
-        bottom: Spacing.md,
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: 32,
-    },
-    showPasswordText: {
-        fontSize: FontSizes.base,
-    },
-    fieldError: {
-        marginTop: Spacing.xs,
-        marginLeft: Spacing.sm,
-    },
-    registerButton: {
-        marginTop: Spacing.lg,
-    },
-    loginContainer: {
-        alignItems: 'center',
-        marginTop: Spacing.lg,
-        paddingTop: Spacing.md,
-    },
-    loginLinkContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        borderTopWidth: 1,
-        paddingTop: Spacing.md,
-    },
-    loginText: {
-        fontSize: FontSizes.sm,
-    },
-    loginLink: {
-        fontSize: FontSizes.sm,
-        fontWeight: '600',
-    },
-});

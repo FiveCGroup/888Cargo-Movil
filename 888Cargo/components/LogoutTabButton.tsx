@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, Alert } from 'react-native';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useAuth } from '@/hooks/useAuth';
+import { IconSizes, IconColors } from '@/constants/Icons';
 
 interface LogoutTabButtonProps {
   color?: string;
@@ -48,7 +49,7 @@ export function LogoutTabButton({ color = '#fff', focused }: LogoutTabButtonProp
         paddingVertical: 8,
       }}
     >
-      <IconSymbol size={24} name="power" color="#fff" />
+      <IconSymbol size={24} name="power" color={IconColors.white} />
       <Text style={{ color: '#fff', fontSize: 11, marginTop: 2, fontWeight: '600' }}>
         Salir
       </Text>

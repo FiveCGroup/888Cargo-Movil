@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../hooks/useAuth';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/Colors';
+import { Colors } from '../../constants/Colors';
 import { createThemeStyles } from '../../constants/Theme';
 import { useColorScheme } from '../../hooks/useColorScheme';
 import Logo888Cargo from '../../components/Logo888Cargo';
+import { profileScreenStyles } from '../../styles/screens/ProfileScreen.styles';
 
 export default function ProfileScreen() {
     const { user } = useAuth();
@@ -13,119 +15,72 @@ export default function ProfileScreen() {
     const colors = Colors[colorScheme ?? 'light'];
 
     return (
-        <View style={[themeStyles.container, styles.container]}>
-            <View style={styles.headerContainer}>
+        <View style={[themeStyles.container, profileScreenStyles.container]}>
+            <View style={profileScreenStyles.headerContainer}>
                 <Logo888Cargo size="small" layout="horizontal" showText={true} />
             </View>
             
-            <View style={[themeStyles.card, styles.profileContainer]}>
-                <View style={[styles.avatarContainer, { backgroundColor: colors.primary }]}>
-                    <Text style={[styles.avatarText, { color: colors.textLight }]}>
+            <View style={[themeStyles.card, profileScreenStyles.profileContainer]}>
+                <View style={[profileScreenStyles.avatarContainer, { backgroundColor: colors.primary }]}>
+                    <Text style={[profileScreenStyles.avatarText, { color: colors.textLight }]}>
                         {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                     </Text>
                 </View>
                 
-                <Text style={[styles.userName, { color: colors.primary }]}>
+                <Text style={[profileScreenStyles.userName, { color: colors.primary }]}>
                     {user?.name || 'Usuario'}
                 </Text>
                 
-                <Text style={[styles.userEmail, { color: colors.textMuted }]}>
+                <Text style={[profileScreenStyles.userEmail, { color: colors.textMuted }]}>
                     {user?.email}
                 </Text>
 
                 {user?.role && (
-                    <View style={[styles.roleContainer, { backgroundColor: colors.light }]}>
-                        <Text style={[styles.roleText, { color: colors.success }]}>
+                    <View style={[profileScreenStyles.roleContainer, { backgroundColor: colors.light }]}>
+                        <Text style={[profileScreenStyles.roleText, { color: colors.success }]}>
                             {user.role}
                         </Text>
                     </View>
                 )}
             </View>
 
-            <View style={[themeStyles.card, styles.menuContainer]}>
-                <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.borderLight }]}>
-                    <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
-                        ⚙️ Configuración
-                    </Text>
+            <View style={[themeStyles.card, profileScreenStyles.menuContainer]}>
+                <TouchableOpacity style={[profileScreenStyles.menuItem, { borderBottomColor: colors.borderLight }]}>
+                    <View style={profileScreenStyles.menuItemContent}>
+                        <MaterialIcons name="settings" size={24} color={colors.primary} />
+                        <Text style={[profileScreenStyles.menuItemText, { color: colors.textPrimary }]}>
+                            Configuración
+                        </Text>
+                    </View>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.borderLight }]}>
-                    <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
-                        📊 Estadísticas
-                    </Text>
+                <TouchableOpacity style={[profileScreenStyles.menuItem, { borderBottomColor: colors.borderLight }]}>
+                    <View style={profileScreenStyles.menuItemContent}>
+                        <MaterialIcons name="analytics" size={24} color={colors.primary} />
+                        <Text style={[profileScreenStyles.menuItemText, { color: colors.textPrimary }]}>
+                            Estadísticas
+                        </Text>
+                    </View>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.borderLight }]}>
-                    <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
-                        ❓ Ayuda
-                    </Text>
+                <TouchableOpacity style={[profileScreenStyles.menuItem, { borderBottomColor: colors.borderLight }]}>
+                    <View style={profileScreenStyles.menuItemContent}>
+                        <MaterialIcons name="help" size={24} color={colors.primary} />
+                        <Text style={[profileScreenStyles.menuItemText, { color: colors.textPrimary }]}>
+                            Ayuda
+                        </Text>
+                    </View>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
-                    <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>
-                        ℹ️ Acerca de
-                    </Text>
+                <TouchableOpacity style={[profileScreenStyles.menuItem, { borderBottomWidth: 0 }]}>
+                    <View style={profileScreenStyles.menuItemContent}>
+                        <MaterialIcons name="info" size={24} color={colors.primary} />
+                        <Text style={[profileScreenStyles.menuItemText, { color: colors.textPrimary }]}>
+                            Acerca de
+                        </Text>
+                    </View>
                 </TouchableOpacity>
             </View>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        padding: Spacing.lg,
-        paddingTop: Spacing.xxl,
-    },
-    headerContainer: {
-        alignItems: 'center',
-        marginBottom: Spacing.lg,
-    },
-    profileContainer: {
-        alignItems: 'center',
-        padding: Spacing.xl,
-        marginBottom: Spacing.xl,
-    },
-    avatarContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: BorderRadius.full,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: Spacing.lg,
-    },
-    avatarText: {
-        fontSize: FontSizes.xxxl,
-        fontWeight: '700',
-    },
-    userName: {
-        fontSize: FontSizes.xl,
-        fontWeight: '700',
-        marginBottom: Spacing.xs,
-    },
-    userEmail: {
-        fontSize: FontSizes.base,
-        marginBottom: Spacing.md,
-    },
-    roleContainer: {
-        paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.sm,
-        borderRadius: BorderRadius.lg,
-    },
-    roleText: {
-        fontSize: FontSizes.sm,
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    menuContainer: {
-        marginBottom: Spacing.xl,
-    },
-    menuItem: {
-        padding: Spacing.lg,
-        borderBottomWidth: 1,
-    },
-    menuItemText: {
-        fontSize: FontSizes.base,
-        fontWeight: '500',
-    },
-});

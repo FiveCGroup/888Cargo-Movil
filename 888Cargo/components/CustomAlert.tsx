@@ -3,13 +3,14 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   Dimensions,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { customAlertStyles } from '../styles/components/CustomAlert.styles';
+import { IconSizes } from '../constants/Icons';
 
 const { width } = Dimensions.get('window');
 
@@ -57,22 +58,22 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
   const getButtonStyle = (buttonStyle: string = 'default') => {
     switch (buttonStyle) {
       case 'cancel':
-        return [styles.button, styles.cancelButton];
+        return [customAlertStyles.button, customAlertStyles.cancelButton];
       case 'destructive':
-        return [styles.button, styles.destructiveButton];
+        return [customAlertStyles.button, customAlertStyles.destructiveButton];
       default:
-        return [styles.button, styles.defaultButton];
+        return [customAlertStyles.button, customAlertStyles.defaultButton];
     }
   };
 
   const getButtonTextStyle = (buttonStyle: string = 'default') => {
     switch (buttonStyle) {
       case 'cancel':
-        return [styles.buttonText, { color: '#6c757d' }];
+        return [customAlertStyles.buttonText, { color: '#6c757d' }];
       case 'destructive':
-        return [styles.buttonText, { color: '#ffffff' }];
+        return [customAlertStyles.buttonText, { color: '#ffffff' }];
       default:
-        return [styles.buttonText, { color: '#ffffff' }];
+        return [customAlertStyles.buttonText, { color: '#ffffff' }];
     }
   };
 
@@ -95,10 +96,10 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
       useNativeDriver={true}
       hideModalContentWhileAnimating={true}
     >
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[customAlertStyles.container, { backgroundColor: colors.background }]}>
         {/* Ícono */}
-        <View style={styles.iconContainer}>
-          <View style={[styles.iconBackground, { backgroundColor: iconConfig.color + '20' }]}>
+        <View style={customAlertStyles.iconContainer}>
+          <View style={[customAlertStyles.iconBackground, { backgroundColor: iconConfig.color + '20' }]}>
             <IconSymbol 
               name={iconConfig.name as any} 
               size={32} 
@@ -108,17 +109,17 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
         </View>
 
         {/* Título */}
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[customAlertStyles.title, { color: colors.text }]}>
           {title}
         </Text>
 
         {/* Mensaje */}
-        <Text style={[styles.message, { color: colors.textMuted }]}>
+        <Text style={[customAlertStyles.message, { color: colors.textMuted }]}>
           {message}
         </Text>
 
         {/* Botones */}
-        <View style={styles.buttonContainer}>
+        <View style={customAlertStyles.buttonContainer}>
           {buttons.map((button, index) => (
             <TouchableOpacity
               key={index}
@@ -136,75 +137,5 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 24,
-    marginHorizontal: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  iconContainer: {
-    marginBottom: 16,
-  },
-  iconBackground: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 24,
-  },
-  message: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    width: '100%',
-    gap: 12,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-  },
-  defaultButton: {
-    backgroundColor: '#007bff',
-  },
-  cancelButton: {
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#dee2e6',
-  },
-  destructiveButton: {
-    backgroundColor: '#dc3545',
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
 
 export default CustomAlert;

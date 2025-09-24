@@ -1,6 +1,8 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { busquedaPackingListStyles as styles } from '../styles/components/BusquedaPackingList.styles';
+import { IconSizes, IconColors } from '../constants/Icons';
 
 interface BusquedaPackingListProps {
   codigoCarga: string;
@@ -59,7 +61,7 @@ const BusquedaPackingList: React.FC<BusquedaPackingListProps> = ({
           style={styles.botonVerDetalles}
           onPress={() => onVerDetalles(carga.id || item.id)}
         >
-          <Ionicons name="eye" size={20} color="#fff" />
+          <Ionicons name="eye" size={IconSizes.md} color={IconColors.white} />
           <Text style={styles.textoBotonVer}>Ver</Text>
         </TouchableOpacity>
       </View>
@@ -77,18 +79,18 @@ const BusquedaPackingList: React.FC<BusquedaPackingListProps> = ({
 
       {/* Título */}
       <View style={styles.tituloContainer}>
-        <Ionicons name="search" size={24} color="#007bff" />
+        <Ionicons name="search" size={IconSizes.lg} color={IconColors.primary} />
         <Text style={styles.titulo}>Buscar Packing List</Text>
       </View>
 
       {/* Barra de búsqueda */}
       <View style={styles.busquedaContainer}>
         <View style={styles.inputContainer}>
-          <Ionicons name="document-text" size={20} color="#666" style={styles.inputIcon} />
+          <Ionicons name="document-text" size={IconSizes.md} color={IconColors.secondary} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Ingresa el código del packing list"
-            placeholderTextColor="#999"
+            placeholderTextColor={IconColors.muted}
             value={codigoCarga}
             onChangeText={setCodigoCarga}
             autoCapitalize="characters"
@@ -103,10 +105,10 @@ const BusquedaPackingList: React.FC<BusquedaPackingListProps> = ({
             disabled={busquedaLoading || !codigoCarga.trim()}
           >
             {busquedaLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={IconColors.white} />
             ) : (
               <>
-                <Ionicons name="search" size={18} color="#fff" />
+                <Ionicons name="search" size={IconSizes.base} color={IconColors.white} />
                 <Text style={styles.textoBoton}>Buscar</Text>
               </>
             )}
@@ -117,7 +119,7 @@ const BusquedaPackingList: React.FC<BusquedaPackingListProps> = ({
             onPress={onLimpiar}
             disabled={busquedaLoading}
           >
-            <Ionicons name="refresh" size={18} color="#666" />
+            <Ionicons name="refresh" size={IconSizes.base} color={IconColors.secondary} />
             <Text style={styles.textoBotonLimpiar}>Limpiar</Text>
           </TouchableOpacity>
         </View>
@@ -127,7 +129,7 @@ const BusquedaPackingList: React.FC<BusquedaPackingListProps> = ({
       {mostrandoResultados && (
         <View style={styles.resultadosContainer}>
           <View style={styles.resultadosHeader}>
-            <Ionicons name="list" size={20} color="#28a745" />
+            <Ionicons name="list" size={IconSizes.md} color={IconColors.success} />
             <Text style={styles.resultadosTitulo}>
               Resultados ({resultadosBusqueda.length})
             </Text>
@@ -136,7 +138,7 @@ const BusquedaPackingList: React.FC<BusquedaPackingListProps> = ({
           {/* Mostrar error si existe */}
           {error && (
             <View style={styles.errorContainer}>
-              <Ionicons name="alert-circle" size={20} color="#dc3545" />
+              <Ionicons name="alert-circle" size={IconSizes.md} color={IconColors.danger} />
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
@@ -151,7 +153,7 @@ const BusquedaPackingList: React.FC<BusquedaPackingListProps> = ({
             />
           ) : !error && (
             <View style={styles.sinResultados}>
-              <Ionicons name="document-outline" size={48} color="#ccc" />
+              <Ionicons name="document-outline" size={IconSizes.xxxl} color={IconColors.light} />
               <Text style={styles.textoSinResultados}>
                 No se encontraron packing lists con ese código
               </Text>
@@ -166,193 +168,6 @@ const BusquedaPackingList: React.FC<BusquedaPackingListProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  headerContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
-  tituloContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-  },
-  titulo: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginLeft: 10,
-  },
-  busquedaContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    height: 50,
-    fontSize: 16,
-    color: '#333',
-  },
-  botonesContainer: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  boton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    gap: 8,
-  },
-  botonBuscar: {
-    backgroundColor: '#007bff',
-  },
-  botonLimpiar: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  textoBoton: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  textoBotonLimpiar: {
-    color: '#666',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  resultadosContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  resultadosHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  resultadosTitulo: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#28a745',
-    marginLeft: 8,
-  },
-  lista: {
-    flex: 1,
-  },
-  resultadoItem: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  resultadoInfo: {
-    flex: 1,
-  },
-  resultadoCodigo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#007bff',
-    marginBottom: 4,
-  },
-  resultadoCliente: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 2,
-  },
-  resultadoFecha: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 2,
-  },
-  resultadoItems: {
-    fontSize: 12,
-    color: '#28a745',
-    fontWeight: '600',
-  },
-  resultadoPeso: {
-    fontSize: 12,
-    color: '#6c757d',
-    fontWeight: '500',
-  },
-  botonVerDetalles: {
-    backgroundColor: '#28a745',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  textoBotonVer: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  sinResultados: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  textoSinResultados: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 15,
-    marginBottom: 5,
-  },
-  sugerenciaSinResultados: {
-    fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-  },
-  errorContainer: {
-    backgroundColor: '#f8d7da',
-    borderColor: '#f5c6cb',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  errorText: {
-    color: '#721c24',
-    fontSize: 14,
-    marginLeft: 10,
-    flex: 1,
-  },
-});
+
 
 export default BusquedaPackingList;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes } from '../../constants/Colors';
 import { createThemeStyles } from '../../constants/Theme';
 import { useColorScheme } from '../../hooks/useColorScheme';
@@ -20,9 +21,12 @@ export default function ScannerScreen() {
                 <Text style={[themeStyles.title, { color: colors.primary }]}>
                     Escáner QR
                 </Text>
-                <Text style={[themeStyles.textSecondary, styles.subtitle]}>
-                    📱 Funcionalidad en desarrollo...
-                </Text>
+                <View style={styles.developmentInfo}>
+                    <MaterialIcons name="construction" size={24} color="#FF9500" />
+                    <Text style={[themeStyles.textSecondary, styles.subtitle]}>
+                        Funcionalidad en desarrollo...
+                    </Text>
+                </View>
                 <Text style={[themeStyles.textMuted, styles.description]}>
                     Aquí podrás escanear códigos QR para gestionar cargas de manera rápida y eficiente.
                 </Text>
@@ -44,9 +48,14 @@ const styles = StyleSheet.create({
         top: Spacing.xl,
         width: '100%',
     },
+    developmentInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+        marginTop: Spacing.md,
+    },
     subtitle: {
         textAlign: 'center',
-        marginTop: Spacing.md,
         fontSize: FontSizes.lg,
     },
     description: {

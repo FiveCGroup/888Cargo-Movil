@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { obtenerUrlImagen } from '../utils/cargaUtils';
+import { tablasDatosStyles as styles } from '../styles/components/TablasDatos.styles';
+import { IconSizes, IconColors } from '../constants/Icons';
 
 interface TablasDatosProps {
   datosExcel: any[][];
@@ -89,7 +91,7 @@ const TablasDatos: React.FC<TablasDatosProps> = ({ datosExcel, filasConError }) 
             </TouchableOpacity>
           ) : (
             <View style={styles.sinImagen}>
-              <Ionicons name="image-outline" size={20} color="#ccc" />
+              <Ionicons name="image-outline" size={20} color={IconColors.light} />
             </View>
           )}
         </View>
@@ -142,7 +144,7 @@ const TablasDatos: React.FC<TablasDatosProps> = ({ datosExcel, filasConError }) 
       {filasConError.length > 0 && (
         <View style={styles.seccion}>
           <View style={styles.tituloContainer}>
-            <Ionicons name="warning" size={20} color="#dc3545" />
+            <Ionicons name="warning" size={20} color={IconColors.danger} />
             <Text style={[styles.titulo, styles.tituloError]}>
               Filas con errores ({filasConError.length})
             </Text>
@@ -197,7 +199,7 @@ const TablasDatos: React.FC<TablasDatosProps> = ({ datosExcel, filasConError }) 
       {datosExcel.length > 0 && (
         <View style={styles.seccion}>
           <View style={styles.tituloContainer}>
-            <Ionicons name="checkmark-circle" size={20} color="#28a745" />
+            <Ionicons name="checkmark-circle" size={20} color={IconColors.success} />
             <Text style={[styles.titulo, styles.tituloExito]}>
               Datos cargados exitosamente
             </Text>
@@ -231,121 +233,6 @@ const TablasDatos: React.FC<TablasDatosProps> = ({ datosExcel, filasConError }) 
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  seccion: {
-    marginVertical: 15,
-  },
-  tituloContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-  titulo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  tituloError: {
-    color: '#dc3545',
-  },
-  tituloExito: {
-    color: '#28a745',
-  },
-  tablaContainer: {
-    marginHorizontal: 20,
-  },
-  tabla: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-  },
-  filaHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#f8f9fa',
-    borderBottomWidth: 2,
-    borderBottomColor: '#dee2e6',
-  },
-  fila: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  filaError: {
-    backgroundColor: '#fff5f5',
-  },
-  headerCelda: {
-    padding: 12,
-    borderRightWidth: 1,
-    borderRightColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  celda: {
-    padding: 12,
-    borderRightWidth: 1,
-    borderRightColor: '#eee',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  celdaImagen: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  celdaNumero: {
-    minWidth: 60,
-    alignItems: 'center',
-  },
-  celdaErrores: {
-    minWidth: 200,
-    maxWidth: 250,
-  },
-  celdaDatos: {
-    minWidth: 300,
-  },
-  textoHeader: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#495057',
-    textAlign: 'center',
-    flexWrap: 'wrap',
-  },
-  textoCelda: {
-    fontSize: 11,
-    color: '#333',
-    textAlign: 'center',
-    flexWrap: 'wrap',
-  },
-  textoError: {
-    color: '#dc3545',
-    fontSize: 11,
-  },
-  imagen: {
-    width: 50,
-    height: 50,
-    borderRadius: 4,
-  },
-  sinImagen: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#eee',
-  },
-  leyenda: {
-    fontSize: 12,
-    color: '#6c757d',
-    textAlign: 'center',
-    marginTop: 8,
-    fontStyle: 'italic',
-  },
-});
+
 
 export default TablasDatos;

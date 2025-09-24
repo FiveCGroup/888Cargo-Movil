@@ -4,19 +4,21 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    StyleSheet,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
-import { Colors, Spacing, FontSizes, BorderRadius } from '../constants/Colors';
+import { Colors } from '../constants/Colors';
 import { createThemeStyles } from '../constants/Theme';
 import { useColorScheme } from '../hooks/useColorScheme';
 import Logo888Cargo from './Logo888Cargo';
 import CustomAlert from './CustomAlert';
 import useCustomAlert from '../hooks/useCustomAlert';
+import { loginFormStyles } from '../styles/components/LoginForm.styles';
+import { IconSizes, IconColors } from '../constants/Icons';
 
 interface LoginFormProps {
     onLoginSuccess?: () => void;
@@ -86,10 +88,10 @@ export default function LoginForm({
             style={themeStyles.authContainer}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-            <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <ScrollView contentContainerStyle={loginFormStyles.scrollContainer}>
                 <View style={themeStyles.authContent}>
                     {/* Header con logo */}
-                    <View style={styles.headerContainer}>
+                    <View style={loginFormStyles.headerContainer}>
                         <Logo888Cargo 
                             size="large" 
                             showText={true}
@@ -108,7 +110,7 @@ export default function LoginForm({
                         )}
 
                         {/* Email Input */}
-                        <View style={styles.inputContainer}>
+                        <View style={loginFormStyles.inputContainer}>
                             <TextInput
                                 style={[
                                     themeStyles.input,
@@ -128,12 +130,12 @@ export default function LoginForm({
                         </View>
 
                         {/* Password Input */}
-                        <View style={styles.inputContainer}>
-                            <View style={styles.passwordContainer}>
+                        <View style={loginFormStyles.inputContainer}>
+                            <View style={loginFormStyles.passwordContainer}>
                                 <TextInput
                                     style={[
                                         themeStyles.input,
-                                        styles.passwordInput,
+                                        loginFormStyles.passwordInput,
                                         passwordFocused && themeStyles.inputFocused
                                     ]}
                                     placeholder="Contraseña"
@@ -146,12 +148,16 @@ export default function LoginForm({
                                     onBlur={() => setPasswordFocused(false)}
                                 />
                                 <TouchableOpacity
-                                    style={styles.showPasswordButton}
+                                    style={loginFormStyles.showPasswordButton}
                                     onPress={() => setShowPassword(!showPassword)}
                                     disabled={isLoading}
                                 >
-                                    <Text style={styles.showPasswordText}>
-                                        {showPassword ? '👁️' : '👁️‍🗨️'}
+                                    <Text style={loginFormStyles.showPasswordText}>
+                                        <MaterialIcons 
+                                            name={showPassword ? 'visibility' : 'visibility-off'} 
+                                            size={24} 
+                                            color={IconColors.secondary} 
+                                        />
                                     </Text>
                                 </TouchableOpacity>
                             </View>
@@ -175,26 +181,26 @@ export default function LoginForm({
 
                         {/* Forgot Password */}
                         <TouchableOpacity
-                            style={styles.forgotPasswordButton}
+                            style={loginFormStyles.forgotPasswordButton}
                             onPress={handleForgotPassword}
                             disabled={isLoading}
                         >
-                            <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>
+                            <Text style={[loginFormStyles.forgotPasswordText, { color: colors.primary }]}>
                                 ¿Olvidaste tu contraseña?
                             </Text>
                         </TouchableOpacity>
 
                         {/* Register Link */}
-                        <View style={styles.registerContainer}>
-                            <View style={[styles.registerLinkContainer, { borderColor: colors.border }]}>
-                                <Text style={[styles.registerText, { color: colors.textSecondary }]}>
+                        <View style={loginFormStyles.registerContainer}>
+                            <View style={[loginFormStyles.registerLinkContainer, { borderColor: colors.border }]}>
+                                <Text style={[loginFormStyles.registerText, { color: colors.textSecondary }]}>
                                     ¿No tienes cuenta?{' '}
                                 </Text>
                                 <TouchableOpacity
                                     onPress={handleRegister}
                                     disabled={isLoading}
                                 >
-                                    <Text style={[styles.registerLink, { color: colors.primary }]}>
+                                    <Text style={[loginFormStyles.registerLink, { color: colors.primary }]}>
                                         Regístrate
                                     </Text>
                                 </TouchableOpacity>
@@ -215,61 +221,3 @@ export default function LoginForm({
         </KeyboardAvoidingView>
     );
 }
-
-const styles = StyleSheet.create({
-    scrollContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-    },
-    headerContainer: {
-        alignItems: 'center',
-        marginBottom: Spacing.xl,
-    },
-    inputContainer: {
-        marginBottom: Spacing.md,
-    },
-    passwordContainer: {
-        position: 'relative',
-    },
-    passwordInput: {
-        marginBottom: 0,
-    },
-    showPasswordButton: {
-        position: 'absolute',
-        right: Spacing.md,
-        top: Spacing.md,
-        bottom: Spacing.md,
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: 32,
-    },
-    showPasswordText: {
-        fontSize: FontSizes.base,
-    },
-    forgotPasswordButton: {
-        alignItems: 'center',
-        marginTop: Spacing.lg,
-    },
-    forgotPasswordText: {
-        fontSize: FontSizes.sm,
-        fontWeight: '500',
-    },
-    registerContainer: {
-        alignItems: 'center',
-        marginTop: Spacing.lg,
-        paddingTop: Spacing.md,
-    },
-    registerLinkContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        borderTopWidth: 1,
-        paddingTop: Spacing.md,
-    },
-    registerText: {
-        fontSize: FontSizes.sm,
-    },
-    registerLink: {
-        fontSize: FontSizes.sm,
-        fontWeight: '600',
-    },
-});
