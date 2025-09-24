@@ -74,7 +74,7 @@ export const useCrearCarga = () => {
     setBusquedaLoading(false);
     setError('');
     
-    console.log('✅ [useCrearCarga] Búsqueda limpiada correctamente');
+    console.log('[useCrearCarga] Search state cleared');
     
     // Mostrar confirmación como en la web
     // Alert no está disponible en hooks, se maneja en el componente si es necesario
@@ -109,7 +109,7 @@ export const useCrearCarga = () => {
     try {
       codigoGenerado = await generarNuevoCodigo();
     } catch (error) {
-      console.warn('⚠️ [useCrearCarga] Error al generar código automático');
+      console.warn('[useCrearCarga] Automatic code generation failed');
       codigoGenerado = generarCodigoUnico(); // Fallback
     }
     
@@ -128,7 +128,7 @@ export const useCrearCarga = () => {
       
       if (resultado.success && resultado.codigo_carga) {
         const nuevoCodigo = resultado.codigo_carga;
-        console.log('✅ [useCrearCarga] Código generado:', nuevoCodigo);
+        console.log(`[useCrearCarga] Code generated: ${nuevoCodigo}`);
         
         setInfoCarga(prev => ({
           ...prev,
@@ -137,11 +137,11 @@ export const useCrearCarga = () => {
         
         return nuevoCodigo;
       } else {
-        console.warn('⚠️ [useCrearCarga] Error del backend, usando código local');
+        console.warn('[useCrearCarga] Backend error, using local fallback code');
         throw new Error('Error al generar código desde backend');
       }
     } catch (error) {
-      console.warn('⚠️ [useCrearCarga] Fallback a código local:', error);
+      console.warn('[useCrearCarga] Fallback to local code generation:', error);
       // Fallback a código local si hay error con el backend
       const nuevoCodigo = generarCodigoUnico();
       setInfoCarga(prev => ({

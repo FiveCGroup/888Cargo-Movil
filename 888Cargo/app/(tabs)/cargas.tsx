@@ -59,7 +59,7 @@ const CrearCarga = () => {
       return;
     }
 
-    console.log('🔍 [CrearCarga] Iniciando búsqueda de packing list:', codigoCarga);
+    console.log(`[CrearCarga] Searching packing list for code: ${codigoCarga}`);
     
     // Limpiar estados previos
     setError('');
@@ -77,7 +77,7 @@ const CrearCarga = () => {
         const datos = Array.isArray(resultado.data) ? resultado.data : [resultado.data];
         
         if (datos.length > 0) {
-          console.log('✅ [CrearCarga] Se encontraron', datos.length, 'packing list(s)');
+          console.log(`[CrearCarga] Found ${datos.length} packing list(s)`);
           
           // Formatear datos para compatibilidad con el componente
           const datosFormateados = datos.map((item: any) => ({
@@ -126,7 +126,7 @@ const CrearCarga = () => {
             `Se encontraron ${datosFormateados.length} packing list(s) con ${totalArticulos} artículos en total`
           );
         } else {
-          console.log('⚠️ [CrearCarga] Respuesta exitosa pero sin resultados');
+          console.log('[CrearCarga] Search successful but no results found');
           setError('No se encontraron packing lists con ese código');
           setResultadosBusqueda([]);
           setMostrandoResultados(true);
@@ -134,7 +134,7 @@ const CrearCarga = () => {
       } else {
         // Manejar caso de no encontrado como en la web
         const mensajeError = resultado.message || resultado.error || 'No se encontró el packing list especificado';
-        console.log('❌ [CrearCarga] Packing list no encontrado:', mensajeError);
+        console.log('[CrearCarga] Packing list not found:', mensajeError);
         
         setError(mensajeError);
         setResultadosBusqueda([]);
@@ -143,7 +143,7 @@ const CrearCarga = () => {
         showWarning('No encontrado', mensajeError);
       }
     } catch (error: any) {
-      console.error('❌ [CrearCarga] Error en búsqueda:', error);
+      console.error('[CrearCarga] Search operation failed:', error);
       
       // Manejo de errores más detallado como en la web
       let mensajeError = 'Error al buscar el packing list';
@@ -254,7 +254,7 @@ const CrearCarga = () => {
         showError('Error', errorMsg);
       }
     } catch (error) {
-      console.error('❌ [CrearCarga] Error al procesar Excel:', error);
+      console.error('[CrearCarga] Excel processing failed:', error);
       const errorMsg = 'Error al procesar el archivo Excel';
       setError(errorMsg);
       showError('Error', errorMsg);
@@ -283,20 +283,22 @@ const CrearCarga = () => {
     try {
       await generarNuevoCodigo();
     } catch (error) {
-      console.warn('⚠️ [CrearCarga] Error al generar código:', error);
+      console.warn('[CrearCarga] Code generation failed:', error);
     }
   };
 
   // Función para visualizar QRs
   const handleVisualizarQR = () => {
-    console.log('🔍 [CrearCarga] Datos guardado disponibles:', JSON.stringify(datosGuardado, null, 2));
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[CrearCarga] Save response data:', { hasData: !!datosGuardado, keys: Object.keys(datosGuardado || {}) });
+    }
     const idCarga = datosGuardado?.carga?.id || datosGuardado?.carga?.id_carga || datosGuardado?.idCarga;
-    console.log('🔍 [CrearCarga] ID carga extraído:', idCarga);
+    console.log(`[CrearCarga] Extracted cargo ID: ${idCarga}`);
     if (idCarga) {
-      console.log('🏷️ [CrearCarga] Navegando a visualizar QRs, ID carga:', idCarga);
+      console.log('[CrearCarga] Navigating to QR visualization');
       router.push(`/visualizar-qr/${idCarga}` as any);
     } else {
-      console.warn('⚠️ [CrearCarga] No hay ID de carga disponible para visualizar QRs');
+      console.warn('[CrearCarga] No cargo ID available for QR visualization');
       showError('Error', 'No se pudo obtener el ID de la carga para visualizar los QRs');
     }
   };
@@ -369,7 +371,7 @@ const CrearCarga = () => {
         showError('Error', resultado.error || 'Error al guardar el packing list');
       }
     } catch (error: any) {
-      console.error('❌ [CrearCarga] Error al guardar:', error);
+      console.error('[CrearCarga] Save operation failed:', error);
       setError('Error al guardar en base de datos');
       showError('Error', `Error al guardar: ${error?.message || 'Error desconocido'}`);
     } finally {

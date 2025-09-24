@@ -3,7 +3,7 @@
 // ===================================
 
 // Configuración dinámica basada en variables de entorno
-const getApiUrl = () => {
+export const getApiUrl = () => {
   const environment = process.env.EXPO_PUBLIC_ENVIRONMENT || 'development';
   
   // Si hay una URL específica configurada, usarla

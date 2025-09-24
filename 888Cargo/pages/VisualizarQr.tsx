@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Image, Dimensions, Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
@@ -7,6 +7,7 @@ import * as FileSystem from 'expo-file-system';
 
 // Servicios
 import CargaService from '../services/cargaService';
+import { getApiUrl } from '../constants/API';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -30,6 +31,10 @@ const VisualizarQr: React.FC = () => {
   const [cargaInfo, setCargaInfo] = useState<any>(null);
   const [error, setError] = useState('');
   const [generandoPDF, setGenerandoPDF] = useState(false);
+  
+  // Estados para el modal de zoom del QR
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedQR, setSelectedQR] = useState<QRData | null>(null);
 
   useEffect(() => {
     if (idCarga) {
@@ -193,7 +198,8 @@ const VisualizarQr: React.FC = () => {
       }
       
       // Crear un QR individual y compartirlo usando el ID
-      const qrUrl = `http://10.0.2.2:4000/api/qr/image/${qrItem.id}?width=400`;
+      const baseUrl = getApiUrl().replace('/api', ''); // Remover /api del final
+      const qrUrl = `${baseUrl}/api/qr/image/${qrItem.id}?width=400`;
       
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(qrUrl, {
@@ -208,6 +214,17 @@ const VisualizarQr: React.FC = () => {
 
   const volverAtras = () => {
     router.back();
+  };
+
+  // Funciones para el modal de zoom
+  const handleQRPress = (qrItem: QRData) => {
+    setSelectedQR(qrItem);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedQR(null);
   };
 
   if (loading) {
@@ -308,19 +325,23 @@ const VisualizarQr: React.FC = () => {
                 </View>
 
                 {/* Imagen QR */}
-                <View style={styles.qrImageContainer}>
+                <TouchableOpacity 
+                  style={styles.qrImageContainer}
+                  onPress={() => handleQRPress(item)}
+                  activeOpacity={0.8}
+                >
                   <Image
                     source={{ 
-                      uri: `http://10.0.2.2:4000/api/qr/image/${item.id}?width=200`
+                      uri: `${getApiUrl().replace('/api', '')}/api/qr/image/${item.id}?width=200`
                     }}
                     style={styles.qrImage}
                     resizeMode="contain"
                     onError={(error) => {
                       console.error('❌ Error cargando imagen QR:', error);
-                      console.log('🔍 URL que falló:', `http://10.0.2.2:4000/api/qr/image/${item.id}`);
+                      console.log('🔍 URL que falló:', `${getApiUrl().replace('/api', '')}/api/qr/image/${item.id}`);
                     }}
                   />
-                </View>
+                </TouchableOpacity>
 
                 {/* Descripción */}
                 <View style={styles.qrDescripcion}>
@@ -351,6 +372,67 @@ const VisualizarQr: React.FC = () => {
         {/* Espacio adicional al final */}
         <View style={styles.espacioFinal} />
       </ScrollView>
+
+      {/* Modal para zoom del QR */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={closeModal}
+      >
+        <Pressable style={styles.modalOverlay} onPress={closeModal}>
+          <View style={styles.modalContainer}>
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              {selectedQR && (
+                <View style={styles.modalContent}>
+                  {/* Header del modal */}
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>
+                      Item #{selectedQR.item_numero} - Caja {selectedQR.numero_caja} de {selectedQR.total_cajas}
+                    </Text>
+                    <TouchableOpacity onPress={closeModal} style={styles.modalCloseButton}>
+                      <Ionicons name="close" size={24} color="#666" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Imagen QR ampliada */}
+                  <View style={styles.modalQRContainer}>
+                    <Image
+                      source={{ 
+                        uri: `${getApiUrl().replace('/api', '')}/api/qr/image/${selectedQR.id}?width=400`
+                      }}
+                      style={styles.modalQRImage}
+                      resizeMode="contain"
+                    />
+                  </View>
+
+                  {/* Información del QR */}
+                  <View style={styles.modalInfo}>
+                    <Text style={styles.modalDescripcion}>
+                      {selectedQR.descripcion || `Item ${selectedQR.item_numero}`}
+                    </Text>
+                    <Text style={styles.modalCodigo}>
+                      {selectedQR.qr_code}
+                    </Text>
+                  </View>
+
+                  {/* Botón de compartir */}
+                  <TouchableOpacity
+                    style={styles.modalShareButton}
+                    onPress={() => {
+                      handleCompartirQR(selectedQR.qr_code, selectedQR.descripcion);
+                      closeModal();
+                    }}
+                  >
+                    <Ionicons name="share" size={20} color="#fff" />
+                    <Text style={styles.modalShareText}>Compartir QR</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -561,6 +643,100 @@ const styles = StyleSheet.create({
   },
   espacioFinal: {
     height: 40,
+  },
+  
+  // Estilos del modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    maxWidth: screenWidth * 0.9,
+    maxHeight: screenWidth * 0.9,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#007bff',
+    flex: 1,
+    textAlign: 'center',
+  },
+  modalCloseButton: {
+    padding: 5,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
+  },
+  modalQRContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingVertical: 10,
+  },
+  modalQRImage: {
+    width: screenWidth * 0.6,
+    height: screenWidth * 0.6,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+  },
+  modalInfo: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  modalDescripcion: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 10,
+    fontWeight: '600',
+  },
+  modalCodigo: {
+    fontSize: 12,
+    color: '#666',
+    fontFamily: 'monospace',
+    textAlign: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  modalShareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007bff',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 25,
+    justifyContent: 'center',
+    gap: 8,
+  },
+  modalShareText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

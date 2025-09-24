@@ -10,7 +10,7 @@ import { Platform } from 'react-native';
 
 let API_BASE_URL;
 if (Platform.OS === 'android') {
-  API_BASE_URL = 'http://10.0.2.2:4000/api'; // Para emulador Android - Backend web
+  API_BASE_URL = 'http://192.168.58.106:4000/api'; // Para dispositivo Android físico - Backend web con IP real
 } else if (Platform.OS === 'ios') {
   API_BASE_URL = 'http://192.168.58.106:4000/api'; // Para simulador iOS - Backend web con IP real
 } else {
@@ -23,7 +23,7 @@ console.log('🔧 [CargaService] Configurando con URL:', API_BASE_URL);
 class CargaService {
   constructor() {
     console.log('🔧 [CargaService] Configurado para plataforma:', Platform.OS, 'con URL:', API_BASE_URL);
-    console.log('⚠️ [CargaService] MODO: SOLO DATOS REALES - Sin fallbacks de prueba');
+    console.log('[CargaService] Service initialized - Production mode active');
   }
 
   // Método para procesar archivo Excel - SOLO DATOS REALES
@@ -40,8 +40,8 @@ class CargaService {
     const urlsToTry = [
       API_BASE_URL,
       'http://192.168.58.106:4000/api',  // IP real de la máquina - Backend web
-      'http://localhost:4000/api',       // Fallback local - Backend web
-      'http://10.0.2.2:4000/api'        // Fallback Android - Backend web
+      'http://10.0.2.2:4000/api',       // Fallback Android emulador - Backend web
+      'http://localhost:4000/api'        // Fallback local - Backend web
     ];
 
     let ultimoError = null;
@@ -53,7 +53,7 @@ class CargaService {
       let timeoutMs = 20 * 60 * 1000; // 20 minutos
 
       try {
-        console.log('🔗 [CargaService] Intentando conectar a:', baseUrl);
+        console.log(`[CargaService] Attempting connection to: ${baseUrl}`);
 
         // Crear FormData
         const formData = new FormData();
@@ -65,11 +65,10 @@ class CargaService {
           name: archivo.name || 'archivo.xlsx'
         });
 
-        console.log('📤 [CargaService] FormData creado, enviando al servidor...');
-        console.log('📂 [CargaService] Tamaño del archivo:', archivo.size, 'bytes');
+        console.log(`[CargaService] Uploading file: ${archivo.name} (${(archivo.size / (1024 * 1024)).toFixed(2)}MB)`);
 
         // Timeout fijo muy alto para pruebas
-        console.log('⏱️ [CargaService] Timeout configurado:', timeoutMs / 1000, 'segundos');
+        console.log(`[CargaService] Request timeout set to: ${timeoutMs / 1000} seconds`);
 
         // Realizar petición al servidor real con timeout alto
         const controller = new AbortController();
@@ -106,7 +105,7 @@ class CargaService {
           throw new Error(resultado.message || 'Error en el procesamiento del archivo');
         }
 
-        console.log('✅ [CargaService] Procesamiento REAL exitoso');
+        console.log('[CargaService] File processing completed successfully');
         console.log('📊 [CargaService] Datos recibidos:', resultado);
 
         return {
@@ -128,7 +127,7 @@ class CargaService {
           errorMessage = `Error de red: Verifique su conexión a internet y que el servidor esté ejecutándose`;
         }
 
-        console.log(`❌ [CargaService] Error con URL ${baseUrl}:`, errorMessage);
+        console.log(`[CargaService] Connection failed for ${baseUrl}:`, errorMessage);
         ultimoError = new Error(errorMessage);
 
         // Si es el último intento, propagar el error
@@ -139,13 +138,13 @@ class CargaService {
     }
 
     // Si llegamos aquí, todos los endpoints fallaron
-    console.error('❌ [CargaService] No se pudo procesar el archivo en ningún endpoint');
+    console.error('[CargaService] All endpoints failed to process the file');
     throw new Error(`Error al procesar archivo: ${ultimoError?.message || 'Conexión fallida'}`);
   }
 
   // Buscar packing list por código
   async buscarPackingList(codigoCarga) {
-    console.log('🔍 [CargaService] Buscando packing list:', codigoCarga);
+    console.log(`[CargaService] Searching packing list for code: ${codigoCarga}`);
     
     try {
       const response = await fetch(`${API_BASE_URL}/carga/buscar/${codigoCarga}`);
@@ -157,7 +156,7 @@ class CargaService {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
     } catch (error) {
-      console.error('❌ [CargaService] Error al buscar:', error);
+      console.error('[CargaService] Search operation failed:', error);
       throw new Error(`Error al buscar packing list: ${error.message}`);
     }
   }
@@ -204,11 +203,11 @@ class CargaService {
       }
 
       const resultado = await response.json();
-      console.log('✅ [CargaService] Packing list guardado exitosamente');
+      console.log('[CargaService] Packing list saved successfully');
       console.log('📊 [CargaService] Resultados:', resultado.data);
       return resultado;
     } catch (error) {
-      console.error('❌ [CargaService] Error al guardar:', error);
+      console.error('[CargaService] Save operation failed:', error);
       throw new Error(`Error al guardar: ${error.message}`);
     }
   }
@@ -226,22 +225,24 @@ class CargaService {
       }
 
       const resultado = await response.json();
-      console.log('✅ [CargaService] Código generado:', resultado.codigo_carga);
+      console.log(`[CargaService] Code generated successfully: ${resultado.codigo_carga}`);
       return resultado;
     } catch (error) {
-      console.error('❌ [CargaService] Error al generar código:', error);
+      console.error('[CargaService] Code generation failed:', error);
       throw new Error(`Error al generar código: ${error.message}`);
     }
   }
 
   // Obtener datos de QR de una carga
   async obtenerQRDataDeCarga(idCarga) {
-    console.log('🏷️ [CargaService] Obteniendo datos de QR para carga:', idCarga);
+    console.log(`[CargaService] Fetching QR data for cargo ID: ${idCarga}`);
     
     try {
       // USAR RUTA DE DEBUG TEMPORALMENTE para aislar problema de autenticación
       const url = `${API_BASE_URL}/qr/debug/carga/${idCarga}/data`;
-      console.log('🔗 [CargaService] URL completa (DEBUG):', url);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[CargaService] Request URL: ${url}`);
+      }
       
       const response = await fetch(url, {
         method: 'GET',
@@ -256,16 +257,15 @@ class CargaService {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ [CargaService] Error HTTP:', response.status, errorText);
+        console.error(`[CargaService] HTTP error ${response.status}:`, errorText);
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       const resultado = await response.json();
-      console.log('✅ [CargaService] Datos de QR obtenidos completos:', JSON.stringify(resultado, null, 2));
-      console.log('✅ [CargaService] Cantidad de QRs:', resultado.data?.qrs?.length || 0);
+      console.log(`[CargaService] QR data retrieved successfully - Count: ${resultado.data?.qrs?.length || 0}`);
       return resultado;
     } catch (error) {
-      console.error('❌ [CargaService] Error al obtener QRs:', error);
+      console.error('[CargaService] Failed to fetch QR data:', error);
       throw new Error(`Error al obtener códigos QR: ${error.message}`);
     }
   }
@@ -283,17 +283,17 @@ class CargaService {
       }
 
       const resultado = await response.json();
-      console.log('✅ [CargaService] Información de carga obtenida');
+      console.log('[CargaService] Cargo information retrieved successfully');
       return resultado;
     } catch (error) {
-      console.error('❌ [CargaService] Error al obtener info de carga:', error);
+      console.error('[CargaService] Failed to fetch cargo information:', error);
       throw new Error(`Error al obtener información de carga: ${error.message}`);
     }
   }
 
   // Descargar PDF de QRs - Adaptado de la lógica web
   async descargarPDFQRs(idCarga, useOptimized = true) {
-    console.log('📄 [CargaService] Descargando PDF de QRs para carga:', idCarga);
+    console.log(`[CargaService] Downloading QR PDF for cargo: ${idCarga}`);
     
     try {
       // Usar versión optimizada por defecto y agregar parámetro aleatorio para evitar caché
@@ -354,4 +354,4 @@ class CargaService {
 const cargaService = new CargaService();
 export default cargaService;
 
-console.log('✅ [CargaService] Servicio inicializado correctamente (SOLO DATOS REALES)');
+console.log('[CargaService] Service module loaded successfully');

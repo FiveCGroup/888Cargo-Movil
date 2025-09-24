@@ -65,16 +65,19 @@ const AuthService = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    // Agregar headers específicos para móvil
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'User-Agent': 'Expo-Mobile-App/1.0.0'
                 },
                 credentials: 'include', // Para enviar/recibir cookies
                 body: JSON.stringify({ email, password }),
             });
 
-            console.log('🔐 [AuthService] Respuesta del servidor:', response.status);
+            console.log(`[AuthService] Login response status: ${response.status}`);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: 'Error de conexión' }));
-                console.log('❌ [AuthService] Error del servidor:', errorData);
+                console.log('[AuthService] Authentication failed:', errorData);
                 return { 
                     success: false, 
                     error: errorData.message || 'Credenciales inválidas' 
@@ -82,7 +85,7 @@ const AuthService = {
             }
 
             const userData = await response.json();
-            console.log('✅ [AuthService] Login exitoso:', userData);
+            console.log('[AuthService] Login successful');
             
             const user: User = {
                 id: userData.id.toString(),
@@ -92,14 +95,20 @@ const AuthService = {
                 country: userData.country
             };
 
-            // Simular token (en la vida real vendría en las cookies)
-            const token = 'backend-authenticated-token';
+            // Generar un timestamp único para diferenciar sesiones móviles de web
+            const mobileSessionToken = `mobile_${Date.now()}_${userData.id}`;
             
-            setAuthState({ isAuthenticated: true, token, user });
+            setAuthState({ 
+                isAuthenticated: true, 
+                token: mobileSessionToken, 
+                user,
+                sessionType: 'mobile',
+                loginTime: new Date().toISOString()
+            });
             
             return { 
                 success: true, 
-                data: { user, token } 
+                data: { user, token: mobileSessionToken } 
             };
         } catch (error) {
             console.error('💥 [AuthService] Error en login:', error);
@@ -119,6 +128,9 @@ const AuthService = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    // Agregar headers específicos para móvil
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'User-Agent': 'Expo-Mobile-App/1.0.0'
                 },
                 credentials: 'include', // Para enviar/recibir cookies
                 body: JSON.stringify(userData),
@@ -128,7 +140,7 @@ const AuthService = {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: 'Error de conexión' }));
-                console.log('❌ [AuthService] Error del servidor:', errorData);
+                console.log('[AuthService] Registration failed:', errorData);
                 return { 
                     success: false, 
                     error: errorData.message || 'Error al registrar usuario' 
@@ -136,7 +148,7 @@ const AuthService = {
             }
 
             const newUserData = await response.json();
-            console.log('✅ [AuthService] Registro exitoso:', newUserData);
+            console.log('[AuthService] Registration successful');
             
             const user: User = {
                 id: newUserData.id.toString(),
@@ -146,14 +158,20 @@ const AuthService = {
                 country: userData.country
             };
 
-            // Simular token (en la vida real vendría en las cookies)
-            const token = 'backend-authenticated-token';
+            // Generar token único para sesión móvil
+            const mobileSessionToken = `mobile_${Date.now()}_${newUserData.id}`;
             
-            setAuthState({ isAuthenticated: true, token, user });
+            setAuthState({ 
+                isAuthenticated: true, 
+                token: mobileSessionToken, 
+                user,
+                sessionType: 'mobile',
+                loginTime: new Date().toISOString()
+            });
             
             return { 
                 success: true, 
-                data: { user, token } 
+                data: { user, token: mobileSessionToken } 
             };
         } catch (error) {
             console.error('💥 [AuthService] Error en registro:', error);
@@ -166,21 +184,43 @@ const AuthService = {
 
     logout: async (): Promise<{ success: boolean; error?: string }> => {
         try {
-            console.log('🚪 [AuthService] Cerrando sesión...');
+            console.log('🚪 [AuthService] Cerrando sesión móvil...');
             
-            await fetch(`${API_CONFIG.BASE_URL}/logout`, {
-                method: 'POST',
-                credentials: 'include', // Para enviar cookies
-            });
+            // Intentar cerrar sesión en el backend pero no fallar si hay error
+            try {
+                await fetch(`${API_CONFIG.BASE_URL}/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'User-Agent': 'Expo-Mobile-App/1.0.0'
+                    },
+                    credentials: 'include', // Para enviar cookies
+                });
+            } catch (backendError) {
+                console.warn('[AuthService] Backend logout notification failed:', backendError);
+                // Continuar con logout local
+            }
 
-            setAuthState({ isAuthenticated: false, token: null, user: null });
-            console.log('✅ [AuthService] Sesión cerrada exitosamente');
+            setAuthState({ 
+                isAuthenticated: false, 
+                token: null, 
+                user: null,
+                sessionType: null,
+                loginTime: null
+            });
+            console.log('[AuthService] Mobile session closed successfully');
             
             return { success: true };
         } catch (error) {
             console.error('💥 [AuthService] Error en logout:', error);
             // Aún así limpiar el estado local
-            setAuthState({ isAuthenticated: false, token: null, user: null });
+            setAuthState({ 
+                isAuthenticated: false, 
+                token: null, 
+                user: null,
+                sessionType: null,
+                loginTime: null
+            });
             return { success: true };
         }
     },
@@ -193,7 +233,7 @@ const AuthService = {
 
     verifyToken: async (): Promise<AuthResponse> => {
         try {
-            console.log('🔍 [AuthService] Verificando token...');
+            console.log('[AuthService] Verifying authentication token...');
             
             const response = await fetch(`${API_CONFIG.BASE_URL}/profile`, {
                 method: 'GET',
@@ -201,13 +241,13 @@ const AuthService = {
             });
 
             if (!response.ok) {
-                console.log('❌ [AuthService] Token inválido');
+                console.log('[AuthService] Token validation failed');
                 setAuthState({ isAuthenticated: false, token: null, user: null });
                 return { success: false, error: 'Token inválido' };
             }
 
             const userData = await response.json();
-            console.log('✅ [AuthService] Token válido:', userData);
+            console.log('[AuthService] Token validation successful');
             
             const user: User = {
                 id: userData.id.toString(),
