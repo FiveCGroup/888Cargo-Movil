@@ -4,7 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes } from '../../constants/Colors';
 import { createThemeStyles } from '../../constants/Theme';
 import { useColorScheme } from '../../hooks/useColorScheme';
-import Logo888Cargo from '../../components/Logo888Cargo';
+import { Image } from 'react-native';
 
 export default function ScannerScreen() {
     const colorScheme = useColorScheme();
@@ -14,7 +14,10 @@ export default function ScannerScreen() {
     return (
         <View style={[themeStyles.container, styles.centerContent]}>
             <View style={styles.headerContainer}>
-                <Logo888Cargo size="small" layout="horizontal" showText={true} />
+                 <Image
+                    source={require('../../assets/images/888cargo-logo.png')}
+                    style={{ width: 50, height: 50, resizeMode: 'contain' }}
+                 />
             </View>
             
             <View style={themeStyles.card}>
