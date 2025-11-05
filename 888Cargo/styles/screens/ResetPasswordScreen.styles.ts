@@ -1,0 +1,101 @@
+import { StyleSheet } from 'react-native';
+import { FontSizes, Spacing } from '../../constants/Colors';
+
+/**
+ * Estilos para la pantalla ResetPasswordScreen
+ * Separados del componente para mejor organización y mantenibilidad
+ */
+export const resetPasswordScreenStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+    },
+    
+    headerContainer: {
+        alignItems: 'center',
+        marginBottom: Spacing.xl,
+    },
+    
+    instructionText: {
+        fontSize: FontSizes.sm,
+        textAlign: 'center',
+        marginBottom: Spacing.xl,
+        lineHeight: 20,
+    },
+    
+    inputContainer: {
+        marginBottom: Spacing.md,
+    },
+    
+    inputLabel: {
+        fontSize: FontSizes.sm,
+        fontWeight: '600',
+        marginBottom: Spacing.xs,
+    },
+    
+    helperText: {
+        fontSize: FontSizes.xs,
+        marginTop: Spacing.xs,
+        fontStyle: 'italic',
+    },
+    
+    passwordRequirements: {
+        marginTop: Spacing.sm,
+        padding: Spacing.md,
+        borderRadius: 8,
+        marginBottom: Spacing.md,
+    },
+    
+    requirementItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: Spacing.xs / 2,
+    },
+    
+    requirementIcon: {
+        marginRight: Spacing.xs,
+        fontSize: FontSizes.sm,
+    },
+    
+    requirementText: {
+        fontSize: FontSizes.xs,
+    },
+    
+    backContainer: {
+        alignItems: 'center',
+        marginTop: Spacing.lg,
+        paddingTop: Spacing.md,
+    },
+    
+    backLinkContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        borderTopWidth: 1,
+        paddingTop: Spacing.md,
+    },
+    
+    backText: {
+        fontSize: FontSizes.sm,
+    },
+    
+    backLink: {
+        fontSize: FontSizes.sm,
+        fontWeight: '600',
+    },
+    
+    errorContainer: {
+        marginTop: Spacing.md,
+        padding: Spacing.md,
+        borderRadius: 8,
+        borderWidth: 1,
+    },
+    
+    errorText: {
+        fontSize: FontSizes.sm,
+        textAlign: 'center',
+    },
+});

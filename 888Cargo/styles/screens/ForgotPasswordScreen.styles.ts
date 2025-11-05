@@ -31,6 +31,18 @@ export const forgotPasswordScreenStyles = StyleSheet.create({
         marginBottom: Spacing.lg,
     },
     
+    inputLabel: {
+        fontSize: FontSizes.sm,
+        fontWeight: '600',
+        marginBottom: Spacing.xs,
+    },
+    
+    helperText: {
+        fontSize: FontSizes.xs,
+        marginTop: Spacing.xs,
+        fontStyle: 'italic',
+    },
+    
     backContainer: {
         alignItems: 'center',
         marginTop: Spacing.lg,

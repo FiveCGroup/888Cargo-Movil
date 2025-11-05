@@ -60,6 +60,26 @@ const AuthService = {
         try {
             console.log('🔐 [AuthService] Iniciando login real con backend...');
             console.log('🔐 [AuthService] Email:', email);
+            console.log('🔗 [AuthService] URL del backend:', API_CONFIG.BASE_URL);
+            
+            // Primero probar conectividad básica
+            try {
+                console.log('🔄 [AuthService] Probando conectividad...');
+                const healthResponse = await fetch(`${API_CONFIG.BASE_URL}/health`, {
+                    method: 'GET'
+                });
+                if (healthResponse.ok) {
+                    console.log('✅ [AuthService] Backend accesible');
+                } else {
+                    console.warn('⚠️ [AuthService] Backend responde pero con error');
+                }
+            } catch (connectError: any) {
+                console.error('❌ [AuthService] Error de conectividad básica:', connectError);
+                return { 
+                    success: false, 
+                    error: `No se puede conectar al servidor. Verifica:\n1. Que el backend esté ejecutándose\n2. Tu IP actual: ${API_CONFIG.BASE_URL}\n3. Que estés en la misma red WiFi\n\nError: ${connectError?.message || 'Error desconocido'}` 
+                };
+            }
             
             const response = await fetch(`${API_CONFIG.BASE_URL}/login`, {
                 method: 'POST',
@@ -70,14 +90,14 @@ const AuthService = {
                     'User-Agent': 'Expo-Mobile-App/1.0.0'
                 },
                 credentials: 'include', // Para enviar/recibir cookies
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password })
             });
 
-            console.log(`[AuthService] Login response status: ${response.status}`);
+            console.log(`📡 [AuthService] Login response status: ${response.status}`);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ message: 'Error de conexión' }));
-                console.log('[AuthService] Authentication failed:', errorData);
+                console.log('❌ [AuthService] Authentication failed:', errorData);
                 return { 
                     success: false, 
                     error: errorData.message || 'Credenciales inválidas' 
@@ -85,7 +105,7 @@ const AuthService = {
             }
 
             const userData = await response.json();
-            console.log('[AuthService] Login successful');
+            console.log('✅ [AuthService] Login successful:', { id: userData.id, name: userData.name });
             
             const user: User = {
                 id: userData.id.toString(),
@@ -110,11 +130,23 @@ const AuthService = {
                 success: true, 
                 data: { user, token: mobileSessionToken } 
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error('💥 [AuthService] Error en login:', error);
+            
+            // Mejorar mensajes de error específicos
+            let errorMessage = 'Error de conexión con el servidor';
+            
+            if (error?.message?.includes('Network request failed')) {
+                errorMessage = `Error de red: No se puede conectar al servidor.\n\n🔧 Soluciones:\n1. Verifica que el backend esté ejecutándose en ${API_CONFIG.BASE_URL}\n2. Verifica tu conexión WiFi\n3. Verifica que estés en la misma red que el servidor`;
+            } else if (error?.message?.includes('timeout')) {
+                errorMessage = 'Timeout: El servidor está tardando demasiado en responder';
+            } else if (error?.message?.includes('JSON')) {
+                errorMessage = 'Error de formato en la respuesta del servidor';
+            }
+            
             return { 
                 success: false, 
-                error: 'Error de conexión con el servidor' 
+                error: errorMessage
             };
         }
     },
@@ -226,7 +258,7 @@ const AuthService = {
     },
 
     resetPassword: async (email: string): Promise<AuthResponse> => {
-        // TODO: Implementar reset de contraseña real cuando esté disponible en el backend
+        // POR HACER: Implementar reset de contraseña real cuando esté disponible en el backend
         console.log('🔄 [AuthService] Reset de contraseña no implementado aún');
         return { success: false, error: 'Reset de contraseña no disponible aún' };
     },
@@ -287,7 +319,7 @@ export const resetPassword = (email: string): Promise<AuthResponse> =>
 export const verifyToken = (): Promise<AuthResponse> => 
     AuthService.verifyToken();
 
-// Renamed to avoid duplicate identifier error
+// Renombrado para evitar error de identificador duplicado
 export const fetchAuthState = () => 
     AuthService.getAuthState();
 

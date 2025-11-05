@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>888 Cargo - Guía de Instalación y Configuración</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .back-button {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .content-section h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 2em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .content-section h3 {
+            color: #667eea;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .content-section h4 {
+            color: #444;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .content-section p, .content-section ul {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .content-section ul {
+            padding-left: 25px;
+        }
+
+        .content-section li {
+            margin-bottom: 8px;
+        }
+
+        .content-section ol {
+            padding-left: 25px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .content-section ol li {
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+            overflow-x: auto;
+        }
+
+        .code-block .comment {
+            color: #666;
+        }
+
+        .highlight-box {
+            background: #e8f4fd;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .warning-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .success-box {
+            background: #d1edff;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .success-box h4 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .toc h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            margin-bottom: 8px;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content-section {
+                padding: 20px;
+            }
+            
+            .code-block {
+                padding: 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Volver al Dashboard</a>
+        
+        <div class="header">
+            <h1>🚀 Guía de Instalación y Configuración</h1>
+            <p>Ecosistema Completo 888 Cargo - Setup y Deployment</p>
+        </div>
+
+        <div class="content-section toc">
+            <h3>📋 Índice de Contenidos</h3>
+            <ul>
+                <li><a href="#requisitos">📋 Requisitos Previos</a></li>
+                <li><a href="#instalacion">📦 Instalación del Proyecto</a></li>
+                <li><a href="#configuracion">⚙️ Configuración de Variables de Entorno</a></li>
+                <li><a href="#backend">🔧 Ejecución del Backend</a></li>
+                <li><a href="#web">🌐 Ejecución del Cliente Web</a></li>
+                <li><a href="#movil">📱 Ejecución del Frontend Móvil</a></li>
+                <li><a href="#comandos">🛠️ Comandos Útiles</a></li>
+                <li><a href="#problemas">🔧 Resolución de Problemas</a></li>
+                <li><a href="#verificacion">📊 Verificación del Sistema</a></li>
+                <li><a href="#red">🌐 Configuración de Red</a></li>
+            </ul>
+        </div>
+
+        <div class="content-section" id="requisitos">
+            <h2>📋 Requisitos Previos</h2>
+            <p>Para ejecutar el proyecto se requiere la instalación de ciertos programas y herramientas:</p>
+            
+            <div class="highlight-box">
+                <h4>🔧 Software Requerido</h4>
+                <ul>
+                    <li><strong>Node.js (versión 18 o superior):</strong> se puede verificar la instalación ejecutando <code>node --version</code></li>
+                    <li><strong>npm (incluido en Node.js) o yarn (opcional):</strong> yarn puede instalarse con <code>npm install -g yarn</code>. Se verifica con <code>npm --version</code></li>
+                    <li><strong>Expo CLI:</strong> herramienta de desarrollo para aplicaciones móviles en React Native. Se instala con <code>npm install -g @expo/cli</code> y se verifica con <code>expo --version</code></li>
+                    <li><strong>Editor de código:</strong> se recomienda Visual Studio Code; también son válidos WebStorm o Sublime Text</li>
+                    <li><strong>Herramientas para desarrollo móvil:</strong> la aplicación Expo Go (disponible en iOS y Android) o, en su defecto, emuladores mediante Android Studio o Xcode (solo en macOS)</li>
+                </ul>
+            </div>
+
+            <div class="warning-box">
+                <h4>⚠️ Nota Importante</h4>
+                <p>Asegúrate de tener los permisos de administrador necesarios para instalar paquetes globalmente con npm. En algunos sistemas puede ser necesario usar <code>sudo</code> en Linux/Mac.</p>
+            </div>
+        </div>
+
+        <div class="content-section" id="instalacion">
+            <h2>📦 Instalación del Proyecto</h2>
+            <p>El procedimiento de instalación se organiza en cuatro fases principales:</p>
+            
+            <h3>1. Clonar el repositorio desde GitHub:</h3>
+            <div class="code-block">
+                git clone https://github.com/FiveCGroup/888Cargo-Movil.git<br>
+                cd 888Cargo-Movil
+            </div>
+
+            <h3>2. Instalar dependencias del frontend móvil:</h3>
+            <div class="code-block">
+                cd 888Cargo<br>
+                npm install <span class="comment"># O yarn install</span>
+            </div>
+
+            <h3>3. Instalar dependencias del backend:</h3>
+            <div class="code-block">
+                cd ../888Cris-MERN/backend<br>
+                npm install
+            </div>
+
+            <h3>4. Instalar dependencias del cliente web:</h3>
+            <div class="code-block">
+                cd ../client<br>
+                npm install
+            </div>
+
+            <div class="success-box">
+                <h4>✅ Verificación de Instalación</h4>
+                <p>Después de cada instalación, verifica que no haya errores en la consola. Si aparecen vulnerabilidades de seguridad, puedes ejecutar <code>npm audit fix</code> para corregir las que sean automáticamente reparables.</p>
+            </div>
+        </div>
+
+        <div class="content-section" id="configuracion">
+            <h2>⚙️ Configuración de Variables de Entorno</h2>
+            <p>Debe configurarse el archivo <code>.env</code> en cada componente del sistema:</p>
+            
+            <h3>Backend (.env en 888Cris-MERN/backend/)</h3>
+            <div class="code-block">
+                PORT=4000<br>
+                DATABASE_PATH=./db/packing_list.db<br>
+                JWT_SECRET=clave_secreta_segura_minimo_32_caracteres<br>
+                NODE_ENV=development<br>
+                CORS_ORIGIN=http://localhost:5173,http://localhost:8081<br><br>
+                <span class="comment"># WhatsApp (opcional para recuperación de contraseña)</span><br>
+                WHATSAPP_TOKEN=tu_token_de_whatsapp_business_api<br>
+                PHONE_NUMBER_ID=tu_phone_number_id_de_whatsapp
+            </div>
+
+            <h3>Cliente Web (.env en 888Cris-MERN/client/)</h3>
+            <div class="code-block">
+                VITE_API_BASE_URL=http://localhost:4000/api<br>
+                VITE_ENVIRONMENT=development
+            </div>
+
+            <h3>App Móvil (.env en 888Cargo/)</h3>
+            <div class="code-block">
+                EXPO_PUBLIC_ENVIRONMENT=development<br>
+                <span class="comment"># Cambiar IP por la de tu red WiFi local</span><br>
+                EXPO_PUBLIC_API_URL=http://192.168.1.167:4000/api
+            </div>
+
+            <div class="warning-box">
+                <h4>🔐 Seguridad</h4>
+                <p>Nunca commites archivos .env al repositorio. Asegúrate de que estén incluidos en .gitignore. Para producción, usa variables de entorno del sistema operativo o servicios de gestión de secretos.</p>
+            </div>
+        </div>
+
+        <div class="content-section" id="backend">
+            <h2>🔧 Ejecución del Backend</h2>
+            <p>El servidor backend puede iniciarse con los siguientes comandos:</p>
+            
+            <h3>Modo desarrollo (con hot-reload)</h3>
+            <div class="code-block">
+                cd 888Cris-MERN/backend<br>
+                npm run dev
+            </div>
+
+            <h3>Modo producción</h3>
+            <div class="code-block">
+                npm start
+            </div>
+
+            <div class="highlight-box">
+                <h4>📊 Verificación del Backend</h4>
+                <p>La salida esperada debe mostrar la conexión exitosa con SQLite y la confirmación del servidor activo en el puerto definido (http://localhost:4000).</p>
+                <p>El estado del servidor puede verificarse accediendo a: <strong>http://localhost:4000/api/health</strong>, donde debe aparecer un JSON con el estado "ok" y los detalles de la base de datos.</p>
+            </div>
+        </div>
+
+        <div class="content-section" id="web">
+            <h2>🌐 Ejecución del Cliente Web</h2>
+            <p>Para iniciar el cliente web de React con Vite:</p>
+            
+            <div class="code-block">
+                cd 888Cris-MERN/client<br>
+                npm run dev
+            </div>
+            
+            <div class="success-box">
+                <h4>🌐 Acceso al Cliente Web</h4>
+                <p>El cliente web estará disponible en: <strong>http://localhost:5173</strong></p>
+                <p>Vite proporcionará hot-reload automático durante el desarrollo.</p>
+            </div>
+        </div>
+
+        <div class="content-section" id="movil">
+            <h2>📱 Ejecución del Frontend Móvil</h2>
+            <p>Para iniciar la aplicación móvil con Expo:</p>
+            
+            <div class="code-block">
+                cd 888Cargo<br>
+                npx expo start
+            </div>
+
+            <h3>🎯 Opciones de Ejecución</h3>
+            <ul>
+                <li><strong>Expo Go App:</strong> escanear el código QR generado con la aplicación Expo Go</li>
+                <li><strong>Android Emulator:</strong> presionar la tecla 'a' en la terminal</li>
+                <li><strong>iOS Simulator (solo macOS):</strong> presionar la tecla 'i' en la terminal</li>
+                <li><strong>Web Browser:</strong> presionar la tecla 'w' para ejecutar en navegador</li>
+            </ul>
+
+            <div class="warning-box">
+                <h4>📱 Configuración de API</h4>
+                <p>Debe configurarse la URL de la API en el archivo <code>constants/API.ts</code>:</p>
+                <div class="code-block">
+                    export const API_URL = 'http://&lt;IP_LOCAL&gt;:4000/api';
+                </div>
+                <p>La dirección IP local puede obtenerse mediante <code>ipconfig</code> en Windows o <code>ifconfig</code> en Linux/Mac.</p>
+            </div>
+        </div>
+
+        <div class="content-section" id="comandos">
+            <h2>🛠️ Comandos Útiles</h2>
+            
+            <h3>Backend</h3>
+            <ul>
+                <li><strong>Desarrollo con hot-reload:</strong> <code>npm run dev</code></li>
+                <li><strong>Producción:</strong> <code>npm start</code></li>
+                <li><strong>Tests:</strong> <code>npm test</code> o <code>npm run test:coverage</code></li>
+                <li><strong>Reinicio de base de datos:</strong> <code>node scripts/resetDatabase.js reset-complete</code></li>
+                <li><strong>Copia de seguridad:</strong> <code>node scripts/backupDatabase.js physical</code></li>
+                <li><strong>Ver registros:</strong> <code>npm run logs</code></li>
+            </ul>
+
+            <h3>Cliente Web</h3>
+            <ul>
+                <li><strong>Desarrollo:</strong> <code>npm run dev</code></li>
+                <li><strong>Build para producción:</strong> <code>npm run build</code></li>
+                <li><strong>Preview de producción:</strong> <code>npm run preview</code></li>
+                <li><strong>Tests:</strong> <code>npm test</code></li>
+            </ul>
+
+            <h3>Frontend Móvil</h3>
+            <ul>
+                <li><strong>Iniciar Expo:</strong> <code>npx expo start</code></li>
+                <li><strong>Limpiar caché:</strong> <code>npx expo start -c</code></li>
+                <li><strong>Tests:</strong> <code>npm test</code></li>
+                <li><strong>Instalar dependencias iOS:</strong> <code>npx pod-install</code></li>
+                <li><strong>Compilar Android/iOS:</strong> <code>eas build --platform &lt;plataforma&gt;</code></li>
+                <li><strong>Publicar actualización:</strong> <code>eas update --branch production</code></li>
+            </ul>
+
+            <h3>Testing</h3>
+            <ul>
+                <li><strong>Backend:</strong> <code>npm test</code> o <code>npm run test:coverage</code></li>
+                <li><strong>Frontend Web:</strong> <code>npm test</code></li>
+                <li><strong>Frontend Móvil:</strong> <code>npm test</code></li>
+                <li><strong>E2E (end-to-end):</strong> <code>npm run test:e2e</code></li>
+            </ul>
+        </div>
+
+        <div class="content-section" id="problemas">
+            <h2>🔧 Resolución de Problemas Comunes</h2>
+            
+            <h3>❌ El backend no inicia</h3>
+            <p>Verificar si el puerto 4000 está ocupado:</p>
+            <div class="code-block">
+                <span class="comment"># Windows:</span><br>
+                netstat -ano | findstr :4000<br><br>
+                <span class="comment"># Linux/Mac:</span><br>
+                lsof -i :4000
+            </div>
+            <p>Si está ocupado, modificar la variable PORT en el archivo .env o terminar el proceso que lo está usando.</p>
+
+            <h3>❌ El frontend no conecta con el backend</h3>
+            <ul>
+                <li>Confirmar que el backend se encuentre en ejecución</li>
+                <li>Validar la dirección IP configurada en API.ts</li>
+                <li>Verificar que ambos dispositivos estén en la misma red WiFi</li>
+                <li>Deshabilitar temporalmente el firewall si es necesario</li>
+                <li>Verificar configuración CORS en el backend</li>
+            </ul>
+
+            <h3>❌ Expo Go se cierra inesperadamente</h3>
+            <p>Ejecutar los siguientes comandos para limpiar caché y reinstalar:</p>
+            <div class="code-block">
+                npx expo start -c<br>
+                rm -rf node_modules<br>
+                npm install
+            </div>
+
+            <h3>❌ Base de datos corrupta</h3>
+            <p>Ejecutar script de validación de integridad:</p>
+            <div class="code-block">
+                node scripts/maintenanceDatabase.js integrity
+            </div>
+            <p>En caso de error, restaurar un backup o reiniciar completamente con <code>resetDatabase.js</code>.</p>
+
+            <h3>❌ El Metro Bundler queda bloqueado</h3>
+            <p>Reiniciar con limpieza de caché:</p>
+            <div class="code-block">
+                npx react-native start --reset-cache<br>
+                <span class="comment"># O alternativamente:</span><br>
+                npx expo start -c
+            </div>
+        </div>
+
+        <div class="content-section" id="verificacion">
+            <h2>📊 Verificación del Estado del Sistema</h2>
+            
+            <h3>🔗 Endpoints de verificación</h3>
+            <ul>
+                <li><strong>Backend Health Check:</strong> <a href="http://localhost:4000/api/health" target="_blank">http://localhost:4000/api/health</a></li>
+                <li><strong>Cliente Web:</strong> <a href="http://localhost:5173" target="_blank">http://localhost:5173</a></li>
+                <li><strong>App Móvil:</strong> Disponible a través de Expo Go escaneando el QR</li>
+            </ul>
+
+            <h3>✅ Flujo de verificación completa</h3>
+            <ol>
+                <li>Verificar que el backend responde correctamente en el health check</li>
+                <li>Abrir el cliente web y probar login/registro</li>
+                <li>Cargar un archivo Excel y verificar procesamiento</li>
+                <li>Abrir la app móvil y verificar sincronización</li>
+                <li>Probar funcionalidades de QR y navegación</li>
+            </ol>
+        </div>
+
+        <div class="content-section" id="red">
+            <h2>🌐 Configuración de Red</h2>
+            <p>Para que la aplicación móvil pueda comunicarse con el backend:</p>
+            
+            <h3>🔍 Obtener IP local</h3>
+            <div class="code-block">
+                <span class="comment"># Windows:</span><br>
+                ipconfig | findstr /i "IPv4"<br><br>
+                <span class="comment"># Linux/Mac:</span><br>
+                ifconfig | grep "inet " | grep -v 127.0.0.1
+            </div>
+
+            <h3>🛡️ Configurar firewall (si es necesario)</h3>
+            <ul>
+                <li><strong>Windows:</strong> Permitir Node.js a través del Firewall de Windows Defender</li>
+                <li><strong>macOS:</strong> System Preferences > Security & Privacy > Firewall</li>
+                <li><strong>Linux:</strong> <code>sudo ufw allow 4000 && sudo ufw allow 5173 && sudo ufw allow 8081</code></li>
+            </ul>
+
+            <div class="warning-box">
+                <h4>📶 Nota Importante sobre Conectividad</h4>
+                <p>Asegúrate de que todos los dispositivos (computadora, teléfono, tablet) estén conectados a la misma red WiFi para que la comunicación entre frontend y backend funcione correctamente.</p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div style="text-align: center; padding: 20px;">
+                <a href="index.html" class="back-button">← Volver al Dashboard Principal</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

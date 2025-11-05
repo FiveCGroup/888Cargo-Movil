@@ -1,0 +1,25 @@
+{
+  "name": "888cargo-workspace",
+  "version": "1.0.0",
+  "description": "Workspace principal del proyecto 888 Cargo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "docs": "node generate_docs.js",
+    "docs:open": "node generate_docs.js && start code-docs/index.html",
+    "docs:clean": "rimraf code-docs && node generate_docs.js",
+    "verify": "node verificar_integracion.js",
+    "dev:mobile": "cd 888Cargo && npm start",
+    "dev:web": "cd 888Cris-MERN/client && npm run dev",
+    "dev:backend": "cd 888Cris-MERN/backend && npm start"
+  },
+  "keywords": [
+    "888cargo",
+    "documentation",
+    "jsdoc",
+    "typedoc"
+  ],
+  "devDependencies": {
+    "typedoc": "^0.27.9"
+  }
+}

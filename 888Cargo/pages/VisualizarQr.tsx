@@ -253,7 +253,7 @@ const VisualizarQr: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Encabezado */}
       <View style={styles.header}>
         <TouchableOpacity onPress={volverAtras} style={styles.botonHeaderVolver}>
           <Ionicons name="arrow-back" size={24} color="#007bff" />
@@ -309,12 +309,12 @@ const VisualizarQr: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Grid de códigos QR */}
+        {/* Cuadrícula de códigos QR */}
         <View style={styles.gridContainer}>
           {qrData && qrData.length > 0 ? (
             qrData.map((item, index) => (
               <View key={item.id} style={styles.qrCard}>
-                {/* Header de la card */}
+                {/* Encabezado de la tarjeta */}
                 <View style={styles.qrCardHeader}>
                   <Text style={styles.qrNumero}>
                     Item #{item.item_numero} - Caja {item.numero_caja} de {item.total_cajas}
@@ -388,7 +388,7 @@ const VisualizarQr: React.FC = () => {
             <Pressable onPress={(e) => e.stopPropagation()}>
               {selectedQR && (
                 <View style={styles.modalContent}>
-                  {/* Header del modal */}
+                  {/* Encabezado del modal */}
                   <View style={styles.modalHeader}>
                     <Text style={styles.modalTitle}>
                       Item #{selectedQR.item_numero} - Caja {selectedQR.numero_caja} de {selectedQR.total_cajas}
