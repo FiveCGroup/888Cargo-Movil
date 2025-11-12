@@ -1,0 +1,14 @@
+{
+    "name": "888Cris - Tutoriales",
+    "entryPoints": [
+        "./code-docs/tutoriales/markdown/README.md"
+    ],
+    "out": "./code-docs/tutoriales",
+    "theme": "default",
+    "includeVersion": true,
+    "excludeExternals": true,
+    "readme": "./code-docs/tutoriales/markdown/README.md",
+    "plugin": [
+        "typedoc-plugin-markdown"
+    ]
+}

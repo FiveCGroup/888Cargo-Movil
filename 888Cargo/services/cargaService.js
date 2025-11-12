@@ -7,15 +7,10 @@ console.log('📦 [CargaService] Inicializando servicio de cargas (SOLO DATOS RE
 
 // Configuración dinámica de la API basada en la plataforma (BACKEND WEB UNIFICADO)
 import { Platform } from 'react-native';
+import { API_CONFIG } from '../constants/API';
 
-let API_BASE_URL;
-if (Platform.OS === 'android') {
-  API_BASE_URL = 'http://192.168.58.106:4000/api'; // Para dispositivo Android físico - Backend web con IP real
-} else if (Platform.OS === 'ios') {
-  API_BASE_URL = 'http://192.168.58.106:4000/api'; // Para simulador iOS - Backend web con IP real
-} else {
-  API_BASE_URL = 'http://192.168.58.106:4000/api'; // Para web/otros - Backend web con IP real
-}
+// Usar la configuración centralizada
+let API_BASE_URL = API_CONFIG.BASE_URL;
 
 console.log('🔧 [CargaService] Plataforma detectada:', Platform.OS);
 console.log('🔧 [CargaService] Configurando con URL:', API_BASE_URL);
@@ -39,7 +34,7 @@ class CargaService {
     // URLs a probar en orden de preferencia (BACKEND WEB)
     const urlsToTry = [
       API_BASE_URL,
-      'http://192.168.58.106:4000/api',  // IP real de la máquina - Backend web
+      'http://192.168.58.111:4000/api',  // IP real de la máquina - Backend web
       'http://10.0.2.2:4000/api',       // Fallback Android emulador - Backend web
       'http://localhost:4000/api'        // Fallback local - Backend web
     ];

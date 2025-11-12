@@ -201,8 +201,7 @@ const VisualizarQr: React.FC = () => {
       }
       
       // Crear un QR individual y compartirlo usando el ID
-      const baseUrl = getApiUrl().replace('/api', ''); // Remover /api del final
-      const qrUrl = `${baseUrl}/api/qr/image/${qrItem.id}?width=400`;
+      const qrUrl = `${getApiUrl()}/qr/image/${qrItem.id}?width=400`;
       
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(qrUrl, {
@@ -335,13 +334,13 @@ const VisualizarQr: React.FC = () => {
                 >
                   <Image
                     source={{ 
-                      uri: `${getApiUrl().replace('/api', '')}/api/qr/image/${item.id}?width=200`
+                      uri: `${getApiUrl()}/qr/image/${item.id}?width=200`
                     }}
                     style={styles.qrImage}
                     resizeMode="contain"
                     onError={(error) => {
-                      console.error('❌ Error cargando imagen QR:', error);
-                      console.log('🔍 URL que falló:', `${getApiUrl().replace('/api', '')}/api/qr/image/${item.id}`);
+                      console.error('❌ Error cargando imagen QR:', error.nativeEvent.error);
+                      console.log('🔍 URL que falló:', `${getApiUrl()}/qr/image/${item.id}`);
                     }}
                   />
                 </TouchableOpacity>
@@ -402,7 +401,7 @@ const VisualizarQr: React.FC = () => {
                   <View style={styles.modalQRContainer}>
                     <Image
                       source={{ 
-                        uri: `${getApiUrl().replace('/api', '')}/api/qr/image/${selectedQR.id}?width=400`
+                        uri: `${getApiUrl()}/qr/image/${selectedQR.id}?width=400`
                       }}
                       style={styles.modalQRImage}
                       resizeMode="contain"
