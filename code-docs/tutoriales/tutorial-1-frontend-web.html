@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial 1: Frontend Web - Autenticación | 888Cris</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .tutorial-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            min-height: 100vh;
+        }
+        
+        .tutorial-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .tutorial-nav {
+            background: #343a40;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: #adb5bd;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: #495057;
+            color: white;
+        }
+        
+        .tutorial-content {
+            padding: 40px 60px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .section h2 {
+            color: #495057;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .section-content {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .step {
+            background: #fefefe;
+            margin: 25px 20px;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            width: calc(100% - 40px);
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tutorial-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tutorial-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .image-caption {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-style: italic;
+            margin: 10px 0 20px 0;
+        }
+        
+        .step p {
+            margin: 15px 0;
+            line-height: 1.7;
+        }
+        
+        .step ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        
+        .step li {
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .tutorial-content {
+                padding: 20px;
+            }
+            .tutorial-nav {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tutorial-container">
+        <div class="tutorial-header">
+            <h1>Frontend Web</h1>
+            <h2>Acceso Seguro y Recuperación de Contraseña</h2>
+            <div style="display: flex; gap: 20px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                    🕒 30 minutos
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                    📊 Intermedio
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                    ⚛️ React
+                </span>
+            </div>
+        </div>
+        
+        <div class="tutorial-nav">
+            <a href="../index.html" class="nav-link">← Volver a Inicio</a>
+            <a href="index.html" class="nav-link">Todos los Tutoriales</a>
+            <a href="tutorial-2-carga-qr.html" class="nav-link">Siguiente Tutorial →</a>
+        </div>
+        
+        <div class="tutorial-content">
+            
+            <div class="section">
+                <div class="section-header">
+                    <h2>🔑 Acceso Seguro y Recuperación de Contraseña (Vía WhatsApp)</h2>
+                </div>
+                <div class="section-content">
+                    <p>Sistema de Gestión de Cargas y Envíos Internacionales</p>
+                    <ul>
+                        <li>Proyecto: Plataforma Web y Móbil de Gestión Logística (China–Colombia)</li>
+                        <li>Tipo de Documento: Tutorial</li>
+                        <li>Revisión Técnica: Five Consulting Group</li>
+                        <li>Fecha de Emisión: 31 de octubre de 2025</li>
+                        <li>Ubicación: Medellín - Colombia</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>🔑 TUTORIAL 1: Acceso Seguro y Recuperación de Contraseña (Vía WhatsApp)</h2>
+                </div>
+                <div class="section-content">
+                    <h3>Requisitos Previos</h3>
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">1</span>
+                            Antes de comenzar, asegúrese de cumplir con las siguientes condiciones:
+                        </div>
+                        <ul>
+                            <li>Tener instalada la aplicación 888Cargo (última versión disponible).</li>
+                            <li>Contar con conexión estable a Internet.</li>
+                            <li>Disponer de acceso al número de teléfono registrado en la cuenta, necesario para recibir el mensaje de recuperación vía WhatsApp.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>👤 Registro de Nuevo Usuario</h2>
+                </div>
+                <div class="section-content">
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">1</span>
+                            Acceda a la pantalla de registro:
+                        </div>
+                        <p>Al abrir la aplicación, ubíquese en el formulario “Registrarse”.</p>
+                        <img src="images/tutorial-1-frontend-web/image_1.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">2</span>
+                            Complete sus datos personales:
+                        </div>
+                        </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">3</span>
+                            Llene todos los campos obligatorios del formulario, incluyendo:
+                        </div>
+                        <ul>
+                            <li>Nombres y Apellidos completos</li>
+                            <li>Correo electrónico</li>
+                            <li>
+                                <p>Al seleccionar el indicador telefónico de su país, se seleccionará el país de forma independiente y de manera automática.</p>
+                                <img src="images/tutorial-1-frontend-web/image_18.png" alt="Captura de pantalla" class="tutorial-image">
+                                <div class="image-caption">Captura de pantalla del proceso</div>
+                                <p>No es necesario que modifique el país. Para cambiarlo, solo debe seleccionar el código de país correcto en el indicador telefónico.</p>
+                                <img src="images/tutorial-1-frontend-web/image_16.png" alt="Captura de pantalla" class="tutorial-image">
+                                <div class="image-caption">Captura de pantalla del proceso</div>
+                                <p>Ingrese el número de su teléfono, preferiblemente el mismo número de su WhatsApp.</p>
+                            </li>
+                            <li>Contraseña segura</li>
+                            <li>
+                                <p>Marque la casilla de verificación.</p>
+                                <p>Al aceptar recibir mensajes de WhatsApp nos permitirá enviarle a través de WhatsApp el enlace de recuperación de la contraseña en caso de llegar a perderlo u olvidar sus credenciales de acceso, además de otro tipo de información que puede ser de su interés.</p>
+                                <img src="images/tutorial-1-frontend-web/image_12.png" alt="Captura de pantalla" class="tutorial-image">
+                                <div class="image-caption">Captura de pantalla del proceso</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">4</span>
+                            Confirme el registro:
+                        </div>
+                        <p>Presione el botón “Crear Cuenta”.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">5</span>
+                            Validación del sistema:
+                        </div>
+                        <p>El sistema realiza las siguientes validaciones:</p>
+                        <ul>
+                            <li>
+                                <p>En caso de que falte un campo por rellenar, el sistema le indicará con un mensaje emergente el campo que debe llenar.</p>
+                                <img src="images/tutorial-1-frontend-web/image_7.png" alt="Captura de pantalla" class="tutorial-image">
+                                <div class="image-caption">Captura de pantalla del proceso</div>
+                            </li>
+                            <li>
+                                <p>Si el formulario está completo, el sistema verificará los datos ingresados y mostrará un mensaje de confirmación.</p>
+                                <img src="images/tutorial-1-frontend-web/image_2.png" alt="Captura de pantalla" class="tutorial-image">
+                                <div class="image-caption">Captura de pantalla del proceso</div>
+                            </li>
+                            <li>
+                                <p>De no ser así, el sistema le mostrará un mensaje con el error específico.</p>
+                                <img src="images/tutorial-1-frontend-web/image_19.png" alt="Captura de pantalla" class="tutorial-image">
+                                <div class="image-caption">Captura de pantalla del proceso</div>
+                            </li>
+                        </ul>
+                        <p>Posteriormente, podrá iniciar sesión con los datos registrados anteriormente en el formulario de inicio de sesión.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>🔐 Inicio de Sesión Estándar</h2>
+                </div>
+                <div class="section-content">
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">1</span>
+                            Ingrese sus credenciales:
+                        </div>
+                        <p>En la pantalla principal, digite su Correo electrónico y Contraseña.</p>
+                        <img src="images/tutorial-1-frontend-web/image_14.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">2</span>
+                            Inicie sesión:
+                        </div>
+                        <p>Presione el botón “Iniciar Sesión”.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">3</span>
+                            Acceso exitoso:
+                        </div>
+                        <p>Una vez validada su autenticación mediante JWT (JSON Web Token), el sistema le mostrará un mensaje de Bienvenida.</p>
+                        <img src="images/tutorial-1-frontend-web/image_10.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                        <p>Luego será dirigido a su Dashboard o a la pantalla principal de gestión de cargas, según su rol.</p>
+                        <img src="images/tutorial-1-frontend-web/image_8.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>🔑 Recuperación de Contraseña vía WhatsApp (Flujo Crítico)</h2>
+                </div>
+                <div class="section-content">
+                    <p>Si ha olvidado su contraseña, puede restablecerla de forma segura mediante un código enviado por WhatsApp.</p>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">1</span>
+                            Seleccione la opción de recuperación:
+                        </div>
+                        <p>En el formulario de Inicio de Sesión, pulse el enlace “¿Olvidaste tu Contraseña?”.</p>
+                        <img src="images/tutorial-1-frontend-web/image_3.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">2</span>
+                            Identifique su cuenta:
+                        </div>
+                        <p>Ingrese el número de Whatsapp asociado a su cuenta de 888Cargo.</p>
+                        <img src="images/tutorial-1-frontend-web/image_17.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                        <p>El sistema validará que la cuenta exista y que el número telefónico esté registrado.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">3</span>
+                            Confirme el envío del código:
+                        </div>
+                        <p>Presione “Continuar”.</p>
+                        <p>El sistema mostrará un mensaje confirmando que se ha enviado un enlace de recuperación a su número de teléfono vía WhatsApp.</p>
+                        <img src="images/tutorial-1-frontend-web/image_11.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">4</span>
+                            Obtenga el código de seguridad:
+                        </div>
+                        <p>Abra su aplicación de WhatsApp y verifique el mensaje proveniente de 888Cargo.</p>
+                        <p>Este mensaje incluirá un enlace que lo llevará directamente a la página de restablecimiento de contraseña, válido por 30 minutos.</p>
+                        <img src="images/tutorial-1-frontend-web/image_5.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">5</span>
+                            Verifique el enlace:
+                        </div>
+                        <p>Si el tiempo no ha expirado y el enlace es válido, será redirigido a una nueva página de 888Cargo.</p>
+                        <img src="images/tutorial-1-frontend-web/image_20.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">6</span>
+                            Establezca una nueva contraseña:
+                        </div>
+                        <p>Al abrir el enlace, se habilitarán los campos para crear una nueva contraseña y confirmarla.</p>
+                        <p>Se recomienda usar una combinación de letras, números y símbolos para mayor seguridad. La contraseña no debe tener menos de 8 caracteres. Como soporte, el sistema le mostrará un banner indicando si la contraseña cumple o no con los requisitos anteriores.</p>
+                        <img src="images/tutorial-1-frontend-web/image_15.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">7</span>
+                            Finalice el proceso:
+                        </div>
+                        <p>Presione el botón “Actualizar Contraseña”.</p>
+                        <ul>
+                            <li>
+                                <p>Si aún se encuentra dentro del límite de tiempo y el enlace aún es válido, el sistema confirmará que la contraseña se ha restablecido correctamente.</p>
+                                <img src="images/tutorial-1-frontend-web/image_13.png" alt="Captura de pantalla" class="tutorial-image">
+                                <div class="image-caption">Captura de pantalla del proceso</div>
+                                <p>A partir de este momento, podrá iniciar sesión con sus nuevas credenciales.</p>
+                            </li>
+                            <li>
+                                <p>En caso contrario, el sistema le mostrará un mensaje indicando cuál es el error.</p>
+                                <img src="images/tutorial-1-frontend-web/image_9.png" alt="Captura de pantalla" class="tutorial-image">
+                                <div class="image-caption">Captura de pantalla del proceso</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">8</span>
+                            Desestimación:
+                        </div>
+                        <p>En caso de arrepentirse o si simplemente ya no desea finalizar el proceso para el cambio de contraseña, puede simplemente regresar a la interfaz de inicio de sesión presionando el botón “Volver al inicio de sesión” ubicado debajo del botón “Actualizar Contraseña”</p>
+                        <img src="images/tutorial-1-frontend-web/image_4.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                        
+                        <h3>Recomendación de Seguridad</h3>
+                        <ul>
+                            <li>No comparta su enlace de recuperación ni su nueva contraseña con terceros.</li>
+                            <li>El equipo de 888Cargo nunca solicitará su enlace o clave por otros medios (correo, llamada o mensaje).</li>
+                            <li>Si sospecha de un intento de fraude, comuníquese inmediatamente con el soporte técnico oficial.</li>
+                        </ul>
+
+                        <h3>Nota Técnica</h3>
+                        <ul>
+                            <li>El proceso de recuperación utiliza la API oficial de WhatsApp Business para enviar mensajes automáticos de validación.</li>
+                            <li>El enlace de verificación incluye un enlace temporal asociado al número telefónico registrado del usuario.</li>
+                            <li>El backend valida el token con el que se genera el enlace antes de permitir el restablecimiento de la contraseña, garantizando la seguridad del proceso.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="background: #343a40; color: #adb5bd; text-align: center; padding: 30px;">
+            <p><strong>888Cris - Sistema de Gestión Logística</strong></p>
+            <p>Five Consulting Group | 12 de noviembre de 2025</p>
+        </div>
+    </div>
+    
+    <script>
+        document.querySelectorAll('.tutorial-image').forEach(img => {
+            img.addEventListener('click', function() {
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; cursor: pointer;';
+                const modalImg = document.createElement('img');
+                modalImg.src = this.src;
+                modalImg.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px;';
+                modal.appendChild(modalImg);
+                document.body.appendChild(modal);
+                modal.addEventListener('click', () => document.body.removeChild(modal));
+            });
+        });
+    </script>
+</body>
+</html>

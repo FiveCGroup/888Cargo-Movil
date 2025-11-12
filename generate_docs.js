@@ -45,15 +45,16 @@ class JSDocGenerator {
         output: path.join(this.docsOutput, "mobile"),
         include: ["services"], // Solo archivos JS por ahora
       },
-      tutoriales: {
-        name: "Tutoriales",
-        icon: "📚",
-        description: "Tutoriales y guías relacionadas con 888 Cargo",
-        path: path.join(this.basePath, "code-docs", "tutoriales", "markdown"),
-        output: path.join(this.docsOutput, "tutoriales"),
-        configFile: "typedoc.tutoriales.json",
-        include: ["markdown"],
-      },
+      // tutoriales: {
+      //   name: "Tutoriales",
+      //   icon: "📚", 
+      //   description: "Tutoriales y guías relacionadas con 888 Cargo",
+      //   path: path.join(this.basePath, "code-docs", "tutoriales", "markdown"),
+      //   output: path.join(this.docsOutput, "tutoriales"),
+      //   configFile: "typedoc.tutoriales.json",
+      //   include: ["markdown"],
+      // },
+      // NOTA: Los tutoriales ahora se generan como HTML estático mejorado
     };
   }
 
