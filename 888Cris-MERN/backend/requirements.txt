@@ -1,0 +1,98 @@
+# Dependencias Python para el Generador de Documentación con IA
+# Instalar con: pip install -r requirements.txt
+
+# ==========================================
+# GENERACIÓN DE DOCUMENTOS WORD
+# ==========================================
+python-docx==0.8.11
+
+# ==========================================
+# INTEGRACIÓN CON IA (OpenAI GPT)
+# ==========================================
+openai==1.3.5
+aiohttp==3.9.1
+tiktoken==0.5.2
+
+# ==========================================
+# ANÁLISIS DE CÓDIGO Y ARCHIVOS
+# ==========================================
+ast-tools==0.1.2
+esprima==4.0.1
+
+# ==========================================
+# PROCESAMIENTO DE DATOS
+# ==========================================
+jsonschema==4.19.2
+python-dateutil==2.8.2
+
+# ==========================================
+# INTERFAZ DE USUARIO MEJORADA
+# ==========================================
+rich==13.6.0
+colorama==0.4.6
+tqdm==4.66.1
+
+# ==========================================
+# UTILIDADES ADICIONALES
+# ==========================================
+pathlib2==2.3.7
+typing-extensions==4.8.0
+
+# ==========================================
+# ANÁLISIS AVANZADO DE CÓDIGO
+# ==========================================
+# Para parsing de JavaScript/Node.js
+py-mini-racer==0.6.0  # JavaScript engine para Python
+
+# Para análisis de dependencias
+pipdeptree==2.13.1
+
+# ==========================================
+# PROCESAMIENTO ASÍNCRONO
+# ==========================================
+asyncio  # Incluido en Python estándar
+aiofiles==23.2.1
+
+# ==========================================
+# CACHE Y PERSISTENCIA
+# ==========================================
+diskcache==5.6.3
+
+# ==========================================
+# LOGGING AVANZADO
+# ==========================================
+loguru==0.7.2
+
+# ==========================================
+# VALIDACIÓN Y CONFIGURACIÓN
+# ==========================================
+pydantic==2.5.2
+python-dotenv==1.0.0
+
+# ==========================================
+# BASES DE DATOS (SQLite incluido)
+# ==========================================
+# sqlite3 está incluido en Python estándar
+
+# ==========================================
+# ANÁLISIS DE TEXTO Y TOKENIZACIÓN
+# ==========================================
+# tiktoken ya incluido arriba para OpenAI
+
+# ==========================================
+# DEPENDENCIAS OPCIONALES
+# ==========================================
+# Para análisis más profundo de JavaScript
+# nodejs==0.1.1  # Descomenta si necesitas Node.js desde Python
+
+# Para generación de gráficos y diagramas
+# matplotlib==3.8.2
+# plotly==5.17.0
+
+# ==========================================
+# NOTAS DE INSTALACIÓN
+# ==========================================
+# 1. Instalar Python 3.8 o superior
+# 2. pip install -r requirements.txt
+# 3. Configurar OPENAI_API_KEY como variable de entorno
+# 4. Ejecutar: python generate_documentation_ai.py

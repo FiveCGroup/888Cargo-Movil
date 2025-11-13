@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>888Cris - Tutoriales</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 40px 0;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            background: rgba(255,255,255,0.2);
+            padding: 15px 25px;
+            border-radius: 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .tutorials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .tutorial-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 5px solid #667eea;
+        }
+
+        .tutorial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .tutorial-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .tutorial-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        .tutorial-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .tutorial-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .tutorial-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .meta-tag {
+            background: #f8f9fa;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #495057;
+            border: 1px solid #e9ecef;
+        }
+
+        .tutorial-btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            text-align: center;
+        }
+
+        .tutorial-btn:hover {
+            background: #5a67d8;
+            text-decoration: none;
+            color: white;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        .category-section {
+            margin: 40px 0;
+        }
+
+        .category-title {
+            color: white;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .tutorial-web { border-left-color: #28a745; }
+        .tutorial-mobile { border-left-color: #17a2b8; }
+        .tutorial-backend { border-left-color: #ffc107; }
+        .tutorial-features { border-left-color: #dc3545; }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .stats {
+                gap: 15px;
+            }
+
+            .stat {
+                padding: 10px 15px;
+            }
+
+            .tutorial-card {
+                padding: 20px;
+            }
+
+            .back-btn {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-btn">← Volver a Inicio</a>
+    
+    <div class="container">
+        <header>
+            <h1>📚 Tutoriales 888Cris</h1>
+            <p class="subtitle">Guías completas para el desarrollo y uso del sistema</p>
+            
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-number">5</span>
+                    <span class="stat-label">Tutoriales</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">29</span>
+                    <span class="stat-label">Imágenes</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">3</span>
+                    <span class="stat-label">Plataformas</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Frontend Web -->
+        <div class="category-section">
+            <h2 class="category-title">🌐 Frontend Web</h2>
+            <div class="tutorials-grid">
+                <div class="tutorial-card tutorial-web">
+                    <div class="tutorial-header">
+                        <div class="tutorial-icon">🌐</div>
+                        <div class="tutorial-title">Tutorial 1: Autenticación Web</div>
+                    </div>
+                    <div class="tutorial-description">
+                        Implementación completa del sistema de registro, inicio de sesión y recuperación de contraseña para la aplicación web React.
+                    </div>
+                    <div class="tutorial-meta">
+                        <span class="meta-tag">🕒 30 min</span>
+                        <span class="meta-tag">📊 Intermedio</span>
+                        <span class="meta-tag">⚛️ React</span>
+                    </div>
+                    <a href="./tutorial-1-frontend-web.html" class="tutorial-btn">Ver Tutorial</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Frontend Móvil -->
+        <div class="category-section">
+            <h2 class="category-title">📱 Frontend Móvil</h2>
+            <div class="tutorials-grid">
+                <div class="tutorial-card tutorial-mobile">
+                    <div class="tutorial-header">
+                        <div class="tutorial-icon">📱</div>
+                        <div class="tutorial-title">Tutorial 5: Autenticación Móvil</div>
+                    </div>
+                    <div class="tutorial-description">
+                        Guía completa para implementar registro, login y recuperación de contraseña en la aplicación móvil React Native.
+                    </div>
+                    <div class="tutorial-meta">
+                        <span class="meta-tag">🕒 35 min</span>
+                        <span class="meta-tag">📊 Intermedio</span>
+                        <span class="meta-tag">📱 React Native</span>
+                    </div>
+                    <a href="./tutorial-5-frontend-movil.html" class="tutorial-btn">Ver Tutorial</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backend y Base de Datos -->
+        <div class="category-section">
+            <h2 class="category-title">⚙️ Backend y Base de Datos</h2>
+            <div class="tutorials-grid">
+                <div class="tutorial-card tutorial-backend">
+                    <div class="tutorial-header">
+                        <div class="tutorial-icon">🗄️</div>
+                        <div class="tutorial-title">Tutorial 3: Base de Datos</div>
+                    </div>
+                    <div class="tutorial-description">
+                        Configuración y estructura de la base de datos SQLite, diseño de tablas y relaciones para el sistema 888Cris.
+                    </div>
+                    <div class="tutorial-meta">
+                        <span class="meta-tag">🕒 25 min</span>
+                        <span class="meta-tag">📊 Intermedio</span>
+                        <span class="meta-tag">🗄️ SQLite</span>
+                    </div>
+                    <a href="./tutorial-3-base-de-datos.html" class="tutorial-btn">Ver Tutorial</a>
+                </div>
+
+                <div class="tutorial-card tutorial-backend">
+                    <div class="tutorial-header">
+                        <div class="tutorial-icon">⚙️</div>
+                        <div class="tutorial-title">Tutorial 4: Backend APIs</div>
+                    </div>
+                    <div class="tutorial-description">
+                        Desarrollo de APIs REST con Node.js y Express, autenticación, middlewares y servicios del backend.
+                    </div>
+                    <div class="tutorial-meta">
+                        <span class="meta-tag">🕒 40 min</span>
+                        <span class="meta-tag">📊 Avanzado</span>
+                        <span class="meta-tag">🟢 Node.js</span>
+                    </div>
+                    <a href="./tutorial-4-backend.html" class="tutorial-btn">Ver Tutorial</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Funcionalidades Específicas -->
+        <div class="category-section">
+            <h2 class="category-title">🎯 Funcionalidades Específicas</h2>
+            <div class="tutorials-grid">
+                <div class="tutorial-card tutorial-features">
+                    <div class="tutorial-header">
+                        <div class="tutorial-icon">📦</div>
+                        <div class="tutorial-title">Tutorial 2: Cargas y QR</div>
+                    </div>
+                    <div class="tutorial-description">
+                        Implementación completa del sistema de creación de cargas, generación de etiquetas QR y gestión logística.
+                    </div>
+                    <div class="tutorial-meta">
+                        <span class="meta-tag">🕒 45 min</span>
+                        <span class="meta-tag">📊 Avanzado</span>
+                        <span class="meta-tag">📋 Logística</span>
+                    </div>
+                    <a href="./tutorial-2-carga-qr.html" class="tutorial-btn">Ver Tutorial</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Añadir animaciones al scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observar todas las tarjetas de tutorial
+        document.querySelectorAll('.tutorial-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

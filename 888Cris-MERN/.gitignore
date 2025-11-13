@@ -1,0 +1,83 @@
+# Dependencias
+node_modules/
+*/node_modules/
+
+# Variables de entorno
+.env
+.env.local
+.env.development
+.env.production
+
+# Archivos de base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de construcción
+build/
+dist/
+client/build/
+client/dist/
+
+# Archivos temporales
+.tmp/
+temp/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE y editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de imágenes subidas (pueden ser muy grandes)
+uploads/images/*
+!uploads/images/.gitkeep
+
+# Archivos de configuración específicos del entorno local
+config/local.js
+
+# Cache de npm
+.npm
+
+# Coverage reports
+coverage/
+
+# nyc test coverage
+.nyc_output
+
+# Archivos obsoletos de Supabase/PostgreSQL (eliminados permanentemente)
+supabase-api.js
+supabase-setup-guide.js
+SUPABASE_SETUP.md
+test-connection-pg.js
+test-connection-supabase.js
+test-supabase.js
+backend/examples/
+backend/models/user.supabase.model.js
+LOCAL_POSTGRES_SETUP.md
+
+# Archivos de prueba y desarrollo (eliminados durante cleanup)
+test-*.js
+*test*.js
+verify-*.js
+generate-architecture-pdf.js
+project-architecture.pdf
+clean-logs*.js
+create-test-data*.js
+setup-test-data*.js
+*-clean.js
+*-minimal.js
+build.js

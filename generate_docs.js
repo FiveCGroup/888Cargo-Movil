@@ -1,235 +1,276 @@
- const { execSync } = require('child_process');
-const path = require('path');
-const fs = require('fs');
+import { execSync } from "child_process";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class JSDocGenerator {
-    constructor() {
-        this.basePath = __dirname; // Cambiado de path.resolve(__dirname, '..') a __dirname
-        this.docsOutput = path.join(__dirname, 'code-docs');
-        
-        this.projects = {
-            web: {
-                name: 'Frontend Web React',
-                icon: '🌐',
-                description: 'Aplicación web React para gestión de cargas y packing lists',
-                path: path.join(this.basePath, '888Cris-MERN', 'client', 'src'),
-                output: path.join(this.docsOutput, 'web'),
-                include: ['components', 'pages', 'services', 'hooks', 'utils', 'logic']
-            },
-            backend: {
-                name: 'Backend API Node.js',
-                icon: '⚙️',
-                description: 'API REST para gestión completa del sistema 888 Cargo',
-                path: path.join(this.basePath, '888Cris-MERN', 'backend'),
-                output: path.join(this.docsOutput, 'backend'),
-                include: ['controllers', 'routes', 'models', 'services', 'middlewares', 'utils', 'validators']
-            },
-            mobile: {
-                name: 'Frontend Mobile React Native',
-                icon: '📱',
-                description: 'Aplicación móvil con Expo/React Native para 888 Cargo',
-                path: path.join(this.basePath, '888Cargo'),
-                output: path.join(this.docsOutput, 'mobile'),
-                include: ['services']  // Solo archivos JS por ahora
-            }
+  constructor() {
+    this.basePath = __dirname; // Cambiado de path.resolve(__dirname, '..') a __dirname
+    this.docsOutput = path.join(__dirname, "code-docs");
+
+    this.projects = {
+      web: {
+        name: "Frontend Web React",
+        icon: "🌐",
+        description:
+          "Aplicación web React para gestión de cargas y packing lists",
+        path: path.join(this.basePath, "888Cris-MERN", "client", "src"),
+        output: path.join(this.docsOutput, "web"),
+        include: ["components", "pages", "services", "hooks", "utils", "logic"],
+      },
+      backend: {
+        name: "Backend API Node.js",
+        icon: "⚙️",
+        description: "API REST para gestión completa del sistema 888 Cargo",
+        path: path.join(this.basePath, "888Cris-MERN", "backend"),
+        output: path.join(this.docsOutput, "backend"),
+        include: [
+          "controllers",
+          "routes",
+          "models",
+          "services",
+          "middlewares",
+          "utils",
+          "validators",
+        ],
+      },
+      mobile: {
+        name: "Frontend Mobile React Native",
+        icon: "📱",
+        description: "Aplicación móvil con Expo/React Native para 888 Cargo",
+        path: path.join(this.basePath, "888Cargo"),
+        output: path.join(this.docsOutput, "mobile"),
+        include: ["services"], // Solo archivos JS por ahora
+      },
+      // tutoriales: {
+      //   name: "Tutoriales",
+      //   icon: "📚", 
+      //   description: "Tutoriales y guías relacionadas con 888 Cargo",
+      //   path: path.join(this.basePath, "code-docs", "tutoriales", "markdown"),
+      //   output: path.join(this.docsOutput, "tutoriales"),
+      //   configFile: "typedoc.tutoriales.json",
+      //   include: ["markdown"],
+      // },
+      // NOTA: Los tutoriales ahora se generan como HTML estático mejorado
+    };
+  }
+
+  /**
+   * Verifica que TypeDoc esté instalado
+   */
+  checkTypeDoc() {
+    console.log("\n📦 Verificando TypeDoc...\n");
+
+    const typedocPath = path.join(this.basePath, "node_modules", "typedoc");
+    if (fs.existsSync(typedocPath)) {
+      console.log("✅ TypeDoc ya está instalado\n");
+      return true;
+    }
+
+    console.log("⚠️  TypeDoc no está instalado");
+    console.log("📥 Instalando TypeDoc...\n");
+
+    try {
+      execSync("npm install --save-dev typedoc", {
+        stdio: "inherit",
+        cwd: this.basePath,
+      });
+      console.log("\n✅ TypeDoc instalado correctamente\n");
+      return true;
+    } catch (installError) {
+      console.log("\n❌ Error al instalar TypeDoc");
+      return false;
+    }
+  }
+
+  /**
+   * Crea directorios de salida
+   */
+  createDirectories() {
+    console.log("📁 Creando directorios...\n");
+
+    if (!fs.existsSync(this.docsOutput)) {
+      fs.mkdirSync(this.docsOutput, { recursive: true });
+    }
+
+    Object.values(this.projects).forEach((project) => {
+      if (!fs.existsSync(project.output)) {
+        fs.mkdirSync(project.output, { recursive: true });
+      }
+    });
+
+    console.log("✅ Directorios creados\n");
+  }
+
+  /**
+   * Crea archivo de configuración JSDoc
+   */
+  createJSDocConfig(projectKey, project) {
+    const sourcePaths = project.include
+      .map((dir) => {
+        const fullPath = path.join(project.path, dir);
+        return fs.existsSync(fullPath) ? fullPath.replace(/\\/g, "/") : null;
+      })
+      .filter(Boolean);
+
+    if (sourcePaths.length === 0) {
+      console.log("⚠️  No se encontraron directorios de código\n");
+      return null;
+    }
+
+    // Configuración base
+    const config = {
+      source: {
+        include: sourcePaths,
+        includePattern: ".+\\.(js|jsx|ts|tsx)$",
+        excludePattern: "(node_modules|dist|build|.expo|coverage|__tests__)",
+      },
+      opts: {
+        destination: project.output.replace(/\\/g, "/"),
+        recurse: true,
+        readme: this.findReadme(project.path),
+        encoding: "utf8",
+      },
+      plugins: ["plugins/markdown"],
+      templates: {
+        cleverLinks: true,
+        monospaceLinks: true,
+        default: {
+          outputSourceFiles: true,
+          includeDate: true,
+        },
+      },
+      markdown: {
+        parser: "gfm",
+        hardwrap: true,
+      },
+    };
+
+    // Para el proyecto móvil (TypeScript/React Native), usar jsdoc-babel si está disponible
+    if (projectKey === "mobile") {
+      const babelPluginPath = path.join(
+        this.basePath,
+        "node_modules",
+        "jsdoc-babel"
+      );
+      if (fs.existsSync(babelPluginPath)) {
+        config.plugins.unshift("node_modules/jsdoc-babel");
+        config.babel = {
+          presets: [
+            ["@babel/preset-env", { targets: { node: "current" } }],
+            "@babel/preset-typescript",
+            "@babel/preset-react",
+          ],
         };
+      }
     }
 
-    /**
-     * Verifica que TypeDoc esté instalado
-     */
-    checkTypeDoc() {
-        console.log('\n📦 Verificando TypeDoc...\n');
-        
-        const typedocPath = path.join(this.basePath, 'node_modules', 'typedoc');
-        if (fs.existsSync(typedocPath)) {
-            console.log('✅ TypeDoc ya está instalado\n');
-            return true;
-        }
+    const configPath = path.join(project.output, "jsdoc-config.json");
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-        console.log('⚠️  TypeDoc no está instalado');
-        console.log('📥 Instalando TypeDoc...\n');
-        
-        try {
-            execSync('npm install --save-dev typedoc', { 
-                stdio: 'inherit',
-                cwd: this.basePath
-            });
-            console.log('\n✅ TypeDoc instalado correctamente\n');
-            return true;
-        } catch (installError) {
-            console.log('\n❌ Error al instalar TypeDoc');
-            return false;
-        }
-    }
+    return configPath;
+  }
 
-    /**
-     * Crea directorios de salida
-     */
-    createDirectories() {
-        console.log('📁 Creando directorios...\n');
-        
-        if (!fs.existsSync(this.docsOutput)) {
-            fs.mkdirSync(this.docsOutput, { recursive: true });
-        }
+  /**
+   * Busca archivo README
+   */
+  findReadme(projectPath) {
+    const readmePath = path.join(projectPath, "README.md");
+    return fs.existsSync(readmePath)
+      ? readmePath.replace(/\\/g, "/")
+      : undefined;
+  }
 
-        Object.values(this.projects).forEach(project => {
-            if (!fs.existsSync(project.output)) {
-                fs.mkdirSync(project.output, { recursive: true });
-            }
+  /**
+   * Instala template docdash si no está instalado
+   */
+  async installTemplate() {
+    const templatePath = path.join(
+      this.basePath,
+      "docs",
+      "node_modules",
+      "docdash"
+    );
+
+    if (!fs.existsSync(templatePath)) {
+      console.log("📥 Instalando template docdash...\n");
+      try {
+        execSync("npm install docdash --save-dev", {
+          stdio: "inherit",
+          cwd: path.join(this.basePath, "docs"),
         });
+        console.log("✅ Template instalado\n");
+      } catch (error) {
+        console.log("⚠️  Continuando sin template personalizado\n");
+      }
+    }
+  }
 
-        console.log('✅ Directorios creados\n');
+  /**
+   * Genera documentación para un proyecto
+   */
+  async generateDocs(key, project) {
+    console.log(
+      "======================================================================"
+    );
+    console.log(`${project.icon} Generando documentación: ${project.name}`);
+    console.log(
+      "============================================================\n"
+    );
+
+    if (!fs.existsSync(project.path)) {
+      console.log(`⚠️  Proyecto no encontrado: ${project.path}\n`);
+      return false;
     }
 
-    /**
-     * Crea archivo de configuración JSDoc
-     */
-    createJSDocConfig(projectKey, project) {
-        const sourcePaths = project.include.map(dir => {
-            const fullPath = path.join(project.path, dir);
-            return fs.existsSync(fullPath) ? fullPath.replace(/\\/g, '/') : null;
-        }).filter(Boolean);
+    // Usar TypeDoc para todos los proyectos
+    return this.generateTypeDoc(key, project);
+  }
 
-        if (sourcePaths.length === 0) {
-            console.log('⚠️  No se encontraron directorios de código\n');
-            return null;
-        }
+  /**
+   * Genera documentación TypeScript con TypeDoc
+   */
+  generateTypeDoc(projectKey, project) {
+    try {
+      console.log("🔄 Ejecutando TypeDoc...\n");
 
-        // Configuración base
-        const config = {
-            "source": {
-                "include": sourcePaths,
-                "includePattern": ".+\\.(js|jsx|ts|tsx)$",
-                "excludePattern": "(node_modules|dist|build|.expo|coverage|__tests__)"
-            },
-            "opts": {
-                "destination": project.output.replace(/\\/g, '/'),
-                "recurse": true,
-                "readme": this.findReadme(project.path),
-                "encoding": "utf8"
-            },
-            "plugins": ["plugins/markdown"],
-            "templates": {
-                "cleverLinks": true,
-                "monospaceLinks": true,
-                "default": {
-                    "outputSourceFiles": true,
-                    "includeDate": true
-                }
-            },
-            "markdown": {
-                "parser": "gfm",
-                "hardwrap": true
-            }
-        };
+      const configPath = path.join(this.basePath, `typedoc.${projectKey}.json`);
 
-        // Para el proyecto móvil (TypeScript/React Native), usar jsdoc-babel si está disponible
-        if (projectKey === 'mobile') {
-            const babelPluginPath = path.join(this.basePath, 'node_modules', 'jsdoc-babel');
-            if (fs.existsSync(babelPluginPath)) {
-                config.plugins.unshift('node_modules/jsdoc-babel');
-                config.babel = {
-                    "presets": [
-                        ["@babel/preset-env", { "targets": { "node": "current" } }],
-                        "@babel/preset-typescript",
-                        "@babel/preset-react"
-                    ]
-                };
-            }
-        }
+      if (!fs.existsSync(configPath)) {
+        console.log(
+          `⚠️  Archivo de configuración no encontrado: ${configPath}\n`
+        );
+        return false;
+      }
 
-        const configPath = path.join(project.output, 'jsdoc-config.json');
-        fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-        
-        return configPath;
+      const command = `npx typedoc --options "${configPath}"`;
+
+      execSync(command, {
+        stdio: "inherit",
+        shell: true,
+        cwd: this.basePath,
+      });
+
+      console.log(`\n✅ Documentación generada en: ${project.output}\n`);
+      return true;
+    } catch (error) {
+      console.log(`\n⚠️  Error al generar documentación con TypeDoc\n`);
+      return false;
     }
+  }
 
-    /**
-     * Busca archivo README
-     */
-    findReadme(projectPath) {
-        const readmePath = path.join(projectPath, 'README.md');
-        return fs.existsSync(readmePath) ? readmePath.replace(/\\/g, '/') : undefined;
-    }
+  /**
+   * Actualiza página índice
+   */
+  updateIndexPage() {
+    console.log("📄 Generando página índice mejorada...\n");
 
-    /**
-     * Instala template docdash si no está instalado
-     */
-    async installTemplate() {
-        const templatePath = path.join(this.basePath, 'docs', 'node_modules', 'docdash');
-        
-        if (!fs.existsSync(templatePath)) {
-            console.log('📥 Instalando template docdash...\n');
-            try {
-                execSync('npm install docdash --save-dev', { 
-                    stdio: 'inherit',
-                    cwd: path.join(this.basePath, 'docs')
-                });
-                console.log('✅ Template instalado\n');
-            } catch (error) {
-                console.log('⚠️  Continuando sin template personalizado\n');
-            }
-        }
-    }
+    const indexPath = path.join(this.docsOutput, "index.html");
 
-    /**
-     * Genera documentación para un proyecto
-     */
-    async generateDocs(key, project) {
-        console.log('======================================================================');
-        console.log(`${project.icon} Generando documentación: ${project.name}`);
-        console.log('============================================================\n');
-
-        if (!fs.existsSync(project.path)) {
-            console.log(`⚠️  Proyecto no encontrado: ${project.path}\n`);
-            return false;
-        }
-
-        // Usar TypeDoc para todos los proyectos
-        return this.generateTypeDoc(key, project);
-    }
-
-    /**
-     * Genera documentación TypeScript con TypeDoc
-     */
-    generateTypeDoc(projectKey, project) {
-        try {
-            console.log('🔄 Ejecutando TypeDoc...\n');
-            
-            const configPath = path.join(this.basePath, `typedoc.${projectKey}.json`);
-            
-            if (!fs.existsSync(configPath)) {
-                console.log(`⚠️  Archivo de configuración no encontrado: ${configPath}\n`);
-                return false;
-            }
-
-            const command = `npx typedoc --options "${configPath}"`;
-            
-            execSync(command, { 
-                stdio: 'inherit',
-                shell: true,
-                cwd: this.basePath
-            });
-
-            console.log(`\n✅ Documentación generada en: ${project.output}\n`);
-            return true;
-
-        } catch (error) {
-            console.log(`\n⚠️  Error al generar documentación con TypeDoc\n`);
-            return false;
-        }
-    }
-
-    /**
-     * Actualiza página índice
-     */
-    updateIndexPage() {
-        console.log('📄 Generando página índice mejorada...\n');
-
-        const indexPath = path.join(this.docsOutput, 'index.html');
-        
-        const htmlContent = `<!DOCTYPE html>
+    const htmlContent = `<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -531,6 +572,28 @@ class JSDocGenerator {
                             <li>Pages - Pantallas de la app</li>
                         </ul>
                     </div>
+
+                    di<div>
+                        <div class="card-icon">📚</div>
+                        <v class="card-title">Tutoriales</div>
+                        <div class="card-description">
+                            Colección de tutoriales y guías relacionadas con el uso y desarrollo del sistema 888 Cargo.
+                            Incluye instrucciones paso a paso para diversas funcionalidades.
+                        </div>
+                        <div class="card-sections">
+                            <h4>📂 Módulos Principales:</h4>
+                            <ul>
+                                <li>Introducción a 888 Cargo</li>
+                                <li>Configuración del Entorno</li>
+                                <li>Uso de la API REST</li>
+                                <li>Desarrollo de Componentes</li>
+                                <li>Implementación de Funcionalidades</li>
+                            </ul>
+                        </div>
+                        <a href="./tutoriales/" class="card-link">Ver Tutoriales →</a>
+                    </div>
+
+                    </div>
                     <a href="mobile/index.html" class="card-link">Ver Documentación Mobile →</a>
                 </div>
             </div>
@@ -590,61 +653,77 @@ class JSDocGenerator {
 </body>
 </html>`;
 
-        fs.writeFileSync(indexPath, htmlContent, 'utf8');
-        console.log('✅ Página índice mejorada generada\n');
+    fs.writeFileSync(indexPath, htmlContent, "utf8");
+    console.log("✅ Página índice mejorada generada\n");
+  }
+
+  /**
+   * Ejecuta el proceso completo
+   */
+  async run() {
+    console.log(
+      "\n======================================================================"
+    );
+    console.log("  888CARGO - GENERADOR DE DOCUMENTACIÓN TypeDoc");
+    console.log("  (Web + Backend + Mobile)");
+    console.log(
+      "======================================================================\n"
+    );
+
+    // Verificar TypeDoc
+    if (!this.checkTypeDoc()) {
+      return;
     }
 
-    /**
-     * Ejecuta el proceso completo
-     */
-    async run() {
-        console.log('\n======================================================================');
-        console.log('  888CARGO - GENERADOR DE DOCUMENTACIÓN TypeDoc');
-        console.log('  (Web + Backend + Mobile)');
-        console.log('======================================================================\n');
+    // Crear directorios
+    this.createDirectories();
 
-        // Verificar TypeDoc
-        if (!this.checkTypeDoc()) {
-            return;
-        }
+    console.log("🚀 Generando documentación del código\n");
+    console.log(
+      "======================================================================\n"
+    );
 
-        // Crear directorios
-        this.createDirectories();
+    const results = {};
 
-        console.log('🚀 Generando documentación del código\n');
-        console.log('======================================================================\n');
-
-        const results = {};
-
-        // Generar documentación para cada proyecto
-        for (const [key, project] of Object.entries(this.projects)) {
-            results[key] = await this.generateDocs(key, project);
-        }
-
-        // Actualizar índice
-        this.updateIndexPage();
-
-        // Resumen final
-        console.log('======================================================================');
-        console.log('✅ PROCESO COMPLETADO');
-        console.log('======================================================================\n');
-        console.log(`📁 Ubicación: ${this.docsOutput}`);
-        console.log(`🌐 Índice: ${path.join(this.docsOutput, 'index.html')}\n`);
-        console.log('📊 Resultados:');
-        
-        for (const [key, success] of Object.entries(results)) {
-            const project = this.projects[key];
-            console.log(`   ${success ? '✅' : '⚠️'} ${project.name}: ${success ? 'Generada' : 'Con errores'}`);
-        }
-
-        console.log('\n🌐 Abriendo documentación...');
-        
-        try {
-            execSync(`explorer "${path.join(this.docsOutput, 'index.html')}"`, { stdio: 'ignore' });
-        } catch (error) {
-            // Ignorar error si no se puede abrir el explorador
-        }
+    // Generar documentación para cada proyecto
+    for (const [key, project] of Object.entries(this.projects)) {
+      results[key] = await this.generateDocs(key, project);
     }
+
+    // Actualizar índice
+    this.updateIndexPage();
+
+    // Resumen final
+    console.log(
+      "======================================================================"
+    );
+    console.log("✅ PROCESO COMPLETADO");
+    console.log(
+      "======================================================================\n"
+    );
+    console.log(`📁 Ubicación: ${this.docsOutput}`);
+    console.log(`🌐 Índice: ${path.join(this.docsOutput, "index.html")}\n`);
+    console.log("📊 Resultados:");
+
+    for (const [key, success] of Object.entries(results)) {
+      const project = this.projects[key];
+      console.log(
+        `   ${success ? "✅" : "⚠️"} ${project.name}: ${
+          success ? "Generada" : "Con errores"
+        }`
+      );
+    }
+
+    console.log("\n🌐 Abriendo documentación...");
+
+    try {
+      execSync(`explorer "${path.join(this.docsOutput, "index.html")}"`, {
+        stdio: "ignore",
+      });
+    } catch (error) {
+      // Ignorar error si no se puede abrir el explorador
+    }
+  }
 }
 
 // Ejecutar

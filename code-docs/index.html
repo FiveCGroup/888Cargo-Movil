@@ -34,21 +34,6 @@
             font-size: 3em;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .logo-header {
-            height: 100px;
-            width: auto;
-            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
-            transition: transform 0.3s ease;
-        }
-
-        .logo-header:hover {
-            transform: scale(1.05);
         }
 
         .header p {
@@ -68,18 +53,16 @@
             color: #333;
             margin-bottom: 15px;
             font-size: 1.5em;
-            text-align: center;
         }
 
         .nav-links {
             display: flex;
-            justify-content: space-between;
-            gap: 10px;
+            gap: 15px;
             flex-wrap: wrap;
         }
 
         .nav-link {
-            padding: 12px 18px;
+            padding: 10px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-decoration: none;
@@ -89,10 +72,6 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            flex: 1;
-            justify-content: center;
-            text-align: center;
-            min-width: 0;
         }
 
         .nav-link:hover {
@@ -102,21 +81,20 @@
 
         .cards {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
             margin-bottom: 30px;
         }
 
         .card {
             background: white;
             border-radius: 15px;
-            padding: 20px;
+            padding: 30px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
             height: 100%;
-            min-height: 420px;
         }
 
         .card:hover {
@@ -125,58 +103,51 @@
         }
 
         .card-icon {
-            font-size: 2.5em;
-            margin-bottom: 12px;
-            text-align: center;
+            font-size: 3em;
+            margin-bottom: 15px;
         }
 
         .card-title {
-            font-size: 1.2em;
+            font-size: 1.5em;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: #333;
-            text-align: center;
         }
 
         .card-description {
             color: #666;
-            line-height: 1.5;
-            margin-bottom: 15px;
+            line-height: 1.6;
+            margin-bottom: 20px;
             flex-grow: 1;
-            font-size: 0.9em;
-            text-align: center;
         }
 
         .card-sections {
             background: #f5f5f5;
-            padding: 10px;
+            padding: 15px;
             border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.8em;
+            margin-bottom: 20px;
         }
 
         .card-sections h4 {
             color: #333;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-size: 1em;
         }
 
         .card-sections ul {
             list-style: none;
             padding-left: 0;
-            margin: 0;
         }
 
         .card-sections li {
-            padding: 4px 0;
+            padding: 5px 0;
             color: #666;
-            font-size: 0.8em;
-            line-height: 1.4;
+            font-size: 0.9em;
         }
 
         .card-sections li:before {
             content: "📄 ";
-            margin-right: 3px;
+            margin-right: 5px;
         }
 
         .card-link {
@@ -235,77 +206,17 @@
             opacity: 0.8;
         }
 
-        @media (max-width: 1200px) {
-            .cards {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-            }
-            
-            .card {
-                padding: 18px;
-                min-height: 380px;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .header h1 {
-                font-size: 2.5em;
-            }
-
-            .logo-header {
-                height: 85px;
-            }
-
-            .nav-links {
-                justify-content: center;
-                gap: 8px;
-            }
-            
-            .nav-link {
-                padding: 10px 14px;
-                font-size: 0.9em;
-                flex: 1 1 auto;
-                max-width: 180px;
-            }
-        }
-
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2em;
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .logo-header {
-                height: 75px;
             }
 
             .cards {
                 grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .card {
-                padding: 20px;
-                min-height: 350px;
             }
 
             .nav-links {
                 flex-direction: column;
-                gap: 10px;
-            }
-
-            .nav-link {
-                flex: none;
-                justify-content: center;
-            }
-
-            .card-title {
-                font-size: 1.3em;
-            }
-
-            .card-description {
-                font-size: 1em;
             }
         }
     </style>
@@ -313,10 +224,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>
-                <img src="images/888cargo-logo.png" alt="888 Cargo Logo" class="logo-header"> 
-                888 Cargo
-            </h1>
+            <h1>📦 888 Cargo</h1>
             <p>Documentación Técnica del Código - JSDoc</p>
         </div>
 
@@ -332,80 +240,107 @@
         </div>
 
         <div id="proyectos">
-            <h2 style="color: white; text-align: center; margin-bottom: 30px; font-size: 2.2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                📚 Módulos del Sistema
-            </h2>
             <div class="cards">
                 <div class="card">
                     <div class="card-icon">🌐</div>
-                    <div class="card-title">Frontend Web</div>
+                    <div class="card-title">Frontend Web React</div>
                     <div class="card-description">
-                        Aplicación React para gestión completa del sistema 888 Cargo
+                        Aplicación web desarrollada en React para la gestión completa del sistema 888 Cargo.
+                        Incluye interfaz de usuario para packing lists, cargas, usuarios y más.
                     </div>
                     <div class="card-sections">
-                        <h4>📂 Incluye:</h4>
+                        <h4>📂 Módulos Principales:</h4>
                         <ul>
-                            <li>Components - Elementos UI reutilizables</li>
-                            <li>Pages - Pantallas principales de la app</li>
-                            <li>Services - Comunicación con API</li>
-                            <li>Hooks - Lógica personalizada React</li>
+                            <li>Components - Componentes reutilizables</li>
+                            <li>Pages - Páginas de la aplicación</li>
+                            <li>Services - Servicios de API</li>
+                            <li>Hooks - Custom React Hooks</li>
+                            <li>Utils - Utilidades y helpers</li>
                         </ul>
                     </div>
-                    <a href="web/index.html" class="card-link">Ver Documentación →</a>
+                    <a href="web/index.html" class="card-link">Ver Documentación Web →</a>
                 </div>
 
                 <div class="card">
                     <div class="card-icon">⚙️</div>
-                    <div class="card-title">Backend API</div>
+                    <div class="card-title">Backend API Node.js</div>
                     <div class="card-description">
-                        API REST Node.js/Express para lógica de negocio y gestión de datos
+                        API REST desarrollada en Node.js/Express para gestionar toda la lógica de negocio
+                        del sistema 888 Cargo. Incluye autenticación, gestión de cargas, usuarios y más.
                     </div>
                     <div class="card-sections">
-                        <h4>📂 Incluye:</h4>
+                        <h4>📂 Módulos Principales:</h4>
                         <ul>
-                            <li>Controllers - Manejo de peticiones HTTP</li>
-                            <li>Routes - Definición de endpoints API</li>
-                            <li>Models - Estructura de base de datos</li>
-                            <li>Services - Lógica de negocio central</li>
+                            <li>Controllers - Lógica de controladores</li>
+                            <li>Routes - Definición de rutas</li>
+                            <li>Models - Modelos de datos</li>
+                            <li>Services - Lógica de negocio</li>
+                            <li>Middlewares - Middlewares personalizados</li>
+                            <li>Validators - Validación de datos</li>
                         </ul>
                     </div>
-                    <a href="backend/index.html" class="card-link">Ver Documentación →</a>
+                    <a href="backend/index.html" class="card-link">Ver Documentación Backend →</a>
                 </div>
 
                 <div class="card">
                     <div class="card-icon">📱</div>
-                    <div class="card-title">Mobile App</div>
+                    <div class="card-title">Frontend Mobile React Native</div>
                     <div class="card-description">
-                        Aplicación móvil Expo/React Native para gestión móvil y QR
+                        Aplicación móvil desarrollada con Expo y React Native para 888 Cargo.
+                        Permite gestión móvil de cargas, visualización de QR, y acceso en movimiento.
                     </div>
                     <div class="card-sections">
-                        <h4>📂 Incluye:</h4>
+                        <h4>📂 Módulos Principales:</h4>
                         <ul>
-                            <li>App - Navegación y configuración</li>
-                            <li>Components - Elementos UI móviles</li>
-                            <li>Hooks - Funciones React Native</li>
-                            <li>Pages - Pantallas de la aplicación</li>
+                            <li>App - Navegación y rutas</li>
+                            <li>Components - Componentes móviles</li>
+                            <li>Hooks - Custom hooks móviles</li>
+                            <li>Services - Servicios de API móvil</li>
+                            <li>Constants - Constantes y configuración</li>
+                            <li>Pages - Pantallas de la app</li>
                         </ul>
                     </div>
-                    <a href="mobile/index.html" class="card-link">Ver Documentación →</a>
+                    <a href="mobile/index.html" class="card-link">Ver Documentación Mobile →</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">📚</div>
+                    <div class="card-title">Tutoriales Paso a Paso</div>
+                    <div class="card-description">
+                        Colección de tutoriales detallados con capturas de pantalla y guías paso a paso 
+                        para el uso y desarrollo del sistema 888 Cargo.
+                    </div>
+                    <div class="card-sections">
+                        <h4>📂 Tutoriales Disponibles:</h4>
+                        <ul>
+                            <li>Frontend Web - Autenticación</li>
+                            <li>Creación de Cargas y Códigos QR</li>
+                            <li>Configuración de Base de Datos</li>
+                            <li>Desarrollo de Backend APIs</li>
+                            <li>Frontend Móvil React Native</li>
+                        </ul>
+                    </div>
+                    <a href="tutoriales/index.html" class="card-link">Ver Tutoriales →</a>
                 </div>
 
                 <div class="card">
                     <div class="card-icon">🚀</div>
                     <div class="card-title">Guía de Setup</div>
                     <div class="card-description">
-                        Instalación, configuración y ejecución completa del ecosistema
+                        Instrucciones completas para configurar el entorno de desarrollo, 
+                        instalar dependencias y ejecutar el proyecto 888 Cargo.
                     </div>
                     <div class="card-sections">
-                        <h4>📋 Incluye:</h4>
+                        <h4>📂 Contenido:</h4>
                         <ul>
-                            <li>Requisitos - Software y herramientas</li>
-                            <li>Instalación - Proceso paso a paso</li>
-                            <li>Variables - Configuración de entorno</li>
-                            <li>Comandos - Scripts de ejecución</li>
+                            <li>Requisitos del Sistema</li>
+                            <li>Instalación de Dependencias</li>
+                            <li>Configuración de Variables</li>
+                            <li>Ejecución del Proyecto</li>
+                            <li>Solución de Problemas Comunes</li>
                         </ul>
                     </div>
-                    <a href="instalacion.html" class="card-link">Ver Guía →</a>
+                    <a href="instalacion.html" class="card-link">Ver Guía de Setup →</a>
                 </div>
             </div>
         </div>
