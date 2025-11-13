@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Image, Dimensions, Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -36,14 +36,9 @@ const VisualizarQr: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedQR, setSelectedQR] = useState<QRData | null>(null);
 
-  useEffect(() => {
-    if (idCarga) {
-      cargarDatosQR();
-      cargarInfoCarga();
-    }
-  }, [idCarga]);
+  // useEffect will be moved after function declarations
 
-  const cargarDatosQR = async () => {
+  const cargarDatosQR = useCallback(async () => {
     try {
       setLoading(true);
       console.log('📄 [VisualizarQr] Cargando QR data para carga:', idCarga);
@@ -122,9 +117,9 @@ const VisualizarQr: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [idCarga]); // Add idCarga as dependency
 
-  const cargarInfoCarga = async () => {
+  const cargarInfoCarga = useCallback(async () => {
     try {
       const resultado = await CargaService.obtenerCargaMeta(idCarga!);
       
@@ -134,7 +129,15 @@ const VisualizarQr: React.FC = () => {
     } catch (error) {
       console.error('Error al cargar info de carga:', error);
     }
-  };
+  }, [idCarga]); // Add idCarga as dependency
+
+  // Effect to load data when idCarga changes
+  useEffect(() => {
+    if (idCarga) {
+      cargarDatosQR();
+      cargarInfoCarga();
+    }
+  }, [idCarga, cargarDatosQR, cargarInfoCarga]);
 
   const handleGenerarPDF = async () => {
     try {
@@ -250,7 +253,7 @@ const VisualizarQr: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Encabezado */}
       <View style={styles.header}>
         <TouchableOpacity onPress={volverAtras} style={styles.botonHeaderVolver}>
           <Ionicons name="arrow-back" size={24} color="#007bff" />
@@ -306,12 +309,12 @@ const VisualizarQr: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Grid de códigos QR */}
+        {/* Cuadrícula de códigos QR */}
         <View style={styles.gridContainer}>
           {qrData && qrData.length > 0 ? (
             qrData.map((item, index) => (
               <View key={item.id} style={styles.qrCard}>
-                {/* Header de la card */}
+                {/* Encabezado de la tarjeta */}
                 <View style={styles.qrCardHeader}>
                   <Text style={styles.qrNumero}>
                     Item #{item.item_numero} - Caja {item.numero_caja} de {item.total_cajas}
@@ -385,7 +388,7 @@ const VisualizarQr: React.FC = () => {
             <Pressable onPress={(e) => e.stopPropagation()}>
               {selectedQR && (
                 <View style={styles.modalContent}>
-                  {/* Header del modal */}
+                  {/* Encabezado del modal */}
                   <View style={styles.modalHeader}>
                     <Text style={styles.modalTitle}>
                       Item #{selectedQR.item_numero} - Caja {selectedQR.numero_caja} de {selectedQR.total_cajas}

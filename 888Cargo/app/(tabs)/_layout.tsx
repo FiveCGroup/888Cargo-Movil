@@ -67,13 +67,22 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: '#0494d6', // Azul claro de la marca para elementos activos
-          tabBarInactiveTintColor: '#ffffff', // Blanco para iconos inactivos (mejor contraste)
+          tabBarInactiveTintColor: '#b8d4f0', // Azul claro para iconos inactivos (mejor contraste)
           headerShown: false,
           tabBarButton: HapticTab,
           tabBarBackground: TabBarBackground,
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '600',
+            textShadowColor: 'rgba(0,0,0,0.3)', // Sombra para mejor legibilidad
+            textShadowOffset: { width: 0, height: 1 },
+            textShadowRadius: 1,
+          },
           tabBarStyle: {
             backgroundColor: colors.authBackground,
             borderTopColor: 'transparent',
+            paddingBottom: Platform.OS === 'ios' ? 20 : 8, // Mejor spacing
+            height: Platform.OS === 'ios' ? 88 : 68, // Altura ajustada
             ...Platform.select({
               ios: {
                 position: 'absolute',
@@ -86,28 +95,65 @@ export default function TabLayout() {
           name="index"
           options={{
             title: 'Dashboard',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+            tabBarIcon: ({ color, focused }) => (
+              <IconSymbol 
+                size={28} 
+                name="house.fill" 
+                color={focused ? '#0494d6' : '#b8d4f0'} 
+              />
+            ),
           }}
         />
         <Tabs.Screen
           name="cargas"
           options={{
             title: 'Cargas',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="cube.box.fill" color={color} />,
+            tabBarIcon: ({ color, focused }) => (
+              <IconSymbol 
+                size={28} 
+                name="cube.box.fill" 
+                color={focused ? '#0494d6' : '#b8d4f0'} 
+              />
+            ),
           }}
         />
         <Tabs.Screen
           name="scanner"
           options={{
             title: 'QR Scanner',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="qrcode.viewfinder" color={color} />,
+            tabBarIcon: ({ color, focused }) => (
+              <IconSymbol 
+                size={28} 
+                name="qrcode.viewfinder" 
+                color={focused ? '#0494d6' : '#b8d4f0'} 
+              />
+            ),
           }}
         />
         <Tabs.Screen
           name="profile"
           options={{
             title: 'Perfil',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+            tabBarIcon: ({ color, focused }) => (
+              <IconSymbol 
+                size={28} 
+                name="person.fill" 
+                color={focused ? '#0494d6' : '#b8d4f0'} 
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="documentacion"
+          options={{
+            title: 'Docs',
+            tabBarIcon: ({ color, focused }) => (
+              <IconSymbol 
+                size={28} 
+                name="book.fill" 
+                color={focused ? '#0494d6' : '#b8d4f0'} 
+              />
+            ),
           }}
         />
         <Tabs.Screen
@@ -123,17 +169,23 @@ export default function TabLayout() {
                     paddingTop: 6, // Mismo padding top que usan los tabs nativos
                     paddingBottom: 6,
                     paddingHorizontal: 2,
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)', // Fondo sutil para mejor contraste
+                    borderRadius: 8, // Bordes redondeados para mejor apariencia
+                    marginHorizontal: 4, // Pequeño margen para separación
                   }}
                   onPress={handleLogout}
                   activeOpacity={0.6}
                 >
-                  <IconSymbol size={28} name="power" color="#dc3545" />
+                  <IconSymbol size={28} name="power" color="#ff4757" />
                   <Text style={{ 
-                    color: '#dc3545',
+                    color: '#ff4757', // Color rojo más brillante para mejor contraste
                     fontSize: 12,
                     marginTop: 2, // Reducir spacing para coincidir con tabs nativos
-                    fontWeight: '600',
+                    fontWeight: '700', // Más bold para mejor legibilidad
                     textAlign: 'center',
+                    textShadowColor: 'rgba(0,0,0,0.3)', // Sombra sutil para mejor contraste
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 2,
                   }}>
                     Salir
                   </Text>

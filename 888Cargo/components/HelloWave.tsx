@@ -16,9 +16,9 @@ export function HelloWave() {
   useEffect(() => {
     rotationAnimation.value = withRepeat(
       withSequence(withTiming(25, { duration: 150 }), withTiming(0, { duration: 150 })),
-      4 // Run the animation 4 times
+      4 // Ejecutar la animación 4 veces
     );
-  }, [rotationAnimation]);
+  }, []); // Array de dependencias vacío para ejecutar solo una vez
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotationAnimation.value}deg` }],

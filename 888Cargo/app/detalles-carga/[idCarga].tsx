@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -17,13 +17,7 @@ const DetallesCarga: React.FC = () => {
   const [packingListData, setPackingListData] = useState<any[][]>([]);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (idCarga) {
-      cargarDetallesCarga();
-    }
-  }, [idCarga]);
-
-  const cargarDetallesCarga = async () => {
+  const cargarDetallesCarga = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -45,7 +39,13 @@ const DetallesCarga: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [idCarga]);
+
+  useEffect(() => {
+    if (idCarga) {
+      cargarDetallesCarga();
+    }
+  }, [idCarga, cargarDetallesCarga]);
 
   const handleVerQRs = () => {
     router.push(`/visualizar-qr/${idCarga}` as any);

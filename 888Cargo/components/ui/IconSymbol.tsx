@@ -1,4 +1,4 @@
-// Fallback for using MaterialIcons on Android and web.
+// Alternativa para usar MaterialIcons en Android y web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
@@ -9,9 +9,9 @@ type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof Materia
 type IconSymbolName = keyof typeof MAPPING;
 
 /**
- * Add your SF Symbols to Material Icons mappings here.
- * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
- * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
+ * Agrega aquí tus mapeos de SF Symbols a Material Icons.
+ * - ver Material Icons en el [Directorio de Iconos](https://icons.expo.fyi).
+ * - ver SF Symbols en la app [SF Symbols](https://developer.apple.com/sf-symbols/).
  */
 const MAPPING = {
   'house.fill': 'home',
@@ -21,13 +21,14 @@ const MAPPING = {
   'cube.box.fill': 'inventory-2',
   'qrcode.viewfinder': 'qr-code-scanner',
   'person.fill': 'person',
+  'book.fill': 'description', // Icono de documento/documentación
   'power': 'power-settings-new',
 } as IconMapping;
 
 /**
- * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
- * This ensures a consistent look across platforms, and optimal resource usage.
- * Icon `name`s are based on SF Symbols and require manual mapping to Material Icons.
+ * Un componente de icono que usa SF Symbols nativos en iOS, y Material Icons en Android y web.
+ * Esto asegura una apariencia consistente entre plataformas y un uso óptimo de recursos.
+ * Los `name`s de iconos están basados en SF Symbols y requieren mapeo manual a Material Icons.
  */
 export function IconSymbol({
   name,

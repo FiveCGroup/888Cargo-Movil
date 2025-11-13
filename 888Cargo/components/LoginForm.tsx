@@ -7,14 +7,14 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
+    Image,
     ScrollView,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
 import { Colors } from '../constants/Colors';
 import { createThemeStyles } from '../constants/Theme';
 import { useColorScheme } from '../hooks/useColorScheme';
-import Logo888Cargo from './Logo888Cargo';
 import CustomAlert from './CustomAlert';
 import useCustomAlert from '../hooks/useCustomAlert';
 import { loginFormStyles } from '../styles/components/LoginForm.styles';
@@ -85,129 +85,182 @@ export default function LoginForm({
 
     return (
         <KeyboardAvoidingView
-            style={themeStyles.authContainer}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={loginFormStyles.container}
+            behavior={Platform.OS === 'ios' ? 'position' : undefined}
+            keyboardVerticalOffset={0}
         >
-            <ScrollView contentContainerStyle={loginFormStyles.scrollContainer}>
-                <View style={themeStyles.authContent}>
-                    {/* Header con logo */}
-                    <View style={loginFormStyles.headerContainer}>
-                        <Logo888Cargo 
-                            size="large" 
-                            showText={true}
-                            textStyle={{ color: colors.textLight }}
+            <ScrollView 
+                style={{ flex: 1 }}
+                contentContainerStyle={{ flexGrow: 1 }}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Parte superior - Tarjeta azul con logo y campos */}
+                <View style={loginFormStyles.upperCard}>
+                {/* Logo */}
+                <View style={loginFormStyles.logoContainer}>
+                    <Image
+                        source={require('../assets/images/888cargo-logo.png')}
+                        style={{ width: 350, height: 350, resizeMode: 'contain' }}
+                    />
+                </View>
+
+                {/* Campos de entrada */}
+                <View style={loginFormStyles.inputsContainer}>
+                    {/* Email Input */}
+                    <View style={loginFormStyles.inputContainer}>
+                        <TextInput
+                            style={[
+                                loginFormStyles.input,
+                                emailFocused && loginFormStyles.inputFocused
+                            ]}
+                            placeholder="Email"
+                            placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                            value={email}
+                            onChangeText={setEmail}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            editable={!isLoading}
+                            onFocus={() => setEmailFocused(true)}
+                            onBlur={() => setEmailFocused(false)}
                         />
-                        <Text style={themeStyles.authSubtitle}>Soluciones de Logística Internacional</Text>
                     </View>
 
-                    {/* Card de login con estilo web */}
-                    <View style={themeStyles.authCard}>
-                        <Text style={themeStyles.authTitle}>Iniciar Sesión</Text>
-
-                        {/* Mensaje de error */}
-                        {error && (
-                            <Text style={themeStyles.errorText}>{error}</Text>
-                        )}
-
-                        {/* Email Input */}
-                        <View style={loginFormStyles.inputContainer}>
+                    {/* Password Input */}
+                    <View style={loginFormStyles.inputContainer}>
+                        <View style={loginFormStyles.passwordContainer}>
                             <TextInput
                                 style={[
-                                    themeStyles.input,
-                                    emailFocused && themeStyles.inputFocused
+                                    loginFormStyles.input,
+                                    loginFormStyles.passwordInput,
+                                    passwordFocused && loginFormStyles.inputFocused
                                 ]}
-                                placeholder="Email"
-                                placeholderTextColor={colors.textMuted}
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                autoCorrect={false}
+                                placeholder="Contraseña"
+                                placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                                value={password}
+                                onChangeText={setPassword}
+                                secureTextEntry={!showPassword}
                                 editable={!isLoading}
-                                onFocus={() => setEmailFocused(true)}
-                                onBlur={() => setEmailFocused(false)}
+                                onFocus={() => setPasswordFocused(true)}
+                                onBlur={() => setPasswordFocused(false)}
                             />
-                        </View>
-
-                        {/* Password Input */}
-                        <View style={loginFormStyles.inputContainer}>
-                            <View style={loginFormStyles.passwordContainer}>
-                                <TextInput
-                                    style={[
-                                        themeStyles.input,
-                                        loginFormStyles.passwordInput,
-                                        passwordFocused && themeStyles.inputFocused
-                                    ]}
-                                    placeholder="Contraseña"
-                                    placeholderTextColor={colors.textMuted}
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    secureTextEntry={!showPassword}
-                                    editable={!isLoading}
-                                    onFocus={() => setPasswordFocused(true)}
-                                    onBlur={() => setPasswordFocused(false)}
+                            <TouchableOpacity
+                                style={loginFormStyles.showPasswordButton}
+                                onPress={() => setShowPassword(!showPassword)}
+                                disabled={isLoading}
+                            >
+                                <MaterialIcons 
+                                    name={showPassword ? 'visibility' : 'visibility-off'} 
+                                    size={24} 
+                                    color="rgba(255, 255, 255, 0.7)" 
                                 />
-                                <TouchableOpacity
-                                    style={loginFormStyles.showPasswordButton}
-                                    onPress={() => setShowPassword(!showPassword)}
-                                    disabled={isLoading}
-                                >
-                                    <Text style={loginFormStyles.showPasswordText}>
-                                        <MaterialIcons 
-                                            name={showPassword ? 'visibility' : 'visibility-off'} 
-                                            size={24} 
-                                            color={IconColors.secondary} 
-                                        />
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        {/* Login Button */}
-                        <TouchableOpacity
-                            style={[
-                                themeStyles.button,
-                                isLoading && themeStyles.buttonDisabled
-                            ]}
-                            onPress={handleLogin}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <ActivityIndicator color={colors.textLight} />
-                            ) : (
-                                <Text style={themeStyles.buttonText}>Iniciar Sesión</Text>
-                            )}
-                        </TouchableOpacity>
-
-                        {/* Forgot Password */}
-                        <TouchableOpacity
-                            style={loginFormStyles.forgotPasswordButton}
-                            onPress={handleForgotPassword}
-                            disabled={isLoading}
-                        >
-                            <Text style={[loginFormStyles.forgotPasswordText, { color: colors.primary }]}>
-                                ¿Olvidaste tu contraseña?
-                            </Text>
-                        </TouchableOpacity>
-
-                        {/* Register Link */}
-                        <View style={loginFormStyles.registerContainer}>
-                            <View style={[loginFormStyles.registerLinkContainer, { borderColor: colors.border }]}>
-                                <Text style={[loginFormStyles.registerText, { color: colors.textSecondary }]}>
-                                    ¿No tienes cuenta?{' '}
-                                </Text>
-                                <TouchableOpacity
-                                    onPress={handleRegister}
-                                    disabled={isLoading}
-                                >
-                                    <Text style={[loginFormStyles.registerLink, { color: colors.primary }]}>
-                                        Regístrate
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
+                            </TouchableOpacity>
                         </View>
                     </View>
                 </View>
+            </View>
+
+            {/* Parte inferior - Fondo blanco con botones */}
+            <View style={loginFormStyles.lowerSection}>
+                {/* Mensaje de error */}
+                {error && (
+                    <Text style={loginFormStyles.errorText}>{error}</Text>
+                )}
+
+                {/* Login Button */}
+                <TouchableOpacity
+                    style={[
+                        loginFormStyles.loginButton,
+                        isLoading && loginFormStyles.loginButtonDisabled
+                    ]}
+                    onPress={handleLogin}
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                        <Text style={loginFormStyles.loginButtonText}>Iniciar Sesión</Text>
+                    )}
+                </TouchableOpacity>
+
+                {/* Forgot Password */}
+                <TouchableOpacity
+                    style={loginFormStyles.forgotPasswordButton}
+                    onPress={handleForgotPassword}
+                    disabled={isLoading}
+                >
+                    <Text style={loginFormStyles.forgotPasswordText}>
+                        ¿Olvidaste tu contraseña?
+                    </Text>
+                </TouchableOpacity>
+
+                {/* Register Button */}
+                <TouchableOpacity
+                    style={[
+                        loginFormStyles.registerButton,
+                        isLoading && loginFormStyles.registerButtonDisabled
+                    ]}
+                    onPress={handleRegister}
+                    disabled={isLoading}
+                >
+                    <Text style={loginFormStyles.registerButtonText}>
+                        Registrarse
+                    </Text>
+                </TouchableOpacity>
+
+                {/* Módulo de cotización */}
+                <TouchableOpacity
+                    style={loginFormStyles.quotationModule}
+                    onPress={() => showInfo('Cotización', 'Módulo de cotización próximamente disponible')}
+                    disabled={isLoading}
+                    activeOpacity={0.7}
+                >
+                    <View style={loginFormStyles.quotationIcon}>
+                        <Image 
+                            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/11449/11449753.png' }} 
+                            style={{ width: 75, height: 75 }}
+                            resizeMode="contain"
+                        />
+                    </View>
+                    <Text style={loginFormStyles.quotationTitle}>
+                        Cotizar envío
+                    </Text>
+                </TouchableOpacity>
+
+                {/* Grupo de contacto: ícono + botón */}
+                <View style={loginFormStyles.contactContainer}>
+                    {/* Ícono de contacto (20%) */}
+                    <TouchableOpacity
+                        style={loginFormStyles.contactIcon}
+                        onPress={() => showInfo('Teléfono', 'Próximamente: llamada directa')}
+                        disabled={isLoading}
+                    >
+                        <MaterialIcons 
+                            name="phone" 
+                            size={24} 
+                            color="#FFFFFF" 
+                        />
+                    </TouchableOpacity>
+                    
+                    {/* Espaciador (10%) */}
+                    <View style={loginFormStyles.contactSpacer} />
+                    
+                    {/* Botón de contacto (70%) */}
+                    <TouchableOpacity
+                        style={[
+                            loginFormStyles.contactButton,
+                            isLoading && loginFormStyles.contactButtonDisabled
+                        ]}
+                        onPress={() => showInfo('Contacto', 'Próximamente: contacto directo por WhatsApp')}
+                        disabled={isLoading}
+                    >
+                        <Text style={loginFormStyles.contactButtonText}>
+                            Contáctanos
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
             </ScrollView>
             
             <CustomAlert

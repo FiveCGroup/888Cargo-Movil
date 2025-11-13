@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>888 Cargo - Documentación del Código</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            padding: 30px 0;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .logo-header {
+            height: 100px;
+            width: auto;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .logo-header:hover {
+            transform: scale(1.05);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-menu {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .nav-menu h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            text-align: center;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            padding: 12px 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+            text-align: center;
+            min-width: 0;
+        }
+
+        .nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 420px;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .card-icon {
+            font-size: 2.5em;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            text-align: center;
+        }
+
+        .card-description {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            flex-grow: 1;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .card-sections {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.8em;
+        }
+
+        .card-sections h4 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .card-sections ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .card-sections li {
+            padding: 4px 0;
+            color: #666;
+            font-size: 0.8em;
+            line-height: 1.4;
+        }
+
+        .card-sections li:before {
+            content: "📄 ";
+            margin-right: 3px;
+        }
+
+        .card-link {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .card-link:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .info-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .info-section h3 {
+            color: #667eea;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .info-section p, .info-section ul {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .info-section ul {
+            padding-left: 25px;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 1200px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .card {
+                padding: 18px;
+                min-height: 380px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .logo-header {
+                height: 85px;
+            }
+
+            .nav-links {
+                justify-content: center;
+                gap: 8px;
+            }
+            
+            .nav-link {
+                padding: 10px 14px;
+                font-size: 0.9em;
+                flex: 1 1 auto;
+                max-width: 180px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .logo-header {
+                height: 75px;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .card {
+                padding: 20px;
+                min-height: 350px;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .nav-link {
+                flex: none;
+                justify-content: center;
+            }
+
+            .card-title {
+                font-size: 1.3em;
+            }
+
+            .card-description {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <img src="images/888cargo-logo.png" alt="888 Cargo Logo" class="logo-header"> 
+                888 Cargo
+            </h1>
+            <p>Documentación Técnica del Código - JSDoc</p>
+        </div>
+
+        <div class="nav-menu">
+            <h2>🧭 Navegación Rápida</h2>
+            <div class="nav-links">
+                <a href="#proyectos" class="nav-link">📚 Proyectos</a>
+                <a href="#info" class="nav-link">ℹ️ Información</a>
+                <a href="web/index.html" class="nav-link">🌐 Frontend Web</a>
+                <a href="backend/index.html" class="nav-link">⚙️ Backend API</a>
+                <a href="mobile/index.html" class="nav-link">📱 Mobile App</a>
+            </div>
+        </div>
+
+        <div id="proyectos">
+            <h2 style="color: white; text-align: center; margin-bottom: 30px; font-size: 2.2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                📚 Módulos del Sistema
+            </h2>
+            <div class="cards">
+                <div class="card">
+                    <div class="card-icon">🌐</div>
+                    <div class="card-title">Frontend Web</div>
+                    <div class="card-description">
+                        Aplicación React para gestión completa del sistema 888 Cargo
+                    </div>
+                    <div class="card-sections">
+                        <h4>📂 Incluye:</h4>
+                        <ul>
+                            <li>Components - Elementos UI reutilizables</li>
+                            <li>Pages - Pantallas principales de la app</li>
+                            <li>Services - Comunicación con API</li>
+                            <li>Hooks - Lógica personalizada React</li>
+                        </ul>
+                    </div>
+                    <a href="web/index.html" class="card-link">Ver Documentación →</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">⚙️</div>
+                    <div class="card-title">Backend API</div>
+                    <div class="card-description">
+                        API REST Node.js/Express para lógica de negocio y gestión de datos
+                    </div>
+                    <div class="card-sections">
+                        <h4>📂 Incluye:</h4>
+                        <ul>
+                            <li>Controllers - Manejo de peticiones HTTP</li>
+                            <li>Routes - Definición de endpoints API</li>
+                            <li>Models - Estructura de base de datos</li>
+                            <li>Services - Lógica de negocio central</li>
+                        </ul>
+                    </div>
+                    <a href="backend/index.html" class="card-link">Ver Documentación →</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">📱</div>
+                    <div class="card-title">Mobile App</div>
+                    <div class="card-description">
+                        Aplicación móvil Expo/React Native para gestión móvil y QR
+                    </div>
+                    <div class="card-sections">
+                        <h4>📂 Incluye:</h4>
+                        <ul>
+                            <li>App - Navegación y configuración</li>
+                            <li>Components - Elementos UI móviles</li>
+                            <li>Hooks - Funciones React Native</li>
+                            <li>Pages - Pantallas de la aplicación</li>
+                        </ul>
+                    </div>
+                    <a href="mobile/index.html" class="card-link">Ver Documentación →</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">🚀</div>
+                    <div class="card-title">Guía de Setup</div>
+                    <div class="card-description">
+                        Instalación, configuración y ejecución completa del ecosistema
+                    </div>
+                    <div class="card-sections">
+                        <h4>📋 Incluye:</h4>
+                        <ul>
+                            <li>Requisitos - Software y herramientas</li>
+                            <li>Instalación - Proceso paso a paso</li>
+                            <li>Variables - Configuración de entorno</li>
+                            <li>Comandos - Scripts de ejecución</li>
+                        </ul>
+                    </div>
+                    <a href="instalacion.html" class="card-link">Ver Guía →</a>
+                </div>
+            </div>
+        </div>
+
+        <div id="info" class="info-section">
+            <h2>ℹ️ Información del Proyecto</h2>
+            
+            <h3>📋 Acerca de 888 Cargo</h3>
+            <p>
+                Sistema integral de gestión de cargas y packing lists. El proyecto está dividido en tres
+                componentes principales que trabajan de manera integrada para ofrecer una solución completa.
+            </p>
+
+            <h3>🏗️ Arquitectura del Sistema</h3>
+            <ul>
+                <li><strong>Frontend Web:</strong> Aplicación React para escritorio/navegador</li>
+                <li><strong>Backend API:</strong> API REST Node.js/Express con MongoDB/SQLite</li>
+                <li><strong>Mobile App:</strong> Aplicación móvil React Native/Expo</li>
+            </ul>
+
+            <h3>🛠️ Tecnologías Utilizadas</h3>
+            <ul>
+                <li><strong>Frontend Web:</strong> React, Vite, React Router, Axios</li>
+                <li><strong>Backend:</strong> Node.js, Express, MongoDB, SQLite, JWT</li>
+                <li><strong>Mobile:</strong> React Native, Expo, TypeScript, React Navigation</li>
+                <li><strong>Documentación:</strong> JSDoc</li>
+            </ul>
+
+            <h3>📖 Uso de la Documentación</h3>
+            <p>
+                Esta documentación ha sido generada automáticamente a partir del código fuente utilizando JSDoc.
+                Cada módulo contiene información detallada sobre:
+            </p>
+            <ul>
+                <li>Funciones, clases y componentes disponibles</li>
+                <li>Parámetros requeridos y opcionales</li>
+                <li>Tipos de datos y valores de retorno</li>
+                <li>Ejemplos de uso cuando están disponibles</li>
+                <li>Dependencias y relaciones entre módulos</li>
+            </ul>
+
+            <h3>🔄 Actualización de la Documentación</h3>
+            <p>
+                Para regenerar esta documentación después de realizar cambios en el código, ejecuta:
+            </p>
+            <p style="background: #f5f5f5; padding: 15px; border-radius: 8px; font-family: monospace;">
+                node generate_jsdoc_web_backend.js
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>📚 Documentación generada con JSDoc</p>
+            <p>888 Cargo © 2025</p>
+        </div>
+    </div>
+</body>
+</html>

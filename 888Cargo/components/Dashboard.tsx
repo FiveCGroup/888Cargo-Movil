@@ -32,12 +32,14 @@ interface DashboardProps {
     onNavigateToCargas?: () => void;
     onNavigateToQRScanner?: () => void;
     onNavigateToProfile?: () => void;
+    onNavigateToDocumentacion?: () => void;
 }
 
 export default function Dashboard({
     onNavigateToCargas,
     onNavigateToQRScanner,
-    onNavigateToProfile
+    onNavigateToProfile,
+    onNavigateToDocumentacion
 }: DashboardProps) {
     const { user } = useAuth();
     const [pressedCard, setPressedCard] = useState<number | null>(null);
@@ -66,6 +68,12 @@ export default function Dashboard({
             onPress: onNavigateToProfile
         },
         {
+            title: '📚 Documentación',
+            iconName: 'menu-book',
+            iconLibrary: 'MaterialIcons',
+            onPress: onNavigateToDocumentacion
+        },
+        {
             title: 'Configuración',
             iconName: 'settings',
             iconLibrary: 'MaterialIcons',
@@ -87,7 +95,7 @@ export default function Dashboard({
 
     return (
         <View style={themeStyles.container}>
-            {/* Header estilo web */}
+            {/* Encabezado estilo web */}
             <View style={[dashboardStyles.header]}>
                 <View>
                     <Text style={[dashboardStyles.welcomeText, { color: colors.textLight }]}>¡Hola!</Text>
@@ -114,7 +122,7 @@ export default function Dashboard({
                     </Text>
                 </View>
 
-                {/* Cards principales con distribución fija de 2 columnas */}
+                {/* Tarjetas principales con distribución fija de 2 columnas */}
                 <View style={dashboardStyles.cardsContainer}>
                     {dashboardCards.map((card, index) => (
                         <TouchableOpacity

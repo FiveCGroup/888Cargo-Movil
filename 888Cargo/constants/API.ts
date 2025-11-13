@@ -17,7 +17,7 @@ export const getApiUrl = () => {
       return process.env.EXPO_PUBLIC_API_URL_PROD || 'https://api.888cargo.com/api';
     case 'development':
     default:
-      return process.env.EXPO_PUBLIC_API_URL_LOCAL || 'http://192.168.58.106:4000/api';
+      return process.env.EXPO_PUBLIC_API_URL_LOCAL || 'http://192.168.58.107:4000/api';
   }
 };
 
@@ -92,14 +92,14 @@ export const getFullURL = (endpoint: string) => {
   return `${API_CONFIG.BASE_URL}${endpoint}`;
 };
 
-// Helper para construir URLs con parámetros
+// Función auxiliar para construir URLs con parámetros
 export const buildURL = (baseEndpoint: string, params: Record<string, any> = {}) => {
   let url = getFullURL(baseEndpoint);
   const queryParams = new URLSearchParams(params).toString();
   return queryParams ? `${url}?${queryParams}` : url;
 };
 
-// Configuración de debugging
+// Configuración de depuración
 export const DEBUG_MODE = process.env.EXPO_PUBLIC_DEBUG_MODE === 'true';
 export const CONSOLE_LOGS = process.env.EXPO_PUBLIC_CONSOLE_LOGS === 'true';
 

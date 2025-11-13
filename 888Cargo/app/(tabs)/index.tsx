@@ -22,12 +22,17 @@ export default function HomeScreen() {
         router.push('/(tabs)/profile');
     };
 
+    const handleNavigateToDocumentacion = () => {
+        router.push('/(tabs)/documentacion');
+    };
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <Dashboard
                 onNavigateToCargas={handleNavigateToCargas}
                 onNavigateToQRScanner={handleNavigateToQRScanner}
                 onNavigateToProfile={handleNavigateToProfile}
+                onNavigateToDocumentacion={handleNavigateToDocumentacion}
             />
         </View>
     );
