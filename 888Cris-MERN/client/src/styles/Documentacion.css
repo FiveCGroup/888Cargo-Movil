@@ -1,0 +1,15 @@
+.documentacion-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  overflow: hidden;
+}
+
+.documentacion-iframe-fullscreen {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
