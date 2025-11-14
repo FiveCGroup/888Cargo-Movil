@@ -1,0 +1,35 @@
+<svg width="200" height="80" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cubo 3D -->
+  <g transform="translate(10, 10)">
+    <!-- Cara frontal -->
+    <path d="M0 20 L20 0 L40 0 L20 20 Z" fill="#037dbb" stroke="#025a89" stroke-width="1"/>
+    <path d="M0 20 L20 20 L40 0 L20 0 Z" fill="#037dbb" stroke="#025a89" stroke-width="1"/>
+    
+    <!-- Cara superior -->
+    <path d="M20 0 L40 0 L50 10 L30 10 Z" fill="#0494d6" stroke="#025a89" stroke-width="1"/>
+    
+    <!-- Cara derecha -->
+    <path d="M40 0 L50 10 L50 30 L40 20 Z" fill="#025a89" stroke="#025a89" stroke-width="1"/>
+    
+    <!-- Cara frontal inferior -->
+    <path d="M0 20 L20 20 L40 20 L20 40 Z" fill="#037dbb" stroke="#025a89" stroke-width="1"/>
+    
+    <!-- Cara superior del cubo -->
+    <path d="M20 20 L40 20 L50 30 L30 30 Z" fill="#0494d6" stroke="#025a89" stroke-width="1"/>
+    
+    <!-- Cara derecha inferior -->
+    <path d="M40 20 L50 30 L50 50 L40 40 Z" fill="#025a89" stroke="#025a89" stroke-width="1"/>
+    
+    <!-- Líneas internas del cubo para dar efecto 3D -->
+    <line x1="5" y1="15" x2="25" y2="15" stroke="white" stroke-width="2"/>
+    <line x1="25" y1="5" x2="35" y2="5" stroke="white" stroke-width="2"/>
+    <line x1="5" y1="35" x2="25" y2="35" stroke="white" stroke-width="2"/>
+    <line x1="25" y1="25" x2="35" y2="25" stroke="white" stroke-width="2"/>
+  </g>
+  
+  <!-- Texto 888 -->
+  <text x="70" y="35" font-family="Arial Black, sans-serif" font-size="24" font-weight="900" fill="#037dbb">888</text>
+  
+  <!-- Texto Cargo -->
+  <text x="70" y="55" font-family="Arial, sans-serif" font-size="18" font-weight="600" fill="#037dbb">Cargo</text>
+</svg>

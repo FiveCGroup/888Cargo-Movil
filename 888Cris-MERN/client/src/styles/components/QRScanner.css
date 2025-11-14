@@ -1,0 +1,409 @@
+/* QRScanner.css */
+/* Estilos para el componente QRScanner */
+
+.qr-scanner-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+.qr-scanner-header {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-bottom: var(--spacing-xl);
+}
+
+.qr-scanner-back-btn {
+    position: absolute;
+    left: 0;
+    background: none;
+    border: 1px solid #dee2e6;
+    font-size: 1.5rem;
+    color: #037dbb;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-scanner-back-btn:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.1);
+    border-color: #6c757d;
+}
+
+.qr-scanner-page-title {
+    flex: 1;
+    text-align: center;
+    margin: 0;
+    font-size: var(--font-size-xxxl);
+    font-weight: var(--font-weight-bold);
+    color: #037dbb;
+}
+
+.qr-scanner-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 4rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.qr-scanner-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.qr-scanner-hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.qr-scanner-title {
+    color: white;
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(45deg, #fff, #f0f0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.qr-scanner-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.2rem;
+    font-weight: 300;
+    max-width: 600px;
+    margin: 0 auto;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.qr-scanner-main-content {
+    padding: 3rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.qr-scanner-content-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    max-width: 500px;
+    margin: 0 auto;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.qr-scanner-loading {
+    margin: 2rem auto;
+}
+
+.qr-scanner-camera-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.qr-scanner-camera-wrapper {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.qr-scanner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 3px solid var(--color-primary);
+    border-radius: 12px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.qr-scanner-reader {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.qr-scanner-instructions {
+    color: var(--text-muted);
+    margin-top: 16px;
+    font-size: 1rem;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.qr-scanner-controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.qr-scanner-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-size: 0.95rem;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.qr-scanner-btn-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+.qr-scanner-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+.qr-scanner-btn-secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+.qr-scanner-btn-secondary:hover {
+    background: var(--border-color);
+    transform: translateY(-1px);
+}
+
+/* Resultado del escaneo */
+.qr-result-card {
+    margin-top: 32px;
+    text-align: center;
+}
+
+.qr-result-title {
+    color: var(--color-primary);
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.qr-result-content {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.qr-result-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 8px 16px;
+    justify-content: center;
+    text-align: left;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.qr-result-label {
+    font-weight: 600;
+    color: #1976d2;
+    text-align: right;
+}
+
+.qr-result-value {
+    word-break: break-all;
+    text-align: left;
+}
+
+.qr-result-raw {
+    margin: 1rem auto;
+    word-break: break-all;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    font-family: monospace;
+    font-size: 15px;
+    border: 1px solid #dee2e6;
+}
+
+/* Estados de permisos */
+.qr-permission-container {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.qr-permission-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+}
+
+.qr-permission-asking .qr-permission-icon {
+    color: var(--color-warning);
+    animation: pulse 2s infinite;
+}
+
+.qr-permission-denied .qr-permission-icon {
+    color: var(--color-danger);
+}
+
+.qr-permission-granted .qr-permission-icon {
+    color: var(--color-success);
+}
+
+.qr-permission-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.qr-permission-message {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+/* Animaciones */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.qr-result-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .qr-scanner-title {
+        font-size: 2rem;
+    }
+    
+    .qr-scanner-subtitle {
+        font-size: 1rem;
+    }
+    
+    .qr-scanner-hero {
+        padding: 2rem 1rem;
+    }
+    
+    .qr-scanner-main-content {
+        padding: 2rem 1rem;
+    }
+    
+    .qr-scanner-content-card {
+        padding: 1.5rem;
+        border-radius: 16px;
+    }
+    
+    .qr-scanner-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .qr-scanner-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .qr-result-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        text-align: center;
+    }
+    
+    .qr-result-label {
+        text-align: center;
+        font-size: 0.9rem;
+    }
+    
+    .qr-result-value {
+        text-align: center;
+        font-size: 0.95rem;
+        margin-bottom: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .qr-scanner-content-card {
+        margin: 0 0.5rem;
+        padding: 1rem;
+    }
+    
+    .qr-result-raw {
+        font-size: 13px;
+        padding: 12px;
+    }
+}
+
+/* Estilos específicos para html5-qrcode */
+#html5qr-reader {
+    border-radius: 12px !important;
+}
+
+#html5qr-reader > div:first-child {
+    border-radius: 12px !important;
+}
+
+#html5qr-reader video {
+    border-radius: 12px !important;
+}
+
+/* Sobrescribir estilos de la librería */
+#html5qr-reader__dashboard_section {
+    background: transparent !important;
+}
+
+#html5qr-reader__dashboard_section_csr {
+    text-align: center !important;
+    margin-top: 1rem !important;
+}
+
+#html5qr-reader__dashboard_section_csr > div {
+    display: inline-block !important;
+    margin: 0 0.5rem !important;
+}

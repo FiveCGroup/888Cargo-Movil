@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial 3: Base de Datos | 888Cris</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .tutorial-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            min-height: 100vh;
+        }
+        
+        .tutorial-header {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .tutorial-nav {
+            background: #343a40;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: #adb5bd;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: #495057;
+            color: white;
+        }
+        
+        .tutorial-content {
+            padding: 40px 60px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid #ffc107;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .section h2 {
+            color: #495057;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .section-content {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .step {
+            background: #fefefe;
+            margin: 25px 20px;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            width: calc(100% - 40px);
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .step-number {
+            background: #ffc107;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tutorial-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tutorial-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .image-caption {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-style: italic;
+            margin: 10px 0 20px 0;
+        }
+        
+        .step p {
+            margin: 15px 0;
+            line-height: 1.7;
+        }
+        
+        .step ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        
+        .step li {
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .tutorial-content {
+                padding: 20px;
+            }
+            .tutorial-nav {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<style>
+/* **Nota:** He añadido un bloque <style> básico con los estilos que deduzco de la estructura y el formato que ya proporcionaste 
+    (como el uso de divs con clase 'step', 'section', 'tutorial-container', etc.) para que el código sea completo y funcional.
+    Si ya tienes un archivo CSS externo, puedes ignorar o reemplazar este bloque.
+*/
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+}
+.tutorial-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.tutorial-header {
+    background-color: #007bff;
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+}
+.tutorial-header h1 {
+    margin: 0 0 5px 0;
+    font-size: 2.5em;
+}
+.tutorial-header h2 {
+    margin: 0 0 20px 0;
+    font-size: 1.5em;
+    font-weight: normal;
+}
+.tutorial-nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background-color: #e9ecef;
+    border-bottom: 1px solid #dee2e6;
+}
+.nav-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+.nav-link:hover {
+    text-decoration: underline;
+}
+.tutorial-content {
+    padding: 20px;
+}
+.tutorial-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+.image-caption {
+    text-align: center;
+    font-style: italic;
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+.section {
+    margin-bottom: 40px;
+    padding: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+.section-header {
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.section-header h2 {
+    color: #007bff;
+    margin: 0;
+}
+.step {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-left: 5px solid #28a745;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+.step-title {
+    font-weight: bold;
+    color: #007bff;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.step-number {
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px;
+    font-size: 0.9em;
+}
+.section-content ul, .section-content ol {
+    padding-left: 20px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+.section-content li {
+    margin-bottom: 5px;
+}
+</style>
+<body>
+<div class="tutorial-container">
+    <div class="tutorial-header">
+        <h1>Backend</h1>
+        <h2>Configuración y Estructura</h2>
+        <div style="display: flex; gap: 20px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+            <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                🕒 25 minutos
+            </span>
+            <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                📊 Intermedio
+            </span>
+            <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                🗄️ SQLite
+            </span>
+        </div>
+    </div>
+    
+    <div class="tutorial-nav">
+        <a href="../index.html" class="nav-link">← Volver a Inicio</a>
+        <a href="index.html" class="nav-link">Todos los Tutoriales</a>
+        <a href="tutorial-4-backend.html" class="nav-link">Siguiente Tutorial →</a>
+    </div>
+    
+    <div class="tutorial-content">
+        
+        <!-- SECCIÓN 1 -->
+        <div class="section">
+            <div class="section-header">
+                <h2>🗄️ TUTORIAL 3: Base de Datos</h2>
+            </div>            
+        </div>
+
+        <!-- SECCIÓN 2 -->
+        <div class="section">
+            <div class="section-header">
+                <h2>📋 Introducción</h2>
+            </div>
+            <div class="section-content">
+                <p>El sistema <strong>888Cargo</strong> utiliza <strong>SQLite</strong> como motor de base de datos principal para la administración de información logística, abarcando la gestión de cargas, artículos, usuarios y códigos QR utilizados en el seguimiento de envíos.</p>
+
+                <p>Este documento describe la estructura interna de la base de datos, sus componentes, relaciones y procesos de inicialización, sirviendo como guía técnica para desarrolladores y administradores del sistema.</p>
+
+                <h3>🎯 Propósito del Sistema</h3>
+                <p>El modelo de datos busca garantizar la trazabilidad y consistencia de la información durante todo el ciclo logístico. Sus principales objetivos son:</p>
+                <ul>
+                    <li>Gestionar de forma integral las cargas y sus estados.</li>
+                    <li>Controlar artículos y listas de empaque asociadas a cada envío.</li>
+                    <li>Administrar usuarios y credenciales de manera segura.</li>
+                    <li>Implementar seguimiento logístico mediante códigos QR únicos.</li>
+                    <li>Permitir la recuperación de contraseñas de forma segura y automatizada.</li>
+                </ul>
+
+                <h3>🧩 Tecnologías Utilizadas</h3>
+                <ul>
+                    <li><strong>Motor de Base de Datos:</strong> SQLite 3.x</li>
+                    <li><strong>Conexión:</strong> Node.js con la librería <code>sqlite3</code></li>
+                    <li><strong>Ubicación del archivo:</strong> <code>./db/packing_list.db</code></li>
+                    <li><strong>Codificación:</strong> UTF-8</li>
+                    <li><strong>Modelo de Datos:</strong> Normalizado hasta 3NF</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3 -->
+        <div class="section">
+            <div class="section-header">
+                <h2>🏗️ Arquitectura de la Base de Datos</h2>
+            </div>
+            <div class="section-content">
+                <p>El diseño de la base de datos se basa en la <strong>Tercera Forma Normal (3NF)</strong> para asegurar integridad, eficiencia y escalabilidad.</p>
+                <ul>
+                    <li><strong>Integridad referencial:</strong> uso de claves foráneas activas.</li>
+                    <li><strong>Eliminación de redundancia:</strong> datos organizados en entidades independientes y relacionadas.</li>
+                    <li><strong>Escalabilidad:</strong> índices optimizados para búsquedas frecuentes.</li>
+                    <li><strong>Auditoría:</strong> campos <code>created_at</code> y <code>updated_at</code>.</li>
+                    <li><strong>Seguridad:</strong> contraseñas cifradas con <code>bcrypt</code>.</li>
+                </ul>
+                <p>Para un análisis visual del modelo, consulte el documento <em>“Anexo F – Diagrama de Arquitectura 888Cargo”</em>.</p>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 4 -->
+        <div class="section">
+            <div class="section-header">
+                <h2>⚙️ Creación e Inicialización</h2>
+            </div>
+            <div class="section-content">
+                <p>El proceso de inicialización de la base de datos se ejecuta automáticamente al iniciar el servidor, mediante la función <code>initializeDatabase()</code> ubicada en <code>backend/db.js</code>. Esta función:</p>
+                <ul>
+                    <li>Conecta con el motor SQLite.</li>
+                    <li>Verifica la existencia del archivo <code>packing_list.db</code>.</li>
+                    <li>Crea las tablas e índices necesarios en caso de no existir.</li>
+                </ul>
+
+                <h3>Funciones principales de conexión</h3>
+                <div class="step"><div class="step-title"><span class="step-number">1</span> query()</div><p>Ejecuta consultas de lectura (<code>SELECT</code>) que devuelven múltiples registros.</p></div>
+                <div class="step"><div class="step-title"><span class="step-number">2</span> run()</div><p>Realiza operaciones de modificación (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>).</p></div>
+                <div class="step"><div class="step-title"><span class="step-number">3</span> get()</div><p>Obtiene un único registro, útil para validaciones específicas.</p></div>
+
+                <h3>Secuencia de Inicialización</h3>
+                <ol>
+                    <li>Conexión al motor SQLite.</li>
+                    <li>Verificación del esquema existente.</li>
+                    <li>Creación de tablas faltantes.</li>
+                    <li>Aplicación de índices.</li>
+                    <li>Confirmación de inicialización en logs del sistema.</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 5 -->
+        <div class="section">
+            <div class="section-header">
+                <h2>🧱 Estructura de Tablas</h2>
+            </div>
+            <div class="section-content">
+                <p>La base de datos está compuesta por siete tablas principales, normalizadas hasta la 3NF para asegurar integridad y rendimiento.</p>
+
+                <h3>1️⃣ CLIENTE</h3>
+                <ul>
+                    <li><strong>Propósito:</strong> Almacenar datos de clientes (contacto, ubicación, identificación).</li>
+                    <li><strong>Campos clave:</strong> <code>cliente_shippingMark</code>, <code>correo_cliente</code>, <code>telefono_cliente</code>.</li>
+                    <li>Incluye <code>created_at</code> y <code>updated_at</code> para auditoría.</li>
+                </ul>
+
+                <h3>2️⃣ USERS</h3>
+                <ul>
+                    <li>Gestión moderna de autenticación y autorización.</li>
+                    <li>Contraseñas cifradas con <code>bcrypt</code>.</li>
+                    <li>Campos únicos: <code>username</code> y <code>email</code>.</li>
+                </ul>
+
+                <h3>3️⃣ CARGA</h3>
+                <ul>
+                    <li>Registra cada envío asociado a un cliente (<code>id_cliente</code>).</li>
+                    <li>Formato de código: <code>PL-20251105-123-4567</code>.</li>
+                </ul>
+
+                <h3>4️⃣ ARTICULO_PACKING_LIST</h3>
+                <ul>
+                    <li>Detalle de productos por carga.</li>
+                    <li>Campos bilingües y soporte de imágenes (<code>BLOB</code>).</li>
+                    <li>Campos técnicos: <code>largo</code>, <code>ancho</code>, <code>alto</code>, <code>cbm</code>, <code>gw</code>.</li>
+                </ul>
+
+                <h3>5️⃣ CAJA</h3>
+                <ul>
+                    <li>Define la división física de artículos en cajas.</li>
+                    <li>Relación con <code>id_articulo</code>.</li>
+                </ul>
+
+                <h3>6️⃣ QR</h3>
+                <ul>
+                    <li>Gestiona los códigos QR asociados a cada caja o carga.</li>
+                    <li>Estados: Generado, Impreso, Escaneado.</li>
+                    <li>Campos de control: <code>fecha_generacion</code>, <code>fecha_escaneado</code>, <code>contador_escaneos</code>.</li>
+                </ul>
+
+                <h3>7️⃣ RECOVERY_TOKENS</h3>
+                <ul>
+                    <li>Administra tokens temporales para recuperación de contraseñas.</li>
+                    <li>Vigencia de 30 minutos.</li>
+                    <li>Eliminación automática y relación con <code>user_id</code>.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 6 -->
+        <div class="section">
+            <div class="section-header">
+                <h2>💾 Sentencias SQL del Sistema</h2>
+            </div>
+            <div class="section-content">
+                <p>El sistema 888Cargo implementa consultas estructuradas en SQLite que cubren lectura, escritura, actualización, eliminación y mantenimiento.</p>
+
+                <h3>🔍 Consultas (<code>SELECT</code>)</h3>
+                <ul>
+                    <li>Buscar usuario por teléfono.</li>
+                    <li>Verificar token activo.</li>
+                    <li>Listar tablas y contar registros.</li>
+                </ul>
+
+                <h3>➕ Inserciones (<code>INSERT</code>)</h3>
+                <ul>
+                    <li>Crear token de recuperación.</li>
+                    <li>Registrar usuario o carga.</li>
+                </ul>
+
+                <h3>✏️ Actualizaciones (<code>UPDATE</code>)</h3>
+                <ul>
+                    <li>Actualizar contraseña.</li>
+                    <li>Marcar token como usado.</li>
+                    <li>Invalidar tokens previos.</li>
+                </ul>
+
+                <h3>🗑️ Eliminaciones (<code>DELETE</code>)</h3>
+                <ul>
+                    <li>Eliminar tokens específicos o expirados.</li>
+                </ul>
+
+                <h3>⚙️ Mantenimiento</h3>
+                <ul>
+                    <li><code>PRAGMA integrity_check</code>: verificar integridad.</li>
+                    <li><code>VACUUM</code>: compactar base de datos.</li>
+                    <li><code>ANALYZE</code>: optimizar consultas.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 7 -->
+        <div class="section">
+            <div class="section-header">
+                <h2>🔗 Relaciones e Integridad</h2>
+            </div>
+            <div class="section-content">
+                <p>El modelo de datos está diseñado para mantener la <strong>integridad referencial</strong> y la coherencia entre entidades, mediante el uso de:</p>
+                <ul>
+                    <li>Claves primarias y foráneas correctamente definidas.</li>
+                    <li>Restricciones únicas en campos críticos.</li>
+                    <li>Índices en columnas de búsqueda frecuente.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
