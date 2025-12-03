@@ -19,6 +19,8 @@ import CustomAlert from './CustomAlert';
 import useCustomAlert from '../hooks/useCustomAlert';
 import { loginFormStyles } from '../styles/components/LoginForm.styles';
 import { IconSizes, IconColors } from '../constants/Icons';
+// === CAMBIO: importar router de expo-router ===
+import { useRouter } from 'expo-router';
 
 interface LoginFormProps {
     onLoginSuccess?: () => void;
@@ -42,6 +44,9 @@ export default function LoginForm({
     const colorScheme = useColorScheme();
     const themeStyles = createThemeStyles(colorScheme ?? 'light');
     const colors = Colors[colorScheme ?? 'light'];
+
+    // === CAMBIO: obtener router ===
+    const router = useRouter();
 
     const handleLogin = async () => {
         if (!email.trim() || !password.trim()) {
@@ -208,11 +213,12 @@ export default function LoginForm({
                         Registrarse
                     </Text>
                 </TouchableOpacity>
-
-                {/* Módulo de cotización */}
                 <TouchableOpacity
                     style={loginFormStyles.quotationModule}
-                    onPress={() => showInfo('Cotización', 'Módulo de cotización próximamente disponible')}
+                    onPress={() => {
+                        // Navega al Cotizador (archivo app/CotizadorScreen.tsx)
+                        router.push('/CotizadorScreen');
+                    }}
                     disabled={isLoading}
                     activeOpacity={0.7}
                 >

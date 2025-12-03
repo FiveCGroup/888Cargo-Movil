@@ -108,7 +108,7 @@ export const useCrearCarga = () => {
     let codigoGenerado = '';
     try {
       codigoGenerado = await generarNuevoCodigo();
-    } catch (error) {
+    } catch {
       console.warn('[useCrearCarga] Automatic code generation failed');
       codigoGenerado = generarCodigoUnico(); // Fallback
     }

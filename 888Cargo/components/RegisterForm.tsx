@@ -20,8 +20,9 @@ import { registerFormStyles } from '../styles/components/RegisterForm.styles';
 import { IconSizes, IconColors } from '../constants/Icons';
 
 interface RegisterFormProps {
-    onRegisterSuccess?: () => void;
+    onRegisterSuccess?: (userData: any) => void;
     onNavigateToLogin?: () => void;
+    loading?: boolean;
 }
 
 interface RegisterData {
@@ -36,7 +37,8 @@ interface RegisterData {
 
 export default function RegisterForm({
     onRegisterSuccess,
-    onNavigateToLogin
+    onNavigateToLogin,
+    loading: externalLoading
 }: RegisterFormProps) {
     const [formData, setFormData] = useState<RegisterData>({
         name: '',
@@ -54,6 +56,10 @@ export default function RegisterForm({
     const [formErrors, setFormErrors] = useState<Partial<RegisterData>>({});
     
     const { register, isLoading, error, clearError } = useAuth();
+    
+    // Combinar el loading externo con el interno
+    const isProcessing = isLoading || externalLoading;
+    
     const colorScheme = useColorScheme();
     const themeStyles = createThemeStyles(colorScheme ?? 'light');
     const colors = Colors[colorScheme ?? 'light'];
@@ -128,6 +134,7 @@ export default function RegisterForm({
 
         clearError();
         
+        // Transformar los datos al formato que espera el backend
         const registerData = {
             name: formData.name.trim(),
             lastname: formData.lastname.trim(),
@@ -148,7 +155,11 @@ export default function RegisterForm({
                         text: 'OK', 
                         onPress: () => {
                             if (onRegisterSuccess) {
-                                onRegisterSuccess();
+                                onRegisterSuccess({
+                                    email: formData.email.trim().toLowerCase(),
+                                    password: formData.password,
+                                    ...result.data
+                                });
                             } else if (onNavigateToLogin) {
                                 onNavigateToLogin();
                             }
@@ -200,7 +211,7 @@ export default function RegisterForm({
                         secureTextEntry={options.secureTextEntry}
                         autoCapitalize={options.autoCapitalize || 'sentences'}
                         autoCorrect={false}
-                        editable={!isLoading}
+                        editable={!isProcessing}
                         onFocus={() => setFocusedField(field)}
                         onBlur={() => setFocusedField(null)}
                     />
@@ -215,7 +226,7 @@ export default function RegisterForm({
                                     setShowConfirmPassword(!showConfirmPassword);
                                 }
                             }}
-                            disabled={isLoading}
+                            disabled={isProcessing}
                         >
                             <Text style={registerFormStyles.showPasswordText}>
                                 <MaterialIcons 
@@ -295,13 +306,13 @@ export default function RegisterForm({
                         <TouchableOpacity
                             style={[
                                 themeStyles.button,
-                                isLoading && themeStyles.buttonDisabled,
+                                isProcessing && themeStyles.buttonDisabled,
                                 registerFormStyles.registerButton
                             ]}
                             onPress={handleRegister}
-                            disabled={isLoading}
+                            disabled={isProcessing}
                         >
-                            {isLoading ? (
+                            {isProcessing ? (
                                 <ActivityIndicator color={colors.textLight} />
                             ) : (
                                 <Text style={themeStyles.buttonText}>Crear Cuenta</Text>
@@ -316,7 +327,7 @@ export default function RegisterForm({
                                 </Text>
                                 <TouchableOpacity
                                     onPress={handleLogin}
-                                    disabled={isLoading}
+                                    disabled={isProcessing}
                                 >
                                     <Text style={[registerFormStyles.loginLink, { color: colors.primary }]}>
                                         Iniciar Sesión

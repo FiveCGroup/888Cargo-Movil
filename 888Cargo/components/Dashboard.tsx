@@ -33,13 +33,15 @@ interface DashboardProps {
     onNavigateToQRScanner?: () => void;
     onNavigateToProfile?: () => void;
     onNavigateToDocumentacion?: () => void;
+    onNavigateToCotizaciones?: () => void; // ← AGREGADO
 }
 
 export default function Dashboard({
     onNavigateToCargas,
     onNavigateToQRScanner,
     onNavigateToProfile,
-    onNavigateToDocumentacion
+    onNavigateToDocumentacion,
+    onNavigateToCotizaciones // ← AGREGADO
 }: DashboardProps) {
     const { user } = useAuth();
     const [pressedCard, setPressedCard] = useState<number | null>(null);
@@ -49,6 +51,12 @@ export default function Dashboard({
     const colors = Colors[colorScheme ?? 'light'];
 
     const dashboardCards: DashboardCard[] = [
+        {
+            title: 'Cotizaciones',
+            iconName: 'calculate',
+            iconLibrary: 'MaterialIcons',
+            onPress: onNavigateToCotizaciones // ← AGREGADO PRIMERO
+        },
         {
             title: 'Gestión de Cargas',
             iconName: 'inventory-2',

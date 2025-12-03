@@ -18,7 +18,8 @@ export default function LoginScreen() {
     }
 
     const handleLoginSuccess = () => {
-        // La navegación se maneja automáticamente por el AuthGuard
+        console.log('✅ Login exitoso, redirigiendo al dashboard...');
+        // Redirigir al dashboard después del login exitoso
         router.replace('/(tabs)');
     };
 

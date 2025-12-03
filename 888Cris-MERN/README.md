@@ -2,7 +2,7 @@
 
 ## 📋 Descripción
 
-Sistema web completo MERN (SQLite, Express.js, React.js, Node.js) para la gestión de listas de empaque con generación automática de códigos QR, autenticación de usuarios y gestión segura de archivos.
+Sistema web completo (SQLite, Express.js, React.js, Node.js) para la gestión de listas de empaque con generación automática de códigos QR, autenticación de usuarios y gestión segura de archivos.
 
 ## ✨ Características principales
 

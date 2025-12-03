@@ -17,7 +17,7 @@ export const getApiUrl = () => {
       return process.env.EXPO_PUBLIC_API_URL_PROD || 'https://api.888cargo.com/api';
     case 'development':
     default:
-      return process.env.EXPO_PUBLIC_API_URL_LOCAL || 'http://192.168.58.111:4000/api';
+      return process.env.EXPO_PUBLIC_API_URL_LOCAL || 'http://172.22.192.1:4000/api';
   }
 };
 
@@ -28,15 +28,15 @@ export const API_CONFIG = {
   
   // Endpoints del backend (coinciden con las rutas web)
   ENDPOINTS: {
-    // Autenticación
+    // Autenticación - CORREGIDO para coincidir con el backend
     AUTH: {
-      LOGIN: '/login',
-      REGISTER: '/register', 
-      RESET_PASSWORD: '/reset-password',
-      VERIFY_TOKEN: '/verify-token',
-      REFRESH_TOKEN: '/refresh-token',
-      PROFILE: '/profile',
-      LOGOUT: '/logout'
+      LOGIN: '/auth/login',
+      REGISTER: '/auth/register', 
+      RESET_PASSWORD: '/auth/reset-password',
+      VERIFY_TOKEN: '/auth/verify-token',
+      REFRESH_TOKEN: '/auth/refresh-token',
+      PROFILE: '/auth/profile',
+      LOGOUT: '/auth/logout'
     },
     
     // Cargas

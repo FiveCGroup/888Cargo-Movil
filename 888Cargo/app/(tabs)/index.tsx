@@ -26,6 +26,10 @@ export default function HomeScreen() {
         router.push('/(tabs)/documentacion');
     };
 
+    const handleNavigateToCotizaciones = () => {
+        router.push('/(tabs)/cotizaciones');
+    };
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <Dashboard
@@ -33,6 +37,7 @@ export default function HomeScreen() {
                 onNavigateToQRScanner={handleNavigateToQRScanner}
                 onNavigateToProfile={handleNavigateToProfile}
                 onNavigateToDocumentacion={handleNavigateToDocumentacion}
+                onNavigateToCotizaciones={handleNavigateToCotizaciones}
             />
         </View>
     );

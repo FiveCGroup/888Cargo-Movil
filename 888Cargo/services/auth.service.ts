@@ -81,15 +81,15 @@ const AuthService = {
                 };
             }
             
-            const response = await fetch(`${API_CONFIG.BASE_URL}/login`, {
+            // CORREGIDO: Agregar /auth/ al endpoint
+            const response = await fetch(`${API_CONFIG.BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Agregar headers específicos para móvil
                     'X-Requested-With': 'XMLHttpRequest',
                     'User-Agent': 'Expo-Mobile-App/1.0.0'
                 },
-                credentials: 'include', // Para enviar/recibir cookies
+                credentials: 'include',
                 body: JSON.stringify({ email, password })
             });
 
@@ -115,7 +115,6 @@ const AuthService = {
                 country: userData.country
             };
 
-            // Generar un timestamp único para diferenciar sesiones móviles de web
             const mobileSessionToken = `mobile_${Date.now()}_${userData.id}`;
             
             setAuthState({ 
@@ -133,7 +132,6 @@ const AuthService = {
         } catch (error: any) {
             console.error('💥 [AuthService] Error en login:', error);
             
-            // Mejorar mensajes de error específicos
             let errorMessage = 'Error de conexión con el servidor';
             
             if (error?.message?.includes('Network request failed')) {
@@ -156,15 +154,15 @@ const AuthService = {
             console.log('📝 [AuthService] Iniciando registro real con backend...');
             console.log('📝 [AuthService] Datos:', { ...userData, password: '***' });
             
-            const response = await fetch(`${API_CONFIG.BASE_URL}/register`, {
+            // CORREGIDO: Agregar /auth/ al endpoint
+            const response = await fetch(`${API_CONFIG.BASE_URL}/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Agregar headers específicos para móvil
                     'X-Requested-With': 'XMLHttpRequest',
                     'User-Agent': 'Expo-Mobile-App/1.0.0'
                 },
-                credentials: 'include', // Para enviar/recibir cookies
+                credentials: 'include',
                 body: JSON.stringify(userData),
             });
 
@@ -190,7 +188,6 @@ const AuthService = {
                 country: userData.country
             };
 
-            // Generar token único para sesión móvil
             const mobileSessionToken = `mobile_${Date.now()}_${newUserData.id}`;
             
             setAuthState({ 
@@ -218,19 +215,18 @@ const AuthService = {
         try {
             console.log('🚪 [AuthService] Cerrando sesión móvil...');
             
-            // Intentar cerrar sesión en el backend pero no fallar si hay error
             try {
-                await fetch(`${API_CONFIG.BASE_URL}/logout`, {
+                // CORREGIDO: Agregar /auth/ al endpoint
+                await fetch(`${API_CONFIG.BASE_URL}/auth/logout`, {
                     method: 'POST',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'User-Agent': 'Expo-Mobile-App/1.0.0'
                     },
-                    credentials: 'include', // Para enviar cookies
+                    credentials: 'include',
                 });
             } catch (backendError) {
                 console.warn('[AuthService] Backend logout notification failed:', backendError);
-                // Continuar con logout local
             }
 
             setAuthState({ 
@@ -245,7 +241,6 @@ const AuthService = {
             return { success: true };
         } catch (error) {
             console.error('💥 [AuthService] Error en logout:', error);
-            // Aún así limpiar el estado local
             setAuthState({ 
                 isAuthenticated: false, 
                 token: null, 

@@ -31,7 +31,9 @@ export const environments = {
                 'http://127.0.0.1:5174',
                 'http://192.168.58.103:4000',
                 'http://10.0.2.2:4000',
-                'exp://192.168.58.106:8081'
+                'exp://192.168.58.106:8081',
+                'http://172.22.192.1:8081',  // Tu IP local - Expo
+                'exp://172.22.192.1:8081'
             ],
             credentials: true,
             optionsSuccessStatus: 200

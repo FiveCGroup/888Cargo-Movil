@@ -12,13 +12,14 @@ const startServer = async () => {
     console.log('🔄 Inicializando base de datos...');
     await initializeDatabase();
     console.log('✅ Base de datos inicializada');
-    
-    const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`[Server] 888Cargo Server running on http://0.0.0.0:${PORT}`);
+
+    const server = app.listen(PORT, '192.168.18.21', () => {
+      console.log(`[Server] 888Cargo Server running on http://192.168.18.21:${PORT}`);
       console.log(`🌐 Accesible desde:`);
-      console.log(`   • Localhost: http://127.0.0.1:${PORT}`);
+      console.log(`   • Localhost: http://192.168.18.21:${PORT}`);
       console.log(`   • Android Emulator: http://10.0.2.2:${PORT}`);
-      console.log(`   • Red local: http://[tu-ip-local]:${PORT}`);
+      console.log(`   • Red local (tu IP): http://192.168.18.21:${PORT}`);
+      console.log(`   • Expo mobile: exp://192.168.18.21:8081`);
     });
 
     // Manejar errores del servidor

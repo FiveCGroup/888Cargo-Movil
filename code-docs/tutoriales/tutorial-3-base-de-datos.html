@@ -346,6 +346,9 @@ body {
             <div class="section-header">
                 <h2>🏗️ Arquitectura de la Base de Datos</h2>
             </div>
+            <div class="image-caption">
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.002.jpeg" alt="">
+            </div>
             <div class="section-content">
                 <p>El diseño de la base de datos se basa en la <strong>Tercera Forma Normal (3NF)</strong> para asegurar integridad, eficiencia y escalabilidad.</p>
                 <ul>
@@ -355,7 +358,6 @@ body {
                     <li><strong>Auditoría:</strong> campos <code>created_at</code> y <code>updated_at</code>.</li>
                     <li><strong>Seguridad:</strong> contraseñas cifradas con <code>bcrypt</code>.</li>
                 </ul>
-                <p>Para un análisis visual del modelo, consulte el documento <em>“Anexo F – Diagrama de Arquitectura 888Cargo”</em>.</p>
             </div>
         </div>
 
@@ -365,7 +367,10 @@ body {
                 <h2>⚙️ Creación e Inicialización</h2>
             </div>
             <div class="section-content">
-                <p>El proceso de inicialización de la base de datos se ejecuta automáticamente al iniciar el servidor, mediante la función <code>initializeDatabase()</code> ubicada en <code>backend/db.js</code>. Esta función:</p>
+                <p>El proceso de inicialización de la base de datos se ejecuta automáticamente al iniciar el servidor, mediante la función <code>initializeDatabase()</code> ubicada en <code>backend/db.js</code>.</p>
+
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.003.png" alt="">
+                <p>Esta función:</p>
                 <ul>
                     <li>Conecta con el motor SQLite.</li>
                     <li>Verifica la existencia del archivo <code>packing_list.db</code>.</li>
@@ -374,8 +379,12 @@ body {
 
                 <h3>Funciones principales de conexión</h3>
                 <div class="step"><div class="step-title"><span class="step-number">1</span> query()</div><p>Ejecuta consultas de lectura (<code>SELECT</code>) que devuelven múltiples registros.</p></div>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.005.png" alt="">
                 <div class="step"><div class="step-title"><span class="step-number">2</span> run()</div><p>Realiza operaciones de modificación (<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>).</p></div>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.006.png" alt="">
+
                 <div class="step"><div class="step-title"><span class="step-number">3</span> get()</div><p>Obtiene un único registro, útil para validaciones específicas.</p></div>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.007.png" alt="">
 
                 <h3>Secuencia de Inicialización</h3>
                 <ol>
@@ -385,6 +394,7 @@ body {
                     <li>Aplicación de índices.</li>
                     <li>Confirmación de inicialización en logs del sistema.</li>
                 </ol>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.004.png" alt="">
             </div>
         </div>
 
@@ -397,6 +407,7 @@ body {
                 <p>La base de datos está compuesta por siete tablas principales, normalizadas hasta la 3NF para asegurar integridad y rendimiento.</p>
 
                 <h3>1️⃣ CLIENTE</h3>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.008.png" alt="">
                 <ul>
                     <li><strong>Propósito:</strong> Almacenar datos de clientes (contacto, ubicación, identificación).</li>
                     <li><strong>Campos clave:</strong> <code>cliente_shippingMark</code>, <code>correo_cliente</code>, <code>telefono_cliente</code>.</li>
@@ -404,6 +415,7 @@ body {
                 </ul>
 
                 <h3>2️⃣ USERS</h3>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.009.png" alt="">
                 <ul>
                     <li>Gestión moderna de autenticación y autorización.</li>
                     <li>Contraseñas cifradas con <code>bcrypt</code>.</li>
@@ -411,12 +423,14 @@ body {
                 </ul>
 
                 <h3>3️⃣ CARGA</h3>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.010.png" alt="">
                 <ul>
                     <li>Registra cada envío asociado a un cliente (<code>id_cliente</code>).</li>
                     <li>Formato de código: <code>PL-20251105-123-4567</code>.</li>
                 </ul>
 
                 <h3>4️⃣ ARTICULO_PACKING_LIST</h3>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.011.png" alt="">
                 <ul>
                     <li>Detalle de productos por carga.</li>
                     <li>Campos bilingües y soporte de imágenes (<code>BLOB</code>).</li>
@@ -424,12 +438,14 @@ body {
                 </ul>
 
                 <h3>5️⃣ CAJA</h3>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.012.png" alt="">
                 <ul>
                     <li>Define la división física de artículos en cajas.</li>
                     <li>Relación con <code>id_articulo</code>.</li>
                 </ul>
 
                 <h3>6️⃣ QR</h3>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.013.png" alt="">
                 <ul>
                     <li>Gestiona los códigos QR asociados a cada caja o carga.</li>
                     <li>Estados: Generado, Impreso, Escaneado.</li>
@@ -437,6 +453,7 @@ body {
                 </ul>
 
                 <h3>7️⃣ RECOVERY_TOKENS</h3>
+                <img src="./images/tutorial-3-base-de-datos/Aspose.Words.16f925f6-8d20-4c5c-809d-c20ac0cf7048.014.png" alt="">      
                 <ul>
                     <li>Administra tokens temporales para recuperación de contraseñas.</li>
                     <li>Vigencia de 30 minutos.</li>

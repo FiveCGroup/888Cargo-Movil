@@ -18,6 +18,7 @@ import recuperacionRoutes from "./routes/recuperacion.routes.js";
 import cargaRoutes from "./routes/carga.routes.js";
 import qrRoutes from "./routes/qr.routes.js";
 import debugRoutes from "./routes/debug.routes.js";
+import cotizacionRoutes from './routes/cotizacion.routes.js';
 
 // Importar tareas de limpieza
 import { CleanupTasks } from "./tasks/cleanup.tasks.js";
@@ -32,40 +33,46 @@ const app = express();
 // Configurar middleware básico
 app.use(cors({
     origin: function (origin, callback) {
-        // Permitir requests sin origin (como mobile apps, Postman, etc.)
-        if (!origin) return callback(null, true);
-        
-        // Lista de orígenes permitidos
+        // 1. AQUÍ ESTÁ EL FIX CLAVE: permite explícitamente cuando NO hay origin
+        // Esto cubre Expo Go (LAN), Postman, apps móviles nativas, etc.
+        if (!origin || origin === 'null') {
+            return callback(null, true);
+        }
+
+        // Lista de orígenes permitidos (tu lista original)
         const allowedOrigins = [
-            "http://localhost:5173", 
+            "http://localhost:5173",
             "http://localhost:5174",
-            "http://127.0.0.1:5173",
-            "http://127.0.0.1:5174",
-            "http://10.0.2.2:4000",           // Android Emulator acceso
-            "http://localhost:8081",          // Expo Dev Tools
-            "http://127.0.0.1:8081",          // Expo Dev Tools alternativo
+            "http://192.168.18.21:5173",
+            "http://192.168.18.21:5174",
+            "http://10.0.2.2:4000",
+            "http://localhost:8081",
+            "http://192.168.18.21:8081",
         ];
-        
-        // En desarrollo, permitir cualquier IP local (192.168.x.x, 10.x.x.x)
+
+        // En desarrollo: permitir cualquier IP local + exp://
         const isDevelopment = process.env.NODE_ENV !== 'production';
         if (isDevelopment) {
-            const localIpPattern = /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?$/;
-            const expPattern = /^exp:\/\//; // Protocolo Expo
-            
+            const localIpPattern = /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?$/;
+            const expPattern = /^exp:\/\//;
+
             if (localIpPattern.test(origin) || expPattern.test(origin)) {
                 return callback(null, true);
             }
         }
-        
-        // Verificar si el origen está en la lista permitida
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            console.log('⚠️ [CORS] Origen no permitido:', origin);
-            callback(new Error('No permitido por CORS'));
+
+        // Origen explícitamente permitido
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
         }
+
+        // Si llega aquí → origen no permitido
+        console.log('CORS Origen bloqueado:', origin);
+        return callback(new Error('No permitido por CORS'));
     },
-    credentials: true  
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(morgan('dev'));
@@ -196,6 +203,21 @@ app.use('/api/qr', qrRoutes);
 // Montar ruta de depuración para logs del frontend
 app.use('/api/debug', debugRoutes);
 
+// Rutas de cotización
+app.use('/api/cotizaciones', cotizacionRoutes);
+
+// Rutas de autenticación
+app.use('/api/auth', authRoutes);
+
+// Rutas de tareas
+app.use('/api/tasks', taskRoutes);
+
+// Rutas de recuperación
+app.use('/api/recuperacion', recuperacionRoutes);
+
+// Rutas de carga
+app.use('/api/carga', cargaRoutes);
+
 // Ruta de prueba directa para QR
 app.get('/api/qr-test-direct', (req, res) => {
     res.json({ 
@@ -203,15 +225,6 @@ app.get('/api/qr-test-direct', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
-
-// Montar el resto de rutas
-app.use('/api', authRoutes);
-
-app.use('/api', taskRoutes);
-
-app.use('/api/recuperacion', recuperacionRoutes);
-
-app.use('/api/carga', cargaRoutes);
 
 // Iniciar tareas de limpieza programadas
 CleanupTasks.startAll();

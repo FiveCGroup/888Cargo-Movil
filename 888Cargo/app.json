@@ -3,9 +3,10 @@
     "name": "888Cargo",
     "slug": "888Cargo",
     "version": "1.0.0",
+    "sdkVersion": "54.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "ochocientosocho-cargo",
+    "scheme": "888cargo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -14,9 +15,15 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "cleartextTrafficPermitted": true
       },
-      "edgeToEdgeEnabled": true
+      "permissions": [
+        "INTERNET"
+      ],
+      "package": "com.tuempresa.ochocientosocho",
+      "useNextNotificationsApi": true,
+      "cleartextTrafficPermitted": true
     },
     "web": {
       "bundler": "metro",
@@ -34,7 +41,17 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "networkSecurityConfig": true
+          }
+        }
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
