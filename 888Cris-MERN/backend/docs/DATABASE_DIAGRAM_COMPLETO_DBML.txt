@@ -1,0 +1,803 @@
+// ============================================================================
+// 888 CARGO - ESQUEMA COMPLETO DATABASE DIAGRAM (DBML)
+// ============================================================================
+// Usar en: https://dbdiagram.io/d
+// Versión: 2.0 Completa (48 tablas)
+// Fecha: 5 de diciembre de 2025
+// ============================================================================
+
+// ============================================================================
+// MÓDULO 1: USUARIOS Y AUTENTICACIÓN
+// ============================================================================
+
+Table usuarios {
+  id integer [pk, increment]
+  nombre varchar(100) [not null]
+  email varchar(150) [unique, not null]
+  password varchar(255) [not null]
+  telefono varchar(20)
+  codigo_pais varchar(5) [default: '+57']
+  rol varchar(30) [default: 'cliente']
+  estado varchar(20) [default: 'activo']
+  email_verificado boolean [default: 0]
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+  ultimo_acceso datetime
+  avatar_url varchar(255)
+  direccion text
+  ciudad varchar(100)
+  pais varchar(100) [default: 'Colombia']
+  codigo_postal varchar(20)
+  empresa varchar(150)
+  nit_ruc varchar(50)
+  tipo_empresa varchar(50)
+}
+
+Table tokens_recuperacion {
+  id integer [pk, increment]
+  usuario_id integer [not null, ref: > usuarios.id]
+  token varchar(255) [unique, not null]
+  metodo varchar(20) [default: 'email']
+  usado boolean [default: 0]
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_expiracion datetime [not null]
+  fecha_uso datetime
+  ip_solicitud varchar(45)
+}
+
+Table sesiones {
+  id integer [pk, increment]
+  usuario_id integer [not null, ref: > usuarios.id]
+  token varchar(500) [not null]
+  dispositivo varchar(100)
+  navegador varchar(100)
+  sistema_operativo varchar(50)
+  ip_address varchar(45)
+  fecha_inicio datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_ultima_actividad datetime [default: `CURRENT_TIMESTAMP`]
+  activa boolean [default: 1]
+}
+
+Table permisos {
+  id integer [pk, increment]
+  nombre varchar(100) [unique, not null]
+  modulo varchar(50) [not null]
+  descripcion text
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table roles_permisos {
+  usuario_id integer [pk, ref: > usuarios.id]
+  permiso_id integer [pk, ref: > permisos.id]
+  otorgado_por integer [ref: > usuarios.id]
+  fecha_otorgamiento datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+// ============================================================================
+// MÓDULO 2: AGENTES Y PROVEEDORES
+// ============================================================================
+
+Table agentes_aduaneros {
+  id integer [pk, increment]
+  nombre varchar(150) [not null]
+  nit_documento varchar(50) [unique, not null]
+  pais varchar(100) [not null]
+  ciudad varchar(100)
+  direccion text
+  telefono varchar(20)
+  email varchar(150)
+  sitio_web varchar(255)
+  especialidad varchar(100)
+  calificacion decimal(3,2)
+  estado varchar(20) [default: 'activo']
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+  observaciones text
+}
+
+Table proveedores {
+  id integer [pk, increment]
+  nombre_comercial varchar(150) [not null]
+  razon_social varchar(200)
+  nit_documento varchar(50) [unique, not null]
+  pais varchar(100) [not null]
+  ciudad varchar(100)
+  direccion text
+  codigo_postal varchar(20)
+  telefono_principal varchar(20)
+  email_principal varchar(150)
+  sitio_web varchar(255)
+  categoria varchar(100)
+  calificacion decimal(3,2)
+  estado varchar(20) [default: 'activo']
+  terminos_pago varchar(100)
+  moneda_preferida varchar(10) [default: 'USD']
+  cuenta_bancaria text
+  notas_internas text
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table contactos_proveedor {
+  id integer [pk, increment]
+  proveedor_id integer [not null, ref: > proveedores.id]
+  nombre varchar(100) [not null]
+  cargo varchar(100)
+  telefono varchar(20)
+  email varchar(150)
+  es_principal boolean [default: 0]
+  notas text
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+// ============================================================================
+// MÓDULO 3: CONSOLIDACIONES Y CARGAS
+// ============================================================================
+
+Table consolidaciones {
+  id integer [pk, increment]
+  codigo_consolidacion varchar(50) [unique, not null]
+  tipo_transporte varchar(20) [default: 'maritimo']
+  naviera_aerolinea varchar(150)
+  numero_contenedor varchar(50)
+  tipo_contenedor varchar(30)
+  origen_puerto varchar(150) [not null]
+  origen_pais varchar(100) [not null]
+  destino_puerto varchar(150) [not null]
+  destino_pais varchar(100) [not null]
+  fecha_embarque date
+  fecha_salida date
+  fecha_estimada_llegada date
+  fecha_llegada_real date
+  bl_guia_aerea varchar(100)
+  peso_total_kg decimal(10,2) [default: 0]
+  volumen_total_cbm decimal(10,3) [default: 0]
+  cantidad_total_cajas integer [default: 0]
+  capacidad_maxima_cbm decimal(10,3)
+  ocupacion_porcentaje decimal(5,2)
+  estado varchar(30) [default: 'planificada']
+  costo_flete decimal(12,2)
+  costo_adicional decimal(12,2)
+  agente_aduanero_id integer [ref: > agentes_aduaneros.id]
+  observaciones text
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table cargas {
+  id integer [pk, increment]
+  usuario_id integer [not null, ref: > usuarios.id]
+  consolidacion_id integer [ref: > consolidaciones.id]
+  codigo_carga varchar(50) [unique, not null]
+  tipo_envio varchar(20) [default: 'maritimo']
+  estado varchar(50) [default: 'pendiente']
+  origen_ciudad varchar(100) [not null]
+  origen_pais varchar(100) [not null]
+  destino_ciudad varchar(100) [not null]
+  destino_pais varchar(100) [not null]
+  proveedor_id integer [ref: > proveedores.id]
+  peso_total decimal(10,2) [default: 0]
+  volumen_total_cbm decimal(10,3) [default: 0]
+  peso_volumetrico decimal(10,2) [default: 0]
+  cantidad_cajas integer [default: 0]
+  valor_declarado decimal(12,2) [default: 0]
+  valor_seguro decimal(12,2)
+  descripcion_general text
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_estimada_llegada datetime
+  precio_total decimal(12,2) [default: 0]
+  moneda varchar(10) [default: 'USD']
+}
+
+Table cajas {
+  id integer [pk, increment]
+  carga_id integer [not null, ref: > cargas.id]
+  numero_caja integer [not null]
+  largo decimal(8,2)
+  ancho decimal(8,2)
+  alto decimal(8,2)
+  peso decimal(8,2)
+  cbm decimal(10,3)
+  descripcion text
+  valor_contenido decimal(10,2)
+  qr_generado boolean [default: 0]
+  qr_url varchar(255)
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table articulos_caja {
+  id integer [pk, increment]
+  caja_id integer [not null, ref: > cajas.id]
+  nombre varchar(200) [not null]
+  descripcion text
+  cantidad integer [not null]
+  unidad varchar(20)
+  precio_unitario decimal(10,2)
+  precio_total decimal(12,2)
+  hs_code varchar(20)
+  pais_origen varchar(100)
+  material varchar(100)
+  peso_unitario decimal(8,3)
+  imagen_url varchar(255)
+}
+
+// ============================================================================
+// MÓDULO 4: TRACKING Y TRAZABILIDAD
+// ============================================================================
+
+Table estados_carga {
+  id integer [pk, increment]
+  carga_id integer [not null, ref: > cargas.id]
+  estado varchar(50) [not null]
+  ubicacion varchar(200)
+  descripcion text
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+  registrado_por integer [ref: > usuarios.id]
+  latitud decimal(10,8)
+  longitud decimal(11,8)
+}
+
+Table eventos_tracking {
+  id integer [pk, increment]
+  carga_id integer [not null, ref: > cargas.id]
+  tipo_evento varchar(50) [not null]
+  descripcion text [not null]
+  ubicacion varchar(200)
+  fecha_evento datetime [default: `CURRENT_TIMESTAMP`]
+  origen_evento varchar(50)
+  metadata_json text
+  usuario_id integer [ref: > usuarios.id]
+}
+
+Table ubicaciones_tiempo_real {
+  id integer [pk, increment]
+  carga_id integer [ref: > cargas.id]
+  vehiculo_id integer [ref: > vehiculos.id]
+  latitud decimal(10,8) [not null]
+  longitud decimal(11,8) [not null]
+  precision_metros decimal(8,2)
+  velocidad_kmh decimal(6,2)
+  rumbo_grados decimal(5,2)
+  fecha_ubicacion datetime [default: `CURRENT_TIMESTAMP`]
+  origen_datos varchar(50)
+  bateria_porcentaje integer
+}
+
+Table alertas_tracking {
+  id integer [pk, increment]
+  carga_id integer [ref: > cargas.id]
+  tipo_alerta varchar(50) [not null]
+  severidad varchar(20) [default: 'info']
+  titulo varchar(200) [not null]
+  descripcion text [not null]
+  fecha_generacion datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_atendida datetime
+  atendida_por integer [ref: > usuarios.id]
+  estado varchar(20) [default: 'activa']
+  acciones_tomadas text
+}
+
+// ============================================================================
+// MÓDULO 5: CÓDIGOS QR Y ETIQUETAS
+// ============================================================================
+
+Table codigos_qr {
+  id integer [pk, increment]
+  caja_id integer [not null, ref: > cajas.id]
+  codigo_qr varchar(100) [unique, not null]
+  tipo_qr varchar(30) [default: 'caja']
+  formato varchar(20) [default: 'QR_CODE']
+  datos_qr text [not null]
+  url_imagen varchar(500)
+  tamaño_bytes integer
+  fecha_generacion datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_impresion datetime
+  generado_por integer [ref: > usuarios.id]
+  version_qr varchar(10)
+}
+
+Table escaneos_qr {
+  id integer [pk, increment]
+  codigo_qr_id integer [not null, ref: > codigos_qr.id]
+  fecha_escaneo datetime [default: `CURRENT_TIMESTAMP`]
+  escaneado_por integer [ref: > usuarios.id]
+  ubicacion_escaneo varchar(200)
+  latitud decimal(10,8)
+  longitud decimal(11,8)
+  dispositivo varchar(100)
+  navegador varchar(100)
+  ip_address varchar(45)
+  resultado varchar(20) [default: 'exitoso']
+  notas text
+}
+
+Table etiquetas {
+  id integer [pk, increment]
+  caja_id integer [not null, ref: > cajas.id]
+  tipo_etiqueta varchar(50) [not null]
+  contenido_texto text
+  formato varchar(20)
+  tamaño varchar(20)
+  url_archivo varchar(500)
+  fecha_generacion datetime [default: `CURRENT_TIMESTAMP`]
+  generado_por integer [ref: > usuarios.id]
+}
+
+// ============================================================================
+// MÓDULO 6: DOCUMENTOS Y CERTIFICADOS
+// ============================================================================
+
+Table documentos {
+  id integer [pk, increment]
+  carga_id integer [not null, ref: > cargas.id]
+  tipo_documento varchar(50) [not null]
+  nombre_archivo varchar(255) [not null]
+  archivo_url varchar(500)
+  tamaño_kb integer
+  hash_archivo varchar(64)
+  version integer [default: 1]
+  documento_anterior_id integer [ref: > documentos.id]
+  estado varchar(30) [default: 'pendiente']
+  fecha_subida datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_aprobacion datetime
+  subido_por integer [ref: > usuarios.id]
+  aprobado_por integer [ref: > usuarios.id]
+  observaciones text
+}
+
+Table certificados {
+  id integer [pk, increment]
+  carga_id integer [ref: > cargas.id]
+  proveedor_id integer [ref: > proveedores.id]
+  tipo_certificado varchar(100) [not null]
+  numero_certificado varchar(100) [unique]
+  entidad_emisora varchar(150) [not null]
+  pais_emision varchar(100)
+  fecha_emision date [not null]
+  fecha_vencimiento date
+  archivo_url varchar(500)
+  verificado boolean [default: 0]
+  fecha_verificacion datetime
+  verificado_por integer [ref: > usuarios.id]
+  estado varchar(20) [default: 'vigente']
+  observaciones text
+}
+
+Table traducciones_documentos {
+  id integer [pk, increment]
+  documento_id integer [not null, ref: > documentos.id]
+  idioma_origen varchar(10) [not null]
+  idioma_destino varchar(10) [not null]
+  archivo_traduccion_url varchar(500)
+  traductor varchar(150)
+  certificada boolean [default: 0]
+  fecha_traduccion date
+  costo_traduccion decimal(10,2)
+  estado varchar(20) [default: 'pendiente']
+  observaciones text
+}
+
+// ============================================================================
+// MÓDULO 7: FACTURACIÓN Y PAGOS
+// ============================================================================
+
+Table facturas {
+  id integer [pk, increment]
+  carga_id integer [ref: > cargas.id]
+  usuario_id integer [not null, ref: > usuarios.id]
+  numero_factura varchar(50) [unique, not null]
+  tipo_factura varchar(30) [default: 'venta']
+  fecha_emision date [not null]
+  fecha_vencimiento date
+  subtotal decimal(12,2) [not null]
+  impuestos decimal(12,2) [default: 0]
+  descuentos decimal(12,2) [default: 0]
+  total decimal(12,2) [not null]
+  moneda varchar(10) [default: 'USD']
+  estado varchar(30) [default: 'pendiente']
+  metodo_pago varchar(50)
+  terminos_pago varchar(100)
+  notas text
+  archivo_pdf_url varchar(500)
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table items_factura {
+  id integer [pk, increment]
+  factura_id integer [not null, ref: > facturas.id]
+  concepto varchar(200) [not null]
+  descripcion text
+  cantidad decimal(10,2) [not null]
+  unidad varchar(20)
+  precio_unitario decimal(10,2) [not null]
+  subtotal decimal(12,2) [not null]
+  impuesto_porcentaje decimal(5,2)
+  impuesto_monto decimal(10,2)
+  total decimal(12,2) [not null]
+}
+
+Table pagos {
+  id integer [pk, increment]
+  factura_id integer [not null, ref: > facturas.id]
+  monto decimal(12,2) [not null]
+  moneda varchar(10) [default: 'USD']
+  metodo_pago varchar(50) [not null]
+  referencia_pago varchar(100)
+  fecha_pago datetime [not null]
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+  registrado_por integer [ref: > usuarios.id]
+  comprobante_url varchar(500)
+  estado varchar(20) [default: 'confirmado']
+  notas text
+}
+
+Table notas_credito {
+  id integer [pk, increment]
+  factura_id integer [not null, ref: > facturas.id]
+  numero_nota varchar(50) [unique, not null]
+  fecha_emision date [not null]
+  motivo varchar(200) [not null]
+  descripcion text
+  monto decimal(12,2) [not null]
+  moneda varchar(10) [default: 'USD']
+  estado varchar(20) [default: 'activa']
+  archivo_pdf_url varchar(500)
+  generada_por integer [ref: > usuarios.id]
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+// ============================================================================
+// MÓDULO 8: COTIZACIONES Y TARIFAS
+// ============================================================================
+
+Table cotizaciones {
+  id integer [pk, increment]
+  usuario_id integer [not null, ref: > usuarios.id]
+  numero_cotizacion varchar(50) [unique, not null]
+  tipo_envio varchar(20) [default: 'maritimo']
+  origen_ciudad varchar(100) [not null]
+  origen_pais varchar(100) [not null]
+  destino_ciudad varchar(100) [not null]
+  destino_pais varchar(100) [not null]
+  peso_estimado decimal(10,2)
+  volumen_estimado decimal(10,3)
+  cantidad_cajas integer
+  descripcion_carga text
+  precio_total decimal(12,2) [default: 0]
+  moneda varchar(10) [default: 'USD']
+  precio_por_kg decimal(10,2)
+  precio_por_cbm decimal(10,2)
+  incluye_seguro boolean [default: 0]
+  incluye_aduanas boolean [default: 0]
+  estado varchar(30) [default: 'borrador']
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_validez datetime
+  fecha_aceptacion datetime
+  aceptada_por integer [ref: > usuarios.id]
+  observaciones text
+  creado_por integer [ref: > usuarios.id]
+}
+
+Table historial_cotizaciones {
+  id integer [pk, increment]
+  cotizacion_id integer [not null, ref: > cotizaciones.id]
+  campo_modificado varchar(100) [not null]
+  valor_anterior text
+  valor_nuevo text
+  fecha_modificacion datetime [default: `CURRENT_TIMESTAMP`]
+  modificado_por integer [ref: > usuarios.id]
+}
+
+Table tarifas {
+  id integer [pk, increment]
+  tipo_transporte varchar(20) [not null]
+  origen_pais varchar(100) [not null]
+  destino_pais varchar(100) [not null]
+  origen_ciudad varchar(100)
+  destino_ciudad varchar(100)
+  precio_por_kg decimal(10,2)
+  precio_por_cbm decimal(10,2)
+  precio_minimo decimal(10,2)
+  moneda varchar(10) [default: 'USD']
+  fecha_vigencia_inicio date [not null]
+  fecha_vigencia_fin date
+  activa boolean [default: 1]
+  observaciones text
+  creado_por integer [ref: > usuarios.id]
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+// ============================================================================
+// MÓDULO 9: VEHÍCULOS Y CONDUCTORES
+// ============================================================================
+
+Table vehiculos {
+  id integer [pk, increment]
+  placa varchar(20) [unique, not null]
+  tipo_vehiculo varchar(50) [not null]
+  marca varchar(50)
+  modelo varchar(50)
+  año integer
+  capacidad_carga_kg decimal(10,2)
+  capacidad_volumen_cbm decimal(10,3)
+  estado varchar(20) [default: 'disponible']
+  kilometraje integer
+  fecha_ultimo_mantenimiento date
+  fecha_proximo_mantenimiento date
+  poliza_seguro varchar(100)
+  fecha_vencimiento_seguro date
+  propietario varchar(150)
+  observaciones text
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table conductores {
+  id integer [pk, increment]
+  nombre varchar(100) [not null]
+  apellido varchar(100) [not null]
+  documento_identidad varchar(50) [unique, not null]
+  tipo_documento varchar(30)
+  licencia_conducir varchar(50) [unique, not null]
+  categoria_licencia varchar(10)
+  fecha_vencimiento_licencia date
+  telefono varchar(20)
+  email varchar(150)
+  direccion text
+  ciudad varchar(100)
+  fecha_nacimiento date
+  estado varchar(20) [default: 'activo']
+  calificacion decimal(3,2)
+  observaciones text
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table asignaciones_ruta {
+  id integer [pk, increment]
+  carga_id integer [not null, ref: > cargas.id]
+  vehiculo_id integer [not null, ref: > vehiculos.id]
+  conductor_id integer [not null, ref: > conductores.id]
+  origen varchar(200) [not null]
+  destino varchar(200) [not null]
+  fecha_inicio date [not null]
+  fecha_estimada_llegada date
+  fecha_llegada_real date
+  kilometros_recorridos decimal(8,2)
+  estado varchar(30) [default: 'asignada']
+  costo_transporte decimal(10,2)
+  observaciones text
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table mantenimientos_vehiculo {
+  id integer [pk, increment]
+  vehiculo_id integer [not null, ref: > vehiculos.id]
+  tipo_mantenimiento varchar(50) [not null]
+  descripcion text [not null]
+  fecha_mantenimiento date [not null]
+  kilometraje integer
+  costo decimal(10,2)
+  taller varchar(150)
+  proximo_mantenimiento_km integer
+  proximo_mantenimiento_fecha date
+  observaciones text
+  registrado_por integer [ref: > usuarios.id]
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+// ============================================================================
+// MÓDULO 10: BODEGAS Y ALMACENAMIENTO
+// ============================================================================
+
+Table bodegas {
+  id integer [pk, increment]
+  codigo_bodega varchar(50) [unique, not null]
+  nombre varchar(150) [not null]
+  pais varchar(100) [not null]
+  ciudad varchar(100) [not null]
+  direccion text [not null]
+  codigo_postal varchar(20)
+  capacidad_maxima_cbm decimal(10,3)
+  ocupacion_actual_cbm decimal(10,3) [default: 0]
+  porcentaje_ocupacion decimal(5,2)
+  tipo_bodega varchar(50)
+  climatizada boolean [default: 0]
+  temperatura_min decimal(5,2)
+  temperatura_max decimal(5,2)
+  estado varchar(20) [default: 'activa']
+  responsable varchar(100)
+  telefono varchar(20)
+  observaciones text
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table inventario_bodega {
+  id integer [pk, increment]
+  bodega_id integer [not null, ref: > bodegas.id]
+  carga_id integer [ref: > cargas.id]
+  caja_id integer [ref: > cajas.id]
+  ubicacion_estanteria varchar(50)
+  fecha_ingreso datetime [not null]
+  fecha_salida datetime
+  cantidad integer [default: 1]
+  peso_kg decimal(10,2)
+  volumen_cbm decimal(10,3)
+  estado varchar(30) [default: 'almacenado']
+  observaciones text
+  registrado_por integer [ref: > usuarios.id]
+}
+
+Table transferencias_bodega {
+  id integer [pk, increment]
+  bodega_origen_id integer [not null, ref: > bodegas.id]
+  bodega_destino_id integer [not null, ref: > bodegas.id]
+  carga_id integer [ref: > cargas.id]
+  fecha_transferencia date [not null]
+  fecha_salida_origen datetime
+  fecha_llegada_destino datetime
+  cantidad_cajas integer
+  peso_total_kg decimal(10,2)
+  volumen_total_cbm decimal(10,3)
+  vehiculo_transporte varchar(100)
+  conductor varchar(100)
+  estado varchar(30) [default: 'pendiente']
+  observaciones text
+  registrado_por integer [ref: > usuarios.id]
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+// ============================================================================
+// MÓDULO 11: NOTIFICACIONES Y MENSAJES
+// ============================================================================
+
+Table notificaciones {
+  id integer [pk, increment]
+  usuario_id integer [not null, ref: > usuarios.id]
+  carga_id integer [ref: > cargas.id]
+  tipo varchar(50) [default: 'info']
+  titulo varchar(200) [not null]
+  mensaje text [not null]
+  leida boolean [default: 0]
+  fecha_lectura datetime
+  prioridad varchar(20) [default: 'normal']
+  accion_url varchar(255)
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_expiracion datetime
+}
+
+Table mensajes {
+  id integer [pk, increment]
+  remitente_id integer [not null, ref: > usuarios.id]
+  destinatario_id integer [not null, ref: > usuarios.id]
+  carga_id integer [ref: > cargas.id]
+  asunto varchar(200) [not null]
+  mensaje text [not null]
+  leido boolean [default: 0]
+  fecha_lectura datetime
+  mensaje_padre_id integer [ref: > mensajes.id]
+  fecha_envio datetime [default: `CURRENT_TIMESTAMP`]
+  archivos_adjuntos text
+}
+
+Table plantillas_notificacion {
+  id integer [pk, increment]
+  codigo varchar(50) [unique, not null]
+  nombre varchar(150) [not null]
+  tipo_notificacion varchar(50) [not null]
+  asunto varchar(200)
+  contenido_plantilla text [not null]
+  variables_disponibles text
+  activa boolean [default: 1]
+  idioma varchar(10) [default: 'es']
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+  modificado_por integer [ref: > usuarios.id]
+}
+
+Table preferencias_notificacion {
+  id integer [pk, increment]
+  usuario_id integer [not null, ref: > usuarios.id]
+  tipo_notificacion varchar(50) [not null]
+  canal varchar(30) [not null]
+  activo boolean [default: 1]
+  fecha_modificacion datetime [default: `CURRENT_TIMESTAMP`]
+  
+  Indexes {
+    (usuario_id, tipo_notificacion) [unique]
+  }
+}
+
+// ============================================================================
+// MÓDULO 12: CONFIGURACIÓN Y PARÁMETROS
+// ============================================================================
+
+Table configuracion {
+  id integer [pk, increment]
+  modulo varchar(50) [not null]
+  clave varchar(100) [not null]
+  valor text
+  tipo_dato varchar(20) [default: 'string']
+  descripcion text
+  es_publica boolean [default: 0]
+  fecha_modificacion datetime [default: `CURRENT_TIMESTAMP`]
+  modificado_por integer [ref: > usuarios.id]
+  
+  Indexes {
+    (modulo, clave) [unique]
+  }
+}
+
+Table parametros_sistema {
+  id integer [pk, increment]
+  parametro varchar(100) [unique, not null]
+  valor text
+  tipo varchar(30) [default: 'texto']
+  descripcion text
+  modificable boolean [default: 1]
+  fecha_modificacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table costos_operacionales {
+  id integer [pk, increment]
+  tipo_costo varchar(50) [not null]
+  descripcion text [not null]
+  monto decimal(10,2) [not null]
+  moneda varchar(10) [default: 'USD']
+  frecuencia varchar(30)
+  fecha_inicio date [not null]
+  fecha_fin date
+  activo boolean [default: 1]
+  observaciones text
+  registrado_por integer [ref: > usuarios.id]
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+// ============================================================================
+// MÓDULO 13: AUDITORÍA Y LOGS
+// ============================================================================
+
+Table auditoria {
+  id integer [pk, increment]
+  tabla_afectada varchar(50) [not null]
+  operacion varchar(20) [not null]
+  registro_id integer
+  datos_anteriores text
+  datos_nuevos text
+  usuario_id integer [ref: > usuarios.id]
+  ip_address varchar(45)
+  fecha_operacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table logs_sistema {
+  id integer [pk, increment]
+  nivel varchar(20) [not null]
+  modulo varchar(50)
+  mensaje text [not null]
+  stack_trace text
+  contexto_json text
+  usuario_id integer [ref: > usuarios.id]
+  ip_address varchar(45)
+  fecha_log datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table logs_acceso {
+  id integer [pk, increment]
+  usuario_id integer [ref: > usuarios.id]
+  accion varchar(100) [not null]
+  ruta varchar(255)
+  metodo varchar(10)
+  ip_address varchar(45)
+  user_agent varchar(255)
+  exito boolean [default: 1]
+  codigo_respuesta integer
+  tiempo_respuesta_ms integer
+  fecha_acceso datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table reportes_generados {
+  id integer [pk, increment]
+  tipo_reporte varchar(50) [not null]
+  titulo varchar(200) [not null]
+  parametros_json text
+  formato varchar(20)
+  archivo_url varchar(500)
+  tamaño_kb integer
+  fecha_inicio date
+  fecha_fin date
+  generado_por integer [ref: > usuarios.id]
+  fecha_generacion datetime [default: `CURRENT_TIMESTAMP`]
+}

@@ -1,0 +1,195 @@
+// 888 CARGO MVP - Database Diagram
+// Use in dbdiagram.io
+
+Table users {
+  id integer [pk, increment]
+  username text [not null, unique]
+  email text [not null, unique]
+  password text [not null]
+  rol_id integer [ref: > roles.id]
+  is_active integer [default: 1]
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table cliente {
+  id_cliente integer [pk, increment]
+  nombre_cliente text [not null]
+  correo_cliente text [unique]
+  telefono_cliente text
+  ciudad_cliente text
+  pais_cliente text
+  direccion_entrega text
+  cliente_shippingMark text [unique]
+  created_at datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table roles {
+  id integer [pk, increment]
+  nombre varchar(50) [unique, not null]
+  descripcion text
+  nivel_acceso integer [default: 0]
+}
+
+Table permisos {
+  id integer [pk, increment]
+  nombre varchar(100) [unique, not null]
+  descripcion text
+  modulo varchar(50)
+}
+
+Table roles_permisos {
+  rol_id integer [pk, ref: > roles.id]
+  permiso_id integer [pk, ref: > permisos.id]
+}
+
+Table sesiones {
+  id integer [pk, increment]
+  usuario_id integer [not null, ref: > users.id]
+  token varchar(500) [unique, not null]
+  ip_address varchar(45)
+  fecha_inicio datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_expiracion datetime [not null]
+  activa boolean [default: 1]
+}
+
+Table recovery_tokens {
+  id integer [pk, increment]
+  token text [not null, unique]
+  user_id integer [not null, ref: > users.id]
+  expires_at datetime [not null]
+  used_at datetime
+}
+
+Table carga {
+  id_carga integer [pk, increment]
+  codigo_carga text [not null, unique]
+  fecha_inicio date [not null]
+  fecha_fin date
+  ciudad_destino text
+  direccion_destino text
+  id_cliente integer [not null, ref: > cliente.id_cliente]
+  estado varchar(50) [default: 'pendiente']
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table articulo_packing_list {
+  id_articulo integer [pk, increment]
+  id_carga integer [not null, ref: > carga.id_carga]
+  fecha date
+  cn text
+  ref_art text
+  descripcion_espanol text
+  descripcion_chino text
+  unidad text
+  precio_unidad real
+  precio_total real
+  material text
+  unidades_empaque integer
+  marca_producto text
+  serial text
+  medida_largo real
+  medida_ancho real
+  medida_alto real
+  cbm real
+  gw real
+}
+
+Table caja {
+  id_caja integer [pk, increment]
+  id_articulo integer [not null, ref: > articulo_packing_list.id_articulo]
+  numero_caja integer [not null]
+  total_cajas integer [not null]
+  cantidad_en_caja integer
+  cbm real
+  gw real
+  descripcion_contenido text
+  observaciones text
+  consolidacion_codigo varchar(50) [note: 'Código de consolidación asignada']
+  contenedor varchar(50) [note: 'Número de contenedor asignado']
+  fecha_asignacion_contenedor datetime [note: 'Fecha de asignación al contenedor']
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table packing_lists {
+  id integer [pk, increment]
+  carga_id integer [not null, ref: > carga.id_carga]
+  numero_packing varchar(50) [unique, not null]
+  total_cajas integer [default: 0]
+  total_cbm decimal(10,3) [default: 0]
+  total_peso decimal(10,2) [default: 0]
+  estado varchar(30) [default: 'borrador']
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
+
+Table qr {
+  id_qr integer [pk, increment]
+  id_caja integer [not null, ref: > caja.id_caja]
+  codigo_qr text [not null, unique]
+  tipo_qr text [default: 'caja']
+  datos_qr text [not null]
+  contenido_json text
+  fecha_generacion datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_escaneado datetime
+  estado text [default: 'generado']
+  contador_escaneos integer [default: 0]
+}
+
+Table estados_carga {
+  id integer [pk, increment]
+  carga_id integer [not null, ref: > carga.id_carga]
+  estado varchar(50) [not null]
+  ubicacion varchar(200)
+  descripcion text
+  fecha_registro datetime [default: `CURRENT_TIMESTAMP`]
+  registrado_por integer [ref: > users.id]
+}
+
+Table documentos {
+  id integer [pk, increment]
+  carga_id integer [not null, ref: > carga.id_carga]
+  tipo_documento varchar(50) [not null]
+  nombre_archivo varchar(255) [not null]
+  archivo_url varchar(500)
+  estado varchar(30) [default: 'pendiente']
+  fecha_subida datetime [default: `CURRENT_TIMESTAMP`]
+  subido_por integer [ref: > users.id]
+}
+
+Table cotizaciones {
+  id integer [pk, increment]
+  cliente_id integer [not null, ref: > cliente.id_cliente]
+  numero_cotizacion varchar(50) [unique, not null]
+  tipo_envio varchar(20) [default: 'maritimo']
+  origen_ciudad varchar(100) [default: 'Guangzhou']
+  destino_ciudad varchar(100) [not null]
+  destino_pais varchar(100) [default: 'Colombia']
+  peso_estimado decimal(10,2)
+  volumen_estimado decimal(10,3)
+  cantidad_cajas integer
+  precio_total decimal(12,2) [default: 0]
+  estado varchar(30) [default: 'borrador']
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+  fecha_validez datetime
+  creado_por integer [ref: > users.id]
+}
+
+Table items_cotizacion {
+  id integer [pk, increment]
+  cotizacion_id integer [not null, ref: > cotizaciones.id]
+  descripcion varchar(200) [not null]
+  cantidad decimal(10,2) [not null]
+  unidad varchar(20)
+  precio_unitario decimal(10,2) [not null]
+  subtotal decimal(12,2) [not null]
+}
+
+Table notificaciones {
+  id integer [pk, increment]
+  usuario_id integer [not null, ref: > users.id]
+  carga_id integer [ref: > carga.id_carga]
+  titulo varchar(200) [not null]
+  mensaje text [not null]
+  tipo varchar(50) [default: 'info']
+  leida boolean [default: 0]
+  fecha_creacion datetime [default: `CURRENT_TIMESTAMP`]
+}
