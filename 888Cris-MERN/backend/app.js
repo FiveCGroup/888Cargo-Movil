@@ -13,10 +13,6 @@ import { swaggerSpec, swaggerUiOptions } from "./config/swagger.config.js";
 
 // Importar rutas
 import authRoutes from "./routes/auth.routes.js";
-import taskRoutes from "./routes/task.routes.js";
-import recuperacionRoutes from "./routes/recuperacion.routes.js";
-import cargaRoutes from "./routes/carga.routes.js";
-import qrRoutes from "./routes/qr.routes.js";
 import debugRoutes from "./routes/debug.routes.js";
 import cotizacionRoutes from './routes/cotizacion.routes.js';
 
@@ -43,11 +39,11 @@ app.use(cors({
         const allowedOrigins = [
             "http://localhost:5173",
             "http://localhost:5174",
-            "http://192.168.18.21:5173",
-            "http://192.168.18.21:5174",
+            "http://192.168.58.114:5173",
+            "http://192.168.58.114:5174",
             "http://10.0.2.2:4000",
             "http://localhost:8081",
-            "http://192.168.18.21:8081",
+            "http://192.168.58.114:8081",
         ];
 
         // En desarrollo: permitir cualquier IP local + exp://
@@ -197,9 +193,6 @@ app.get('/api/integrity', async (req, res) => {
 
 // Configurar rutas de la API
 
-// Montar rutas QR PRIMERO para evitar conflictos
-app.use('/api/qr', qrRoutes);
-
 // Montar ruta de depuración para logs del frontend
 app.use('/api/debug', debugRoutes);
 
@@ -209,14 +202,6 @@ app.use('/api/cotizaciones', cotizacionRoutes);
 // Rutas de autenticación
 app.use('/api/auth', authRoutes);
 
-// Rutas de tareas
-app.use('/api/tasks', taskRoutes);
-
-// Rutas de recuperación
-app.use('/api/recuperacion', recuperacionRoutes);
-
-// Rutas de carga
-app.use('/api/carga', cargaRoutes);
 
 // Ruta de prueba directa para QR
 app.get('/api/qr-test-direct', (req, res) => {

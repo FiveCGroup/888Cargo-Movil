@@ -1,66 +1,46 @@
-﻿import dotenv from 'dotenv';
-import app from "./app.js";
-import db, { initializeDatabase } from "./db.js";
-import { PORT } from './config.js';
+﻿// backend/index.js
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
+import routes from './routes/index.js';
+import { CleanupTasks } from './tasks/cleanup.tasks.js';
 
-dotenv.config();
+const app = express();
 
-const serverSignature = 'TmlyYW0gTmFpdHNpcmM=';
+// Middlewares
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://192.168.18.21:5173', 'exp://*'],
+  credentials: true
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
+app.use(cookieParser());
 
-const startServer = async () => {
-  try {
-    console.log('🔄 Inicializando base de datos...');
-    await initializeDatabase();
-    console.log('✅ Base de datos inicializada');
+// RUTAS - SIN ERRORES DE SINTAXIS
+app.use('/api', routes);
 
-    const server = app.listen(PORT, '192.168.18.21', () => {
-      console.log(`[Server] 888Cargo Server running on http://192.168.18.21:${PORT}`);
-      console.log(`🌐 Accesible desde:`);
-      console.log(`   • Localhost: http://192.168.18.21:${PORT}`);
-      console.log(`   • Android Emulator: http://10.0.2.2:${PORT}`);
-      console.log(`   • Red local (tu IP): http://192.168.18.21:${PORT}`);
-      console.log(`   • Expo mobile: exp://192.168.18.21:8081`);
-    });
-
-    // Manejar errores del servidor
-    server.on('error', (error) => {
-      console.error('❌ Error del servidor:', error);
-      process.exit(1);
-    });
-
-    // Manejar cierre del proceso
-    process.on('SIGINT', () => {
-      console.log('🛑 Cerrando servidor...');
-      server.close(() => {
-        console.log('✅ Servidor cerrado');
-        process.exit(0);
-      });
-    });
-
-    process.on('SIGTERM', () => {
-      console.log('🛑 Cerrando servidor...');
-      server.close(() => {
-        console.log('✅ Servidor cerrado');
-        process.exit(0);
-      });
-    });
-
-  } catch (error) {
-    console.error("❌ Error al iniciar el servidor:", error.message);
-    console.error("Stack trace:", error.stack);
-    process.exit(1);
-  }
-};
-
-// Manejar errores no capturados
-process.on('uncaughtException', (error) => {
-  console.error('❌ Error no capturado:', error);
-  process.exit(1);
+// Ruta de salud
+app.get('/', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: '888Cargo Backend corriendo al 100%',
+    timestamp: new Date().toISOString()
+  });
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Promesa rechazada no manejada:', reason);
-  process.exit(1);
+// Iniciar tareas de limpieza
+CleanupTasks.startAll();
+
+// Manejo de errores global
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  res.status(500).json({ success: false, message: 'Error interno' });
 });
 
-startServer();
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`API en http://localhost:${PORT}/api`);
+});

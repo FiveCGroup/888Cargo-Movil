@@ -1,121 +1,123 @@
 // services/auth.service.js
-// Servicio para lógica de negocio de autenticación
-import { createAccessToken } from "../libs/jwt.js";
-import { userRepository } from "../repositories/index.js";
-import { AuthValidator } from "../validators/auth.validator.js";
-import { AuthUtils } from "../utils/auth.utils.js";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import databaseRepository from '../repositories/index.js';
+import { TOKEN_SECRET } from '../config.js';
 
-export class AuthService {
-    
-    /**
-     * Registrar un nuevo usuario
-     * @param {Object} userData - Datos del usuario
-     * @param {string} ip - Dirección IP del usuario
-     * @returns {Promise<Object>} - Usuario registrado y token
-     */
-    static async registerUser(userData, ip) {
-        const { name, lastname, email, phone, country, password, acceptWhatsapp } = userData;
-        
-        // Validar datos de entrada
-        AuthValidator.validateRegistrationData(userData);
-        
-        // Normalizar email
-        const normalizedEmail = AuthUtils.normalizeEmail(email);
-        
-        // Verificar si ya existe un usuario con el mismo correo
-        const existingUser = await userRepository.findByEmail(normalizedEmail);
-        
-        if (existingUser) {
-            throw new Error("Ya existe un usuario con ese correo");
-        }
+const { users, roles, user_roles, recovery_tokens } = databaseRepository;
 
-        // Crear el nuevo usuario usando el repository
-        const newUser = await userRepository.createUser({
-            username: `${name}_${lastname}`.toLowerCase().replace(' ', '_'),
-            email: normalizedEmail,
-            password: password, // El repository se encarga del hash
-            nombre_cliente: `${name} ${lastname}`,
-            correo_cliente: normalizedEmail,
-            telefono_cliente: phone,
-            ciudad_cliente: '', 
-            pais_cliente: country,
-            is_active: 1
-        });
+/**
+ * Registro de usuario (cliente por defecto)
+ */
+export const register = async (userData) => {
+  const existing = await users.findByEmail(userData.email);
+  if (existing) throw new Error('Email ya registrado');
 
-        // Generar token
-        const token = await createAccessToken({ id: newUser.id });
-        
-        // Log de registro
-        console.log("Registro nuevo usuario -> IP:", ip, "Acepta WhatsApp:", acceptWhatsapp);
+  const passwordHash = await bcrypt.hash(userData.password, 10);
 
-        return {
-            user: {
-                id: newUser.id,
-                name: newUser.nombre_cliente,
-                email: newUser.correo_cliente
-            },
-            token
-        };
+  const { id: userId } = await users.create({
+    username: userData.username || userData.email.split('@')[0],
+    email: userData.email,
+    password: passwordHash,
+    full_name: userData.full_name || '',
+    phone: userData.phone || '',
+    country: userData.country || 'Colombia'
+  });
+
+  // Asignar rol cliente por defecto
+  const clienteRole = await roles.findOne({ name: 'cliente' });
+  if (clienteRole) {
+    await user_roles.create({ user_id: userId, role_id: clienteRole.id });
+  }
+
+  return { success: true, message: 'Usuario registrado', userId };
+};
+
+/**
+ * Login de usuario
+ */
+export const login = async (email, password) => {
+  const user = await users.findByEmail(email);
+  if (!user) throw new Error('Credenciales inválidas');
+
+  const validPassword = await bcrypt.compare(password, user.password);
+  if (!validPassword) throw new Error('Credenciales inválidas');
+
+  // Obtener roles del usuario
+  const userRoles = await user_roles.executeQuery(`
+    SELECT r.name FROM roles r 
+    JOIN user_roles ur ON r.id = ur.role_id 
+    WHERE ur.user_id = ?
+  `, [user.id]);
+
+  const rolesList = userRoles.map(r => r.name);
+
+  const token = jwt.sign(
+    { id: user.id, email: user.email, roles: rolesList },
+    TOKEN_SECRET,
+    { expiresIn: '24h' }
+  );
+
+  return {
+    success: true,
+    token,
+    user: {
+      id: user.id,
+      email: user.email,
+      username: user.username || user.email.split('@')[0],
+      full_name: user.full_name || '',
+      phone: user.phone || '',
+      country: user.country || '',
+      roles: rolesList
     }
+  };
+};
 
-    /**
-     * Iniciar sesión de usuario
-     * @param {Object} credentials - Credenciales de login
-     * @returns {Promise<Object>} - Usuario y token
-     */
-    static async loginUser(credentials) {
-        const { email, password } = credentials;
-        
-        // Validar credenciales
-        AuthValidator.validateLoginData(credentials);
-        
-        // Normalizar email
-        const normalizedEmail = AuthUtils.normalizeEmail(email);
-        
-        // Verificar credenciales usando el repository
-        const userFound = await userRepository.verifyCredentials(normalizedEmail, password);
-        if (!userFound) {
-            throw new Error('Credenciales inválidas');
-        }
+/**
+ * Solicitar recuperación de contraseña
+ */
+export const requestPasswordReset = async (email) => {
+  const user = await users.findByEmail(email);
+  if (!user) throw new Error('Email no encontrado');
 
-        // Verificar que el usuario esté activo
-        if (!userFound.is_active) {
-            throw new Error('Usuario inactivo');
-        }
-        
-        // Generar token
-        const token = await createAccessToken({ id: userFound.id });
-        
-        return {
-            user: {
-                id: userFound.id,
-                name: userFound.nombre_cliente || userFound.username,
-                email: userFound.correo_cliente || userFound.email
-            },
-            token
-        };
-    }
+  const token = Math.random().toString(36).substring(2, 15);
+  const expires = new Date(Date.now() + 3600000); // 1 hora
 
-    /**
-     * Obtener perfil de usuario
-     * @param {number} userId - ID del usuario
-     * @returns {Promise<Object>} - Datos del perfil
-     */
-    static async getUserProfile(userId) {
-        const result = await userRepository.findByIdSafe(userId);
-        
-        if (!result) {
-            throw new Error('Usuario no encontrado');
-        }
+  await recovery_tokens.create({
+    user_id: user.id,
+    token,
+    expires_at: expires
+  });
 
-        return {
-            id: result.id,
-            name: result.nombre_cliente || result.username,
-            email: result.correo_cliente || result.email,
-            phone: result.telefono_cliente,
-            country: result.pais_cliente,
-            isActive: result.is_active,
-            createdAt: result.created_at
-        };
-    }
-}
+  // Aquí iría el envío por WhatsApp o email
+  console.log(`Enlace de recuperación: http://localhost:8081/reset?token=${token}`);
+
+  return { success: true, message: 'Enlace enviado' };
+};
+
+/**
+ * Resetear contraseña
+ */
+export const resetPassword = async (token, newPassword) => {
+  const recovery = await recovery_tokens.findOne({ token, used: 0 });
+  if (!recovery || new Date(recovery.expires_at) < new Date()) {
+    throw new Error('Token inválido o expirado');
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await users.update(recovery.user_id, { password: passwordHash });
+
+  await recovery_tokens.update(recovery.id, { used: 1 });
+
+  return { success: true, message: 'Contraseña actualizada' };
+};
+
+/**
+ * Limpieza de tokens expirados
+ */
+export const cleanAllExpiredTokens = async () => {
+  const result = await recovery_tokens.executeQuery(
+    'DELETE FROM recovery_tokens WHERE expires_at < CURRENT_TIMESTAMP OR used = 1'
+  );
+  return result.changes || 0;
+};

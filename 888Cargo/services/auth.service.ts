@@ -105,21 +105,25 @@ const AuthService = {
             }
 
             const userData = await response.json();
-            console.log('✅ [AuthService] Login successful:', { id: userData.id, name: userData.name });
+            console.log('✅ [AuthService] Login successful:', userData);
+            
+            // CORREGIDO: Los datos están en userData.user, no directamente en userData
+            const userInfo = userData.user || userData;
             
             const user: User = {
-                id: userData.id.toString(),
-                name: userData.name,
-                email: userData.email,
-                phone: userData.phone,
-                country: userData.country
+                id: (userInfo.id || userData.id)?.toString() || '',
+                name: userInfo.username || userInfo.name || userInfo.full_name || '',
+                email: userInfo.email || '',
+                phone: userInfo.phone || '',
+                country: userInfo.country || ''
             };
 
-            const mobileSessionToken = `mobile_${Date.now()}_${userData.id}`;
+            // Usar el token real del backend
+            const token = userData.token || `mobile_${Date.now()}_${user.id}`;
             
             setAuthState({ 
                 isAuthenticated: true, 
-                token: mobileSessionToken, 
+                token: token, 
                 user,
                 sessionType: 'mobile',
                 loginTime: new Date().toISOString()
@@ -127,7 +131,7 @@ const AuthService = {
             
             return { 
                 success: true, 
-                data: { user, token: mobileSessionToken } 
+                data: { user, token } 
             };
         } catch (error: any) {
             console.error('💥 [AuthService] Error en login:', error);

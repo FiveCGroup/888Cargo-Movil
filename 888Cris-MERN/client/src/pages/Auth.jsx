@@ -17,7 +17,7 @@ const AuthPage = () => {
                     await API.get('/api/profile');
                     navigate('/dashboard');
                 }
-            } catch (error) {
+            } catch {
                 localStorage.removeItem('user');
             } finally {
                 setCheckingAuth(false);

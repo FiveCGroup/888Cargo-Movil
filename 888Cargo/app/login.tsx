@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useRouter, Redirect } from 'expo-router';
+import { useRouter, Redirect, useFocusEffect } from 'expo-router';
 import LoginForm from '../components/LoginForm';
 import { useAuth } from '../hooks/useAuth';
 import { Colors } from '../constants/Colors';
@@ -8,9 +8,16 @@ import { useColorScheme } from '../hooks/useColorScheme';
 
 export default function LoginScreen() {
     const router = useRouter();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, refresh } = useAuth();
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme ?? 'light'];
+
+    // Refresca el estado de autenticación cada vez que la pantalla toma foco
+    useFocusEffect(
+        React.useCallback(() => {
+            refresh();
+        }, [])
+    );
 
     // Si ya está autenticado, redirigir al dashboard
     if (isAuthenticated) {

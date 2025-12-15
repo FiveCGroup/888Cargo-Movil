@@ -32,7 +32,7 @@ const LoginForm = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: '🔍 [FRONTEND] HandleSubmit ejecutado', timestamp: new Date().toISOString() })
       }).catch(() => {});
-    } catch {}
+    } catch{}
     
     // Validar que se hayan ingresado datos antes de intentar iniciar sesión
     if (!formData.email || !formData.password) {
@@ -55,27 +55,32 @@ const LoginForm = () => {
       const response = await API.post("/api/login", formData);
       console.log("🔍 [FRONTEND] Response recibida:", response);
 
-      // Verificación más estricta de la respuesta
-      if (response.data && response.data.id) {
+      // Verificación corregida - los datos están en response.data.user
+      if (response.data && response.data.success && response.data.user && response.data.user.id) {
         console.log("🔍 [FRONTEND] Login exitoso - datos válidos");
+        
+        // Guardar token
+        localStorage.setItem("token", response.data.token);
+        
         // Guardamos los datos del usuario
         localStorage.setItem("user", JSON.stringify({
-          id: response.data.id,
-          name: response.data.name,
-          email: response.data.email
+          id: response.data.user.id,
+          name: response.data.user.username || response.data.user.full_name,
+          email: response.data.user.email,
+          roles: response.data.user.roles
         }));
 
-        // Mostrar mensaje de bienvenida usando la utilidad centralizada
+        // Mostrar mensaje de bienvenida
         try {
-          await CargoAlerts.showLoginWelcome(response.data.name);
+          await CargoAlerts.showLoginWelcome(response.data.user.username || response.data.user.email);
         } catch (alertError) {
           console.error("Error al mostrar alerta de bienvenida:", alertError);
         }
 
-        // Usar navigate en lugar de window.location
+        // Navegar al dashboard
         navigate("/dashboard");
       } else {
-        console.log("🔍 [FRONTEND] Datos incompletos del servidor");
+        console.log("🔍 [FRONTEND] Datos incompletos del servidor:", response.data);
         try {
           await CargoAlerts.showError(
             'Error de Autenticación',

@@ -6,14 +6,23 @@ const API = axios.create({
     withCredentials: true
 });
 
+// Interceptor para agregar token a cada petición
+API.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
 API.interceptors.response.use(
     response => response, 
     error => {
-        // Comentamos temporalmente la redirección automática para permitir manejo manual de errores 401
-        // if (error.response && error.response.status === 401) {
-        //     localStorage.removeItem('user');
-        //     window.location.href = '/auth';
-        // }
         console.log("🔍 [API INTERCEPTOR] Error capturado:", error.response?.status);
         return Promise.reject(error);
     }
