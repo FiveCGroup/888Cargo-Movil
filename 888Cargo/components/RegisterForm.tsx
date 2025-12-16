@@ -11,7 +11,7 @@ import {
     ScrollView,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../context/AuthContext';
 import { Colors } from '../constants/Colors';
 import { createThemeStyles } from '../constants/Theme';
 import { useColorScheme } from '../hooks/useColorScheme';
@@ -55,7 +55,9 @@ export default function RegisterForm({
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [formErrors, setFormErrors] = useState<Partial<RegisterData>>({});
     
-    const { register, isLoading, error, clearError } = useAuth();
+    const { isLoading, error } = useAuthContext();
+    
+    // Nota: Para registro, se debe llamar al endpoint directamente desde AuthService
     
     // Combinar el loading externo con el interno
     const isProcessing = isLoading || externalLoading;

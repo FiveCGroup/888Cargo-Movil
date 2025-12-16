@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../context/AuthContext';
 import { Colors } from '../../constants/Colors';
 import { createThemeStyles } from '../../constants/Theme';
 import { useColorScheme } from '../../hooks/useColorScheme';
@@ -9,7 +9,7 @@ import Logo888Cargo from '../../components/Logo888Cargo';
 import { profileScreenStyles } from '../../styles/screens/ProfileScreen.styles';
 
 export default function ProfileScreen() {
-    const { user } = useAuth();
+    const { user } = useAuthContext();
     const colorScheme = useColorScheme();
     const themeStyles = createThemeStyles(colorScheme ?? 'light');
     const colors = Colors[colorScheme ?? 'light'];

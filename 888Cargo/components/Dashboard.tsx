@@ -9,7 +9,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Spacing } from '../constants/Colors';
 import { createThemeStyles } from '../constants/Theme';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../context/AuthContext';
 import { useColorScheme } from '../hooks/useColorScheme';
 import Logo888Cargo from './Logo888Cargo';
 import { dashboardStyles } from '../styles/components/Dashboard.styles';
@@ -43,7 +43,7 @@ export default function Dashboard({
     onNavigateToDocumentacion,
     onNavigateToCotizaciones // ← AGREGADO
 }: DashboardProps) {
-    const { user } = useAuth();
+    const { user } = useAuthContext();
     const [pressedCard, setPressedCard] = useState<number | null>(null);
 
     const colorScheme = useColorScheme();

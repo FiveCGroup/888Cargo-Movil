@@ -1,16 +1,29 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Redirect } from 'expo-router';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useAuthContext } from '@/context/AuthContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { isAuthenticated } = useAuthContext();
+
+  useEffect(() => {
+    console.log('📱 [TabLayout] isAuthenticated cambió a:', isAuthenticated);
+  }, [isAuthenticated]);
+
+  // Si NO está autenticado, redirigir a login
+  if (!isAuthenticated) {
+    console.log('📱 [TabLayout] NO autenticado - redirigiendo a /login');
+    return <Redirect href="/login" />;
+  }
 
   return (
     <Tabs

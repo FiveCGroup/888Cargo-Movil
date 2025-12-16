@@ -27,42 +27,30 @@ const __dirname = dirname(__filename);
 const app = express();
 
 // Configurar middleware básico
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
 app.use(cors({
     origin: function (origin, callback) {
-        // 1. AQUÍ ESTÁ EL FIX CLAVE: permite explícitamente cuando NO hay origin
-        // Esto cubre Expo Go (LAN), Postman, apps móviles nativas, etc.
-        if (!origin || origin === 'null') {
+        // EN DESARROLLO: permitir TODO
+        if (isDevelopment) {
             return callback(null, true);
         }
 
-        // Lista de orígenes permitidos (tu lista original)
+        // EN PRODUCCIÓN: permitir solo orígenes específicos
         const allowedOrigins = [
             "http://localhost:5173",
             "http://localhost:5174",
-            "http://192.168.58.114:5173",
-            "http://192.168.58.114:5174",
+            "http://192.168.58.115:5173",
+            "http://192.168.58.115:5174",
             "http://10.0.2.2:4000",
             "http://localhost:8081",
-            "http://192.168.58.114:8081",
+            "http://192.168.58.115:8081",
         ];
 
-        // En desarrollo: permitir cualquier IP local + exp://
-        const isDevelopment = process.env.NODE_ENV !== 'production';
-        if (isDevelopment) {
-            const localIpPattern = /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?$/;
-            const expPattern = /^exp:\/\//;
-
-            if (localIpPattern.test(origin) || expPattern.test(origin)) {
-                return callback(null, true);
-            }
-        }
-
-        // Origen explícitamente permitido
-        if (allowedOrigins.includes(origin)) {
+        if (!origin || allowedOrigins.includes(origin)) {
             return callback(null, true);
         }
 
-        // Si llega aquí → origen no permitido
         console.log('CORS Origen bloqueado:', origin);
         return callback(new Error('No permitido por CORS'));
     },
