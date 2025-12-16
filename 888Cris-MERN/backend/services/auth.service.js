@@ -13,6 +13,17 @@ export const register = async (userData) => {
   const existing = await users.findByEmail(userData.email);
   if (existing) throw new Error('Email ya registrado');
 
+  // Validar que el teléfono no esté duplicado si está proporcionado
+  if (userData.phone) {
+    const existingPhone = await users.executeQuery(
+      'SELECT id FROM users WHERE phone = ?',
+      [userData.phone]
+    );
+    if (existingPhone && existingPhone.length > 0) {
+      throw new Error('Número de teléfono ya registrado');
+    }
+  }
+
   const passwordHash = await bcrypt.hash(userData.password, 10);
 
   const { id: userId } = await users.create({
