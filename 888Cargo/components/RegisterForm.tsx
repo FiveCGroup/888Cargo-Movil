@@ -11,13 +11,14 @@ import {
     ScrollView,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useAuth } from '../hooks/useAuth';
+import { useRouter } from 'expo-router';
 import { Colors } from '../constants/Colors';
 import { createThemeStyles } from '../constants/Theme';
 import { useColorScheme } from '../hooks/useColorScheme';
 import Logo888Cargo from './Logo888Cargo';
 import { registerFormStyles } from '../styles/components/RegisterForm.styles';
 import { IconSizes, IconColors } from '../constants/Icons';
+import { api } from '../services/api';
 
 interface RegisterFormProps {
     onRegisterSuccess?: (userData: any) => void;
@@ -40,6 +41,7 @@ export default function RegisterForm({
     onNavigateToLogin,
     loading: externalLoading
 }: RegisterFormProps) {
+    const router = useRouter();
     const [formData, setFormData] = useState<RegisterData>({
         name: '',
         lastname: '',
@@ -54,15 +56,13 @@ export default function RegisterForm({
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [formErrors, setFormErrors] = useState<Partial<RegisterData>>({});
-    
-    const { register, isLoading, error, clearError } = useAuth();
-    
-    // Combinar el loading externo con el interno
-    const isProcessing = isLoading || externalLoading;
+    const [isLoading, setIsLoading] = useState(false);
     
     const colorScheme = useColorScheme();
     const themeStyles = createThemeStyles(colorScheme ?? 'light');
     const colors = Colors[colorScheme ?? 'light'];
+    
+    const isProcessing = isLoading || externalLoading;
 
     const validateForm = (): boolean => {
         const errors: Partial<RegisterData> = {};
@@ -132,21 +132,21 @@ export default function RegisterForm({
             return;
         }
 
-        clearError();
+        setIsLoading(true);
         
-        // Transformar los datos al formato que espera el backend
-        const registerData = {
-            name: formData.name.trim(),
-            lastname: formData.lastname.trim(),
-            email: formData.email.trim().toLowerCase(),
-            password: formData.password,
-            phone: formData.phone?.trim() || undefined,
-            country: formData.country?.trim() || undefined
-        };
+        try {
+            // Transformar los datos al formato que espera el backend
+            const registerData = {
+                username: formData.name.trim(),
+                full_name: `${formData.name.trim()} ${formData.lastname.trim()}`,
+                email: formData.email.trim().toLowerCase(),
+                password: formData.password,
+                phone: formData.phone?.trim() || undefined,
+                country: formData.country?.trim() || 'Colombia'
+            };
 
-        const result = await register(registerData);
-        
-        if (result.success) {
+            const result = await api.post('/auth/register', registerData);
+            
             Alert.alert(
                 'Registro Exitoso', 
                 'Tu cuenta ha sido creada exitosamente. Ahora puedes iniciar sesión.',
@@ -154,21 +154,35 @@ export default function RegisterForm({
                     { 
                         text: 'OK', 
                         onPress: () => {
-                            if (onRegisterSuccess) {
-                                onRegisterSuccess({
-                                    email: formData.email.trim().toLowerCase(),
-                                    password: formData.password,
-                                    ...result.data
-                                });
-                            } else if (onNavigateToLogin) {
+                            if (onNavigateToLogin) {
                                 onNavigateToLogin();
+                            } else {
+                                router.replace('/login');
                             }
                         }
                     }
                 ]
             );
-        } else {
-            Alert.alert('Error', result.error || 'Error al registrar usuario');
+        } catch (error: any) {
+            console.error('❌ Error registro:', error);
+            let msg = error.message || 'Error al crear la cuenta';
+            
+            // Si el mensaje contiene "HTTP", extraer solo el JSON
+            if (msg.includes('HTTP')) {
+                try {
+                    const jsonMatch = msg.match(/\{.*\}/);
+                    if (jsonMatch) {
+                        const parsed = JSON.parse(jsonMatch[0]);
+                        msg = parsed.message || msg;
+                    }
+                } catch (e) {
+                    // Si no se puede parsear, usar el mensaje original
+                }
+            }
+            
+            Alert.alert('Error', msg);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -268,11 +282,6 @@ export default function RegisterForm({
                     {/* Card de registro con estilo web */}
                     <View style={themeStyles.authCard}>
                         <Text style={themeStyles.authTitle}>Crear Cuenta</Text>
-
-                        {/* Mensaje de error general */}
-                        {error && (
-                            <Text style={themeStyles.errorText}>{error}</Text>
-                        )}
 
                         {/* Campos del formulario */}
                         {renderInput('name', 'Nombre')}

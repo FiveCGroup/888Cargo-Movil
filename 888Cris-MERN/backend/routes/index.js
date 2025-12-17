@@ -12,6 +12,8 @@ import {
   resetPass
 } from '../controllers/auth.controller.js';
 
+import { logout } from '../controllers/auth.controller.simple.js';
+
 import {
   procesarExcel,
   generarQRs,
@@ -55,12 +57,14 @@ const upload = multer({
 // RUTAS PÚBLICAS
 router.post('/auth/register', registerUser);
 router.post('/auth/login', loginUser);
+router.post('/auth/logout', logout);
 router.post('/auth/request-reset', requestReset);
 router.post('/auth/reset-password', resetPass);
 
 // RUTAS PÚBLICAS (sin prefijo - compatibilidad frontend)
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.post('/logout', logout);
 
 // RUTA DEBUG (para logs del frontend)
 router.post('/debug/frontend-log', (req, res) => {

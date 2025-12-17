@@ -8,9 +8,10 @@ import { CleanupTasks } from './tasks/cleanup.tasks.js';
 
 const app = express();
 
-// Middlewares
+// Middlewares - CORS Permisivo en Desarrollo
+const isDevelopment = process.env.NODE_ENV !== 'production';
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://192.168.18.21:5173', 'exp://*'],
+  origin: isDevelopment ? true : ['http://localhost:5173', 'http://192.168.58.115:5173', 'exp://*'],
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));

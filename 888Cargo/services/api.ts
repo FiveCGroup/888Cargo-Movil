@@ -35,7 +35,14 @@ const handleResponse = async (response: Response) => {
   // Verificar si la respuesta es exitosa
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`HTTP ${response.status}: ${errorText}`);
+    try {
+      // Intentar parsear el error como JSON
+      const errorJson = JSON.parse(errorText);
+      throw new Error(errorJson.message || errorJson.error || errorText);
+    } catch (parseError) {
+      // Si no es JSON, lanzar el texto plano
+      throw new Error(errorText || `HTTP ${response.status}`);
+    }
   }
 
   // Intentar parsear JSON

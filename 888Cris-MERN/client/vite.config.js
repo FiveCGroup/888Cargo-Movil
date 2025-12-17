@@ -77,14 +77,16 @@ export default defineConfig(({ mode }) => {
       })() : [])
     ],
     server: {
+      host: '0.0.0.0',
+      port: 5173,
       proxy: {
         '/api': {
-          target: 'http://127.0.0.1:4000',
+          target: 'http://192.168.58.115:4000',
           changeOrigin: true,
           secure: false
         },
         '/code-docs': {
-          target: 'http://127.0.0.1:4000',
+          target: 'http://192.168.58.115:4000',
           changeOrigin: true,
           secure: false
         }

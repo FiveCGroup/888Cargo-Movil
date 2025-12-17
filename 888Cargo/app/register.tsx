@@ -11,9 +11,29 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../services/api';
+
+// Códigos de país para el dropdown
+const COUNTRY_CODES = [
+  { label: '🇨🇴 Colombia (+57)', code: '+57', country: 'Colombia' },
+  { label: '🇵🇪 Perú (+51)', code: '+51', country: 'Perú' },
+  { label: '🇪🇨 Ecuador (+593)', code: '+593', country: 'Ecuador' },
+  { label: '🇨🇱 Chile (+56)', code: '+56', country: 'Chile' },
+  { label: '🇦🇷 Argentina (+54)', code: '+54', country: 'Argentina' },
+  { label: '🇧🇷 Brasil (+55)', code: '+55', country: 'Brasil' },
+  { label: '🇲🇽 México (+52)', code: '+52', country: 'México' },
+  { label: '🇪🇸 España (+34)', code: '+34', country: 'España' },
+  { label: '🇺🇸 Estados Unidos (+1)', code: '+1', country: 'Estados Unidos' },
+  { label: '🇨🇦 Canadá (+1)', code: '+1', country: 'Canadá' },
+  { label: '🇻🇪 Venezuela (+58)', code: '+58', country: 'Venezuela' },
+  { label: '🇬🇧 Reino Unido (+44)', code: '+44', country: 'Reino Unido' },
+  { label: '🇦🇺 Australia (+61)', code: '+61', country: 'Australia' },
+  { label: '🇯🇵 Japón (+81)', code: '+81', country: 'Japón' },
+  { label: '🇨🇳 China (+86)', code: '+86', country: 'China' },
+];
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -23,15 +43,16 @@ export default function RegisterScreen() {
     name: '',
     lastname: '',
     email: '',
+    countryCode: '+57', // Colombia por defecto
     phone: '',
-    country: '',
+    country: 'Colombia',
     password: '',
     confirmPassword: '',
   });
 
   const handleRegister = async () => {
     // Validaciones rápidas
-    if (!form.name || !form.lastname || !form.email || !form.password) {
+    if (!form.name || !form.lastname || !form.email || !form.phone || !form.password) {
       Alert.alert('Error', 'Completa todos los campos obligatorios');
       return;
     }
@@ -43,16 +64,22 @@ export default function RegisterScreen() {
       Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
       return;
     }
+    // Validar que el teléfono tenga al menos 7 dígitos
+    if (form.phone.replace(/\D/g, '').length < 7) {
+      Alert.alert('Error', 'El teléfono debe tener al menos 7 dígitos');
+      return;
+    }
 
     setLoading(true);
 
     try {
+      const fullPhone = `${form.countryCode}${form.phone.replace(/\D/g, '')}`;
       const response = await api.post('/auth/register', {
-        name: form.name.trim(),
-        lastname: form.lastname.trim(),
+        username: form.name.trim(),
+        full_name: `${form.name.trim()} ${form.lastname.trim()}`,
         email: form.email.trim().toLowerCase(),
-        phone: form.phone?.trim() || undefined,
-        country: form.country?.trim() || undefined,
+        phone: fullPhone,
+        country: form.country,
         password: form.password,
       });
 
@@ -72,7 +99,21 @@ export default function RegisterScreen() {
 
     } catch (error: any) {
       console.error('❌ Error registro:', error);
-      const msg = error.message || 'Error al crear la cuenta';
+      let msg = error.message || 'Error al crear la cuenta, email o número ya en uso';
+      
+      // Si el mensaje contiene "HTTP", extraer solo el JSON
+      if (msg.includes('HTTP')) {
+        try {
+          const jsonMatch = msg.match(/\{.*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            msg = parsed.message || msg;
+          }
+        } catch (e) {
+          // Si no se puede parsear, usar el mensaje original
+        }
+      }
+      
       Alert.alert('Error', msg);
     } finally {
       setLoading(false);
@@ -109,20 +150,36 @@ export default function RegisterScreen() {
           autoCapitalize="none"
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Teléfono (opcional)"
-          value={form.phone}
-          onChangeText={v => setForm({ ...form, phone: v })}
-          keyboardType="phone-pad"
-        />
+        <Text style={styles.label}>Código de País *</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={form.countryCode}
+            onValueChange={(value) => {
+              const selected = COUNTRY_CODES.find(c => c.code === value);
+              setForm({
+                ...form,
+                countryCode: value,
+                country: selected?.country || form.country
+              });
+            }}
+            style={styles.picker}
+          >
+            {COUNTRY_CODES.map((item) => (
+              <Picker.Item
+                key={item.code + item.country}
+                label={item.label}
+                value={item.code}
+              />
+            ))}
+          </Picker>
+        </View>
 
         <TextInput
           style={styles.input}
-          placeholder="País (opcional)"
-          value={form.country}
-          onChangeText={v => setForm({ ...form, country: v })}
-          autoCapitalize="words"
+          placeholder="Teléfono (solo números) *"
+          value={form.phone}
+          onChangeText={v => setForm({ ...form, phone: v.replace(/\D/g, '') })}
+          keyboardType="phone-pad"
         />
 
         <TextInput
@@ -197,6 +254,22 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
     fontSize: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0b2032',
+    marginBottom: 8,
+  },
+  pickerContainer: {
+    backgroundColor: '#e9ebef',
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 50,
+    color: '#0b2032',
   },
   btn: {
     backgroundColor: '#0f77c5',

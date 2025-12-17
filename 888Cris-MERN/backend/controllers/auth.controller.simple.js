@@ -4,6 +4,22 @@ import { createAccessToken } from "../libs/jwt.js";
 import bcrypt from "bcrypt";
 import { userRepository } from "../repositories/index.js";
 
+// Importar servicios de notificación - opcionales
+let emailService, whatsappService;
+try {
+  emailService = (await import("../services/emailService.js")).default;
+} catch (e) {
+  console.warn('⚠️ Email service no disponible');
+  emailService = null;
+}
+
+try {
+  whatsappService = (await import("../services/whatsappService.js")).default;
+} catch (e) {
+  console.warn('⚠️ WhatsApp service no disponible');
+  whatsappService = null;
+}
+
 /**
  * Registrar un nuevo usuario - versión simplificada
  */
@@ -60,10 +76,38 @@ export const register = async (req, res) => {
         
         console.log("Usuario registrado exitosamente:", newUser);
         
+        // Enviar notificaciones por email y WhatsApp (sin esperar, sin bloquear)
+        const username = `${name}_${lastname}`.toLowerCase().replace(' ', '_');
+        
+        // Email de bienvenida (async, no bloquea)
+        if (emailService) {
+            emailService.sendWelcomeEmail(newUser.correo_cliente, name)
+                .catch(err => console.error('⚠️ Email bienvenida error:', err.message));
+        }
+        
+        // Email de confirmación (async, no bloquea)
+        if (emailService) {
+            emailService.sendRegistrationConfirmation(newUser.correo_cliente, name, username)
+                .catch(err => console.error('⚠️ Email confirmación error:', err.message));
+        }
+        
+        // WhatsApp de bienvenida (async, no bloquea)
+        if (whatsappService && phone) {
+            whatsappService.sendWelcomeWhatsApp(phone, name)
+                .catch(err => console.error('⚠️ WhatsApp bienvenida error:', err.message));
+        }
+        
+        // WhatsApp de confirmación (async, no bloquea)
+        if (whatsappService && phone) {
+            whatsappService.sendRegistrationConfirmationWhatsApp(phone, name, username)
+                .catch(err => console.error('⚠️ WhatsApp confirmación error:', err.message));
+        }
+        
         res.status(201).json({
             id: newUser.id,
             name: newUser.nombre_cliente,
-            email: newUser.correo_cliente
+            email: newUser.correo_cliente,
+            message: 'Usuario registrado exitosamente. Revisa tu email y WhatsApp para confirmar.'
         });
         
     } catch (error) {

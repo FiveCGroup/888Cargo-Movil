@@ -17,19 +17,21 @@ interface AuthState {
     error: string | null;
 }
 
+// DEPRECATED: Este hook ha sido reemplazado por useAuthContext() en context/AuthContext.tsx
+// Se mantiene solo para compatibilidad
 // Hook principal de autenticación
 export function useAuth() {
     const [authState, setAuthState] = useState<AuthState>({
-        isLoading: true,
+        isLoading: false, // Cambiar a false para no intentar verificar token
         isAuthenticated: false,
         token: null,
         user: null,
         error: null
     });
 
-    // Cargar estado inicial de autenticación
+    // NO CARGAR estado inicial - usar useAuthContext en su lugar
     useEffect(() => {
-        loadAuthState();
+        // loadAuthState(); // COMENTADO - usar useAuthContext en su lugar
     }, []);
 
     const loadAuthState = async () => {

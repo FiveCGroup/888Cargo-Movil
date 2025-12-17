@@ -11,7 +11,7 @@ import {
     ScrollView,
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../context/AuthContext';
 import { Colors } from '../constants/Colors';
 import { createThemeStyles } from '../constants/Theme';
 import { useColorScheme } from '../hooks/useColorScheme';
@@ -39,7 +39,7 @@ export default function LoginForm({
     const [emailFocused, setEmailFocused] = useState(false);
     const [passwordFocused, setPasswordFocused] = useState(false);
     
-    const { login, isLoading, error, clearError } = useAuth();
+    const { login, isLoading, error } = useAuthContext();
     const { alertState, hideAlert, showError, showSuccess, showInfo } = useCustomAlert();
     const colorScheme = useColorScheme();
     const themeStyles = createThemeStyles(colorScheme ?? 'light');
@@ -53,8 +53,6 @@ export default function LoginForm({
             showError('Error', 'Por favor ingresa email y contraseña');
             return;
         }
-
-        clearError();
         
         const result = await login(email.trim(), password);
         
