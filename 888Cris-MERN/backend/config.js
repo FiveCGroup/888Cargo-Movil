@@ -1,6 +1,5 @@
 // config.js
 // Configuración principal del backend
-import dotenv from 'dotenv';
 import { 
     getCurrentEnvironmentConfig, 
     getConfigSection, 
@@ -8,8 +7,8 @@ import {
     validateRequiredConfig 
 } from './config/environments.js';
 
-// Cargar variables de entorno
-dotenv.config();
+// Las variables de entorno ya se cargaron en app.js
+// dotenv.config(); // REMOVIDO - ahora se carga en app.js
 
 // Validar configuración al inicializar
 try {
@@ -68,6 +67,7 @@ export const WHATSAPP_CONFIG = {
     token: EXTERNAL_CONFIG.whatsapp?.token,
     fromNumber: EXTERNAL_CONFIG.whatsapp?.fromNumber,
     baseUrl: EXTERNAL_CONFIG.whatsapp?.baseUrl,
+    phoneNumberId: EXTERNAL_CONFIG.whatsapp?.phoneNumberId,
     timeout: EXTERNAL_CONFIG.whatsapp?.timeout || 30000
 };
 

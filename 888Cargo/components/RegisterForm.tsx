@@ -51,17 +51,17 @@ export default function RegisterForm({
         phone: '',
         country: ''
     });
-    
+
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [formErrors, setFormErrors] = useState<Partial<RegisterData>>({});
     const [isLoading, setIsLoading] = useState(false);
-    
+
     const colorScheme = useColorScheme();
     const themeStyles = createThemeStyles(colorScheme ?? 'light');
     const colors = Colors[colorScheme ?? 'light'];
-    
+
     const isProcessing = isLoading || externalLoading;
 
     const validateForm = (): boolean => {
@@ -119,7 +119,7 @@ export default function RegisterForm({
 
     const handleInputChange = (field: keyof RegisterData, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-        
+
         // Limpiar error del campo cuando el usuario empiece a escribir
         if (formErrors[field]) {
             setFormErrors(prev => ({ ...prev, [field]: undefined }));
@@ -133,40 +133,25 @@ export default function RegisterForm({
         }
 
         setIsLoading(true);
-        
-        try {
-            // Transformar los datos al formato que espera el backend
-            const registerData = {
-                username: formData.name.trim(),
-                full_name: `${formData.name.trim()} ${formData.lastname.trim()}`,
-                email: formData.email.trim().toLowerCase(),
-                password: formData.password,
-                phone: formData.phone?.trim() || undefined,
-                country: formData.country?.trim() || 'Colombia'
-            };
 
-            const result = await api.post('/auth/register', registerData);
-            
-            Alert.alert(
-                'Registro Exitoso', 
-                'Tu cuenta ha sido creada exitosamente. Ahora puedes iniciar sesión.',
-                [
-                    { 
-                        text: 'OK', 
-                        onPress: () => {
-                            if (onNavigateToLogin) {
-                                onNavigateToLogin();
-                            } else {
-                                router.replace('/login');
-                            }
-                        }
-                    }
-                ]
-            );
+        try {
+            const response = await api.register(formData);
+            if (response.success) {
+                // En lugar de router.back()
+                if (onRegisterSuccess) {
+                    onRegisterSuccess(response.user);
+                } else {
+                    // Redirige directo a login (o a tabs si quieres loguear auto)
+                    router.replace('/login');  // o router.push('/login')
+                    // Si quieres ir directo al home después de registro:
+                    // router.replace('/(tabs)');
+                }
+                Alert.alert('Éxito', 'Cuenta creada correctamente. Revisa tu WhatsApp 📱');
+            }
         } catch (error: any) {
             console.error('❌ Error registro:', error);
             let msg = error.message || 'Error al crear la cuenta';
-            
+
             // Si el mensaje contiene "HTTP", extraer solo el JSON
             if (msg.includes('HTTP')) {
                 try {
@@ -179,7 +164,7 @@ export default function RegisterForm({
                     // Si no se puede parsear, usar el mensaje original
                 }
             }
-            
+
             Alert.alert('Error', msg);
         } finally {
             setIsLoading(false);
@@ -206,7 +191,7 @@ export default function RegisterForm({
     ) => {
         const hasError = !!formErrors[field];
         const isFocused = focusedField === field;
-        
+
         return (
             <View style={registerFormStyles.inputContainer}>
                 <View style={registerFormStyles.inputWrapper}>
@@ -229,7 +214,7 @@ export default function RegisterForm({
                         onFocus={() => setFocusedField(field)}
                         onBlur={() => setFocusedField(null)}
                     />
-                    
+
                     {options.showPasswordToggle && (
                         <TouchableOpacity
                             style={registerFormStyles.showPasswordButton}
@@ -243,16 +228,16 @@ export default function RegisterForm({
                             disabled={isProcessing}
                         >
                             <Text style={registerFormStyles.showPasswordText}>
-                                <MaterialIcons 
-                                    name={(field === 'password' ? showPassword : showConfirmPassword) ? 'visibility' : 'visibility-off'} 
-                                    size={24} 
-                                    color={IconColors.secondary} 
+                                <MaterialIcons
+                                    name={(field === 'password' ? showPassword : showConfirmPassword) ? 'visibility' : 'visibility-off'}
+                                    size={24}
+                                    color={IconColors.secondary}
                                 />
                             </Text>
                         </TouchableOpacity>
                     )}
                 </View>
-                
+
                 {hasError && (
                     <Text style={[themeStyles.errorText, registerFormStyles.fieldError]}>
                         {formErrors[field]}
@@ -271,8 +256,8 @@ export default function RegisterForm({
                 <View style={themeStyles.authContent}>
                     {/* Header con logo */}
                     <View style={registerFormStyles.headerContainer}>
-                        <Logo888Cargo 
-                            size="large" 
+                        <Logo888Cargo
+                            size="large"
                             showText={true}
                             textStyle={{ color: colors.textLight }}
                         />
@@ -285,26 +270,26 @@ export default function RegisterForm({
 
                         {/* Campos del formulario */}
                         {renderInput('name', 'Nombre')}
-                        
+
                         {renderInput('lastname', 'Apellido')}
-                        
+
                         {renderInput('email', 'Email', {
                             keyboardType: 'email-address',
                             autoCapitalize: 'none'
                         })}
-                        
+
                         {renderInput('phone', 'Teléfono (opcional)', {
                             keyboardType: 'phone-pad'
                         })}
-                        
+
                         {renderInput('country', 'País (opcional)')}
-                        
+
                         {renderInput('password', 'Contraseña', {
                             secureTextEntry: !showPassword,
                             showPasswordToggle: true,
                             autoCapitalize: 'none'
                         })}
-                        
+
                         {renderInput('confirmPassword', 'Confirmar contraseña', {
                             secureTextEntry: !showConfirmPassword,
                             showPasswordToggle: true,

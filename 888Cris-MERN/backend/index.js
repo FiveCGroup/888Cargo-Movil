@@ -1,4 +1,5 @@
 ﻿// backend/index.js
+dotenv.config({ path: './.env' });
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -6,7 +7,49 @@ import cookieParser from 'cookie-parser';
 import routes from './routes/index.js';
 import { CleanupTasks } from './tasks/cleanup.tasks.js';
 
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const envPath = path.join(__dirname, '.env');
+
+// Debug brutal para que veamos exactamente qué pasa
+console.log('🔥 RUTA ABSOLUTA DEL .env:', envPath);
+console.log('🔥 ¿EXISTE EL ARCHIVO?', fs.existsSync(envPath));
+if (fs.existsSync(envPath)) {
+  const stats = fs.statSync(envPath);
+  console.log('🔥 TAMAÑO:', stats.size, 'bytes');
+  console.log('🔥 CONTENIDO CRUDO (primeras líneas):');
+  const content = fs.readFileSync(envPath, 'utf8');
+  console.log(content.split('\n').slice(0, 10).join('\n')); // Muestra las primeras 10 líneas
+}
+
+// Forzamos la carga con opciones extras (ignoramos encoding raro)
+const result = dotenv.config({
+  path: envPath,
+  encoding: 'utf8',
+  debug: true  // Esto hace que dotenv imprima sus propios logs si falla
+});
+
+if (result.error) {
+  console.error('❌ FALLO AL CARGAR .env:', result.error.message);
+  console.error('❌ Posibles causas: permisos, encoding, o archivo corrupto');
+} else {
+  console.log('✅ .env CARGADO OK - Variables totales:', Object.keys(result.parsed || {}).length);
+}
+
+// Logs inmediatos de las vars clave
+console.log('WHATSAPP_ENABLED →', process.env.WHATSAPP_ENABLED);
+console.log('EMAIL_NOTIFICATIONS →', process.env.EMAIL_NOTIFICATIONS);
+console.log('TOKEN_SECRET (primeros 20) →', process.env.TOKEN_SECRET?.substring(0, 20));
+console.log('WHATSAPP_TOKEN (primeros 20) →', process.env.WHATSAPP_TOKEN?.substring(0, 20));
+
 const app = express();
+
 
 // Middlewares - CORS Permisivo en Desarrollo
 const isDevelopment = process.env.NODE_ENV !== 'production';
