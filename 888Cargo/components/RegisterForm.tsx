@@ -19,6 +19,7 @@ import Logo888Cargo from './Logo888Cargo';
 import { registerFormStyles } from '../styles/components/RegisterForm.styles';
 import { IconSizes, IconColors } from '../constants/Icons';
 import { api } from '../services/api';
+import { useCrossPlatformAlert } from '../hooks/useCrossPlatformAlert';
 
 interface RegisterFormProps {
     onRegisterSuccess?: (userData: any) => void;
@@ -42,6 +43,7 @@ export default function RegisterForm({
     loading: externalLoading
 }: RegisterFormProps) {
     const router = useRouter();
+    const { showAlert, AlertDialog } = useCrossPlatformAlert();
     const [formData, setFormData] = useState<RegisterData>({
         name: '',
         lastname: '',
@@ -128,7 +130,10 @@ export default function RegisterForm({
 
     const handleRegister = async () => {
         if (!validateForm()) {
-            Alert.alert('Error', 'Por favor corrige los errores en el formulario');
+            showAlert({
+                title: 'Error',
+                message: 'Por favor corrige los errores en el formulario'
+            });
             return;
         }
 
@@ -146,7 +151,10 @@ export default function RegisterForm({
                     // Si quieres ir directo al home después de registro:
                     // router.replace('/(tabs)');
                 }
-                Alert.alert('Éxito', 'Cuenta creada correctamente. Revisa tu WhatsApp 📱');
+                showAlert({
+                    title: 'Éxito',
+                    message: 'Cuenta creada correctamente. Revisa tu WhatsApp 📱'
+                });
             }
         } catch (error: any) {
             console.error('❌ Error registro:', error);
@@ -165,7 +173,10 @@ export default function RegisterForm({
                 }
             }
 
-            Alert.alert('Error', msg);
+            showAlert({
+                title: 'Error',
+                message: msg
+            });
         } finally {
             setIsLoading(false);
         }
@@ -175,7 +186,10 @@ export default function RegisterForm({
         if (onNavigateToLogin) {
             onNavigateToLogin();
         } else {
-            Alert.alert('Información', 'Funcionalidad de login pendiente');
+            showAlert({
+                title: 'Información',
+                message: 'Funcionalidad de login pendiente'
+            });
         }
     };
 
@@ -332,6 +346,7 @@ export default function RegisterForm({
                     </View>
                 </View>
             </ScrollView>
+            <AlertDialog />
         </KeyboardAvoidingView>
     );
 }
