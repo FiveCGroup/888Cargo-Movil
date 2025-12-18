@@ -49,6 +49,9 @@ const createTransporter = () => {
  */
 export const sendWelcomeEmail = async (email, name) => {
     try {
+        console.log('🔍 EMAIL_NOTIFICATIONS value:', JSON.stringify(process.env.EMAIL_NOTIFICATIONS));
+        console.log('🔍 EMAIL_NOTIFICATIONS === "true":', process.env.EMAIL_NOTIFICATIONS === 'true');
+
         if (process.env.EMAIL_NOTIFICATIONS !== 'true') {
             console.log('📧 Email notifications disabled');
             return { success: true, message: 'Email notifications disabled' };

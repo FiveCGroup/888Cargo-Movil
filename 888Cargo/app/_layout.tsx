@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { AuthProvider } from '../context/AuthContext';
 import 'react-native-reanimated';
+import { PaperProvider } from 'react-native-paper';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -40,7 +41,9 @@ function RootLayoutContent() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootLayoutContent />
+      <PaperProvider>
+        <RootLayoutContent />
+      </PaperProvider>
     </AuthProvider>
   );
 }

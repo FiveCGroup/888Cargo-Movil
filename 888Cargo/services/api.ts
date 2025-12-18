@@ -1,8 +1,54 @@
 // ===================================
 // 888CARGO MOBILE - SERVICIO API
 // ===================================
-
 import { API_CONFIG, getFullURL, DEBUG_MODE } from '../constants/API';
+
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+
+// Tipos para respuestas comunes (ajusta según tu backend)
+interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  user?: T;
+  token?: string;
+  userId?: number;
+}
+
+// Datos que envías al register (ajusta según tu form)
+interface RegisterData {
+  name: string;
+  lastname: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  phone?: string;
+  country?: string;
+}
+
+// Extiende la interfaz de AxiosInstance para agregar métodos custom
+declare module 'axios' {
+  interface AxiosInstance {
+    register: (data: RegisterData) => Promise<ApiResponse>;
+    // Si tienes más métodos custom, agrégalos aquí
+    // login: (credentials: LoginData) => Promise<ApiResponse<{ token: string; user: User }>>;
+    // recoverPassword: (email: string) => Promise<ApiResponse>;
+  }
+}
+
+// Crea la instancia
+const api = axios.create({
+  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:4000/api',
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Implementa el método register
+api.register = async (data: RegisterData) => {
+  const response = await api.post('/auth/register', data);
+  return response.data as ApiResponse;
+};
 
 /**
  * Configuración base para todas las peticiones HTTP
@@ -85,31 +131,6 @@ export const apiRequest = async (endpoint: string, method: string = 'GET', body?
 };
 
 /**
- * Métodos específicos para cada tipo de petición
- */
-export const api = {
-  // Petición GET
-  get: (endpoint: string, headers?: Record<string, string>) => 
-    apiRequest(endpoint, 'GET', undefined, headers),
-  
-  // Petición POST  
-  post: (endpoint: string, data?: any, headers?: Record<string, string>) =>
-    apiRequest(endpoint, 'POST', data, headers),
-  
-  // Petición PUT
-  put: (endpoint: string, data?: any, headers?: Record<string, string>) =>
-    apiRequest(endpoint, 'PUT', data, headers),
-  
-  // Petición DELETE
-  delete: (endpoint: string, headers?: Record<string, string>) =>
-    apiRequest(endpoint, 'DELETE', undefined, headers),
-  
-  // Petición PATCH
-  patch: (endpoint: string, data?: any, headers?: Record<string, string>) =>
-    apiRequest(endpoint, 'PATCH', data, headers)
-};
-
-/**
  * Función de prueba de conectividad
  */
 export const testConnection = async () => {
@@ -132,4 +153,4 @@ export const withAuth = (token: string) => ({
 });
 
 // Exportar configuración para depuración
-export { API_CONFIG, getFullURL, DEBUG_MODE };
+export { api };

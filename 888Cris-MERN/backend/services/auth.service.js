@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import databaseRepository from '../repositories/index.js';
 import { TOKEN_SECRET } from '../config.js';
+import { sendWelcomeEmail } from './emailService.js';
+import { sendWelcomeWhatsApp } from './whatsappService.js';
 
 const { users, roles, user_roles, recovery_tokens } = databaseRepository;
 
@@ -39,6 +41,21 @@ export const register = async (userData) => {
   const clienteRole = await roles.findOne({ name: 'cliente' });
   if (clienteRole) {
     await user_roles.create({ user_id: userId, role_id: clienteRole.id });
+  }
+
+  // Enviar notificaciones de bienvenida (no bloqueante para el registro)
+  try {
+    const emailResult = await sendWelcomeEmail(userData.email, userData.full_name);
+    console.log('📧 Email notification result:', emailResult);
+  } catch (error) {
+    console.error('❌ Error sending welcome email:', error);
+  }
+
+  try {
+    const whatsappResult = await sendWelcomeWhatsApp(userData.phone, userData.full_name);
+    console.log('📱 WhatsApp notification result:', whatsappResult);
+  } catch (error) {
+    console.error('❌ Error sending welcome WhatsApp:', error);
   }
 
   return { success: true, message: 'Usuario registrado', userId };

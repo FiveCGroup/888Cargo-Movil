@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, Text } from 'react-native';
-import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useAuthContext } from '@/context/AuthContext';
 import CustomAlert from '@/components/CustomAlert';
@@ -13,7 +12,6 @@ interface LogoutTabButtonProps {
 
 export function LogoutTabButton({ color = '#fff', focused }: LogoutTabButtonProps) {
   const { logout } = useAuthContext();
-  const router = useRouter();
   const [showAlert, setShowAlert] = useState(false);
 
   const handleLogoutPress = () => {
@@ -25,11 +23,11 @@ export function LogoutTabButton({ color = '#fff', focused }: LogoutTabButtonProp
     try {
       console.log('🚪 [LogoutTabButton] Ejecutando logout...');
       setShowAlert(false);
+
+      await logout();  // Cambia isAuthenticated → tu protection redirige sola
+      console.log('🚪 [LogoutTabButton] Logout completado - redirección automática');
       
-      await logout();
-      console.log('🚪 [LogoutTabButton] Logout completado, navegando a /login');
-      
-      router.replace('/login');
+      // NO uses router.replace ni dismissAll aquí tampoco
     } catch (error) {
       console.error('❌ [LogoutTabButton] Error:', error);
       setShowAlert(false);
@@ -39,6 +37,7 @@ export function LogoutTabButton({ color = '#fff', focused }: LogoutTabButtonProp
   const handleCancel = () => {
     console.log('🚪 [LogoutTabButton] Usuario canceló');
     setShowAlert(false);
+    // Solo cierra el alert
   };
 
   return (
@@ -68,16 +67,8 @@ export function LogoutTabButton({ color = '#fff', focused }: LogoutTabButtonProp
         message="¿Estás seguro que deseas cerrar sesión?"
         type="confirm"
         buttons={[
-          {
-            text: 'Cancelar',
-            style: 'cancel',
-            onPress: handleCancel,
-          },
-          {
-            text: 'Cerrar Sesión',
-            style: 'destructive',
-            onPress: handleConfirmLogout,
-          },
+          { text: 'Cancelar', style: 'cancel', onPress: handleCancel },
+          { text: 'Cerrar Sesión', style: 'destructive', onPress: handleConfirmLogout },
         ]}
         onClose={handleCancel}
       />

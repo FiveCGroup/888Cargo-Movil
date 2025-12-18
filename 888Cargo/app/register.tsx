@@ -15,6 +15,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../services/api';
+import { useCrossPlatformAlert } from '../hooks/useCrossPlatformAlert';
 
 // Códigos de país para el dropdown
 const COUNTRY_CODES = [
@@ -37,6 +38,7 @@ const COUNTRY_CODES = [
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { showAlert, AlertDialog } = useCrossPlatformAlert();
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
@@ -53,20 +55,32 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     // Validaciones rápidas
     if (!form.name || !form.lastname || !form.email || !form.phone || !form.password) {
-      Alert.alert('Error', 'Completa todos los campos obligatorios');
+      showAlert({
+        title: 'Error',
+        message: 'Completa todos los campos obligatorios'
+      });
       return;
     }
     if (form.password !== form.confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
+      showAlert({
+        title: 'Error',
+        message: 'Las contraseñas no coinciden'
+      });
       return;
     }
     if (form.password.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      showAlert({
+        title: 'Error',
+        message: 'La contraseña debe tener al menos 6 caracteres'
+      });
       return;
     }
     // Validar que el teléfono tenga al menos 7 dígitos
     if (form.phone.replace(/\D/g, '').length < 7) {
-      Alert.alert('Error', 'El teléfono debe tener al menos 7 dígitos');
+      showAlert({
+        title: 'Error',
+        message: 'El teléfono debe tener al menos 7 dígitos'
+      });
       return;
     }
 
@@ -86,16 +100,16 @@ export default function RegisterScreen() {
       console.log('✅ Registro exitoso:', response);
 
       // El backend NO devuelve token en el registro, hay que hacer login
-      Alert.alert(
-        'Registro exitoso', 
-        'Tu cuenta ha sido creada. Ahora debes iniciar sesión.',
-        [
-          { 
-            text: 'Ir a Login', 
+      showAlert({
+        title: 'Registro exitoso',
+        message: 'Tu cuenta ha sido creada. Ahora debes iniciar sesión.',
+        buttons: [
+          {
+            text: 'Ir a Login',
             onPress: () => router.replace('/login')
           }
         ]
-      );
+      });
 
     } catch (error: any) {
       console.error('❌ Error registro:', error);
@@ -114,7 +128,10 @@ export default function RegisterScreen() {
         }
       }
       
-      Alert.alert('Error', msg);
+      showAlert({
+        title: 'Error',
+        message: msg
+      });
     } finally {
       setLoading(false);
     }
@@ -217,6 +234,7 @@ export default function RegisterScreen() {
           <Text style={styles.linkText}>¿Ya tienes cuenta? Inicia sesión</Text>
         </TouchableOpacity>
       </View>
+      <AlertDialog />
     </ScrollView>
   );
 }
