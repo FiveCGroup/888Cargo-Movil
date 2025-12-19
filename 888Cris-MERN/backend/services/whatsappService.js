@@ -1,5 +1,5 @@
 /**
- * WhatsApp Service - Servicio para enviar notificaciones por WhatsApp usando WhatsApp Business API (Meta/360Dialog)
+ * WhatsApp Service - Servicio para enviar notificaciones por WhatsApp usando WhatsApp Business API (Meta)
  */
 
 import axios from 'axios';
@@ -13,8 +13,6 @@ const getWhatsAppConfig = () => {
     console.log('🔍 WHATSAPP_ENABLED === "true":', enabled);
 
     const token = process.env.WHATSAPP_TOKEN;
-    const instanceId = process.env.WHATSAPP_INSTANCE_ID;
-    const from = process.env.WHATSAPP_FROM;
     const baseUrl = process.env.WHATSAPP_BASE_URL || 'https://graph.facebook.com/v18.0';
     const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
@@ -28,7 +26,7 @@ const getWhatsAppConfig = () => {
         return null;
     }
 
-    return { token, instanceId, from, baseUrl, phoneNumberId };
+    return { token, baseUrl, phoneNumberId };
 };
 
 /**
@@ -126,86 +124,7 @@ export const sendWelcomeWhatsApp = async (phone, name) => {
     }
 };
 
-/**
- * Enviar confirmación de registro por WhatsApp con código de confirmación
- * @param {string} phone - Número de teléfono del usuario
- * @param {string} name - Nombre del usuario
- * @param {string} username - Username del usuario
- * @returns {Promise}
- */
-export const sendRegistrationConfirmationWhatsApp = async (phone, name, username) => {
-    try {
-        if (process.env.ENABLE_WHATSAPP_NOTIFICATIONS !== 'true') {
-            console.log('📱 WhatsApp notifications disabled');
-            return { success: true, message: 'WhatsApp notifications disabled' };
-        }
-
-        const client = getTwilioClient();
-        if (!client) {
-            return { success: false, message: 'Twilio not configured' };
-        }
-
-        const formattedPhone = formatPhoneNumber(phone);
-        if (!formattedPhone) {
-            return { success: false, message: 'Invalid phone number' };
-        }
-
-        const message = await client.messages.create({
-            from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`,
-            to: `whatsapp:${formattedPhone}`,
-            body: `✅ Registro Confirmado - 888Cargo\n\nHola ${name},\n\nTu cuenta ha sido creada exitosamente.\n\nDatos de acceso:\n• Usuario: ${username}\n• Email: Revisa tu correo para más detalles\n\nYa puedes acceder a la plataforma. ¡Que disfrutes! 🎉`
-        });
-
-        console.log('✅ Registration confirmation WhatsApp sent:', message.sid);
-        return { success: true, message: 'Registration confirmation WhatsApp sent', messageSid: message.sid };
-
-    } catch (error) {
-        console.error('❌ Error sending registration confirmation WhatsApp:', error.message);
-        return { success: false, message: error.message };
-    }
-};
-
-/**
- * Enviar notificación genérica por WhatsApp
- * @param {string} phone - Número de teléfono
- * @param {string} message - Mensaje a enviar
- * @returns {Promise}
- */
-export const sendWhatsAppMessage = async (phone, message) => {
-    try {
-        if (process.env.ENABLE_WHATSAPP_NOTIFICATIONS !== 'true') {
-            console.log('📱 WhatsApp notifications disabled');
-            return { success: true, message: 'WhatsApp notifications disabled' };
-        }
-
-        const client = getTwilioClient();
-        if (!client) {
-            return { success: false, message: 'Twilio not configured' };
-        }
-
-        const formattedPhone = formatPhoneNumber(phone);
-        if (!formattedPhone) {
-            return { success: false, message: 'Invalid phone number' };
-        }
-
-        const result = await client.messages.create({
-            from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`,
-            to: `whatsapp:${formattedPhone}`,
-            body: message
-        });
-
-        console.log('✅ WhatsApp message sent:', result.sid);
-        return { success: true, message: 'WhatsApp message sent', messageSid: result.sid };
-
-    } catch (error) {
-        console.error('❌ Error sending WhatsApp message:', error.message);
-        return { success: false, message: error.message };
-    }
-};
-
 export default {
     sendWelcomeWhatsApp,
-    sendRegistrationConfirmationWhatsApp,
-    sendWhatsAppMessage,
     formatPhoneNumber
 };
