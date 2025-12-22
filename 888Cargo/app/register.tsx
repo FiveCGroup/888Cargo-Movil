@@ -18,6 +18,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../services/api';
 import { useCrossPlatformAlert } from '../hooks/useCrossPlatformAlert';
 import CountryFlag from 'react-native-country-flag';
+import { MaterialIcons } from '@expo/vector-icons';
+import { styles } from '../styles/components/register.styles';
 
 // Códigos de país ampliados para empresas de importaciones
 const COUNTRY_CODES = [
@@ -258,6 +260,8 @@ export default function RegisterScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [filteredCountries, setFilteredCountries] = useState(COUNTRY_CODES);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   React.useEffect(() => {
     const filtered = COUNTRY_CODES.filter(item =>
@@ -466,21 +470,57 @@ export default function RegisterScreen() {
           maxLength={selectedCountry?.phoneLength || 10}
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña *"
-          value={form.password}
-          onChangeText={v => setForm({ ...form, password: v })}
-          secureTextEntry
-        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={{
+              flex: 1,
+              color: '#0b2032',
+              fontSize: 16,
+              paddingRight: 10,
+            }}
+            placeholder="Contraseña *"
+            placeholderTextColor="#0b2032"
+            value={form.password}
+            onChangeText={v => setForm({ ...form, password: v })}
+            secureTextEntry={!showPassword}
+          />
+          <TouchableOpacity
+            style={styles.eyeButton}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <MaterialIcons
+              name={showPassword ? 'visibility' : 'visibility-off'}
+              size={24}
+              color="#0b2032"
+            />
+          </TouchableOpacity>
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Confirmar contraseña *"
-          value={form.confirmPassword}
-          onChangeText={v => setForm({ ...form, confirmPassword: v })}
-          secureTextEntry
-        />
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={{
+              flex: 1,
+              color: '#0b2032',
+              fontSize: 16,
+              paddingRight: 10,
+            }}
+            placeholder="Confirmar contraseña *"
+            placeholderTextColor="#0b2032"
+            value={form.confirmPassword}
+            onChangeText={v => setForm({ ...form, confirmPassword: v })}
+            secureTextEntry={!showConfirmPassword}
+          />
+          <TouchableOpacity
+            style={styles.eyeButton}
+            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+          >
+            <MaterialIcons
+              name={showConfirmPassword ? 'visibility' : 'visibility-off'}
+              size={24}
+              color="#0b2032"
+            />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity
           style={[styles.btn, loading && styles.btnDisabled]}
@@ -505,112 +545,3 @@ export default function RegisterScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#0b2032',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0b2032',
-    textAlign: 'center',
-    marginBottom: 30,
-    lineHeight: 24,
-  },
-  input: {
-    backgroundColor: '#e9ebef',
-    color: '#0b2032',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 16,
-    fontSize: 16,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0b2032',
-    marginBottom: 8,
-  },
-  pickerContainer: {
-    backgroundColor: '#e9ebef',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  pickerText: {
-    fontSize: 16,
-    color: '#0b2032',
-  },
-  modalContainer: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
-  },
-  searchInput: {
-    backgroundColor: '#e9ebef',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 16,
-    fontSize: 16,
-  },
-  countryItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ebef',
-  },
-  countryText: {
-    fontSize: 16,
-    color: '#0b2032',
-  },
-  closeButton: {
-    backgroundColor: '#0f77c5',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  closeButtonText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  btn: {
-    backgroundColor: '#0f77c5',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-  btnText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  linkContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: '#0f77c5',
-    fontSize: 14,
-  },
-});
