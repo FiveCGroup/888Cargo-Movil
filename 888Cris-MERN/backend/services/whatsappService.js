@@ -81,10 +81,10 @@ export const sendWelcomeWhatsApp = async (phone, name) => {
 
         const messageData = {
             messaging_product: "whatsapp",
-            to: formattedPhone.replace('', '+'), // con el +
+            to: formattedPhone,
             type: 'template',
             template: {
-                name: 'bienvenida_registro',
+                name: 'registro_exitoso_888cargo',
                 language: {
                     code: 'es_CO',
                     policy: 'deterministic'
