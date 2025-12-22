@@ -31,7 +31,7 @@ const getWhatsAppConfig = () => {
 
 /**
  * Validar formato de teléfono y convertir a formato E.164 si es necesario
- * @param {string} phone - Número de teléfono
+ * @param {string} phone - Número de teléfono (debe incluir código de país, ej. +57XXXXXXXXXX)
  * @returns {string} - Número en formato E.164 (+XXXXXXXXXXX)
  */
 const formatPhoneNumber = (phone) => {
@@ -40,28 +40,25 @@ const formatPhoneNumber = (phone) => {
     // Remover espacios, guiones, paréntesis
     let cleaned = phone.replace(/[\s\-\(\)]/g, '');
     
-    // Si comienza con +, asumir que ya está en formato correcto
+    // Si ya comienza con +, asumir que está en formato correcto (E.164)
     if (cleaned.startsWith('+')) {
+        // Validar longitud básica (mínimo 10 dígitos después de +)
+        if (cleaned.length < 11) {
+            console.warn('Número de teléfono demasiado corto:', cleaned);
+            return null;
+        }
         return cleaned;
     }
     
-    // Si comienza con 0, remover el 0 y agregar +57 (Colombia por defecto)
-    if (cleaned.startsWith('0')) {
-        cleaned = cleaned.substring(1);
+    // Si no tiene +, intentar agregar código de país basado en prefijo (opcional, pero no forzar +57)
+    // Para Colombia (si comienza con 3), agregar +57
+    if (cleaned.startsWith('3') && cleaned.length === 10) {
+        return '+57' + cleaned;
     }
     
-    // Si no comienza con +, agregar código de país
-    if (!cleaned.startsWith('+')) {
-        // Asegurar que es un número de celular válido (comienza con 3 para Colombia)
-        if (cleaned.startsWith('3')) {
-            cleaned = '+57' + cleaned;
-        } else {
-            // Código por defecto para números cortos
-            cleaned = '+57' + cleaned;
-        }
-    }
-    
-    return cleaned;
+    // Para otros países, requerir que el usuario ingrese el + manualmente
+    console.warn('Número sin código de país (+). Ingrese el número completo con código internacional (ej. +1XXXXXXXXXX):', cleaned);
+    return null; // O lanza error para forzar corrección
 };
 
 /**
@@ -84,7 +81,7 @@ export const sendWelcomeWhatsApp = async (phone, name) => {
 
         const messageData = {
             messaging_product: "whatsapp",
-            to: formattedPhone.replace('+', ''), // Sin el +
+            to: formattedPhone.replace('', '+'), // con el +
             type: 'template',
             template: {
                 name: 'bienvenida_registro',
