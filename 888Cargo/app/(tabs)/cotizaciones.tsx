@@ -144,7 +144,52 @@ export default function CotizacionesScreen() {
     setLoadingPDF(true);
 
     try {
-      // Generar el PDF usando el servicio
+      // Para web: solicitar PDF al backend (Puppeteer) para obtener descarga consistente
+      if (Platform.OS === 'web') {
+        try {
+          const endpoint = (await import('../../constants/API')).getFullURL('/cotizaciones/pdf');
+          const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tipo: tipoCotizacion,
+              payload: {
+                largo_cm: parseFloat(largo),
+                ancho_cm: parseFloat(ancho),
+                alto_cm: parseFloat(alto),
+                peso_kg: parseFloat(peso),
+              },
+              resultado,
+              detalleCalculo: resultado.detalleCalculo,
+              user
+            }),
+          });
+
+          if (!resp.ok) {
+            const text = await resp.text();
+            throw new Error(text || 'Error generando PDF en el servidor');
+          }
+
+          const blob = await resp.blob();
+          const fileName = `Cotizacion_${(user && (user.name || user.email) || 'Usuario').replace(/[^a-zA-Z0-9-_ ]/g,'').replace(/\s+/g,'_')}.pdf`;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          Alert.alert('Éxito', 'PDF descargado correctamente');
+          return;
+        } catch (webErr) {
+          console.error('Error descargando PDF desde backend:', webErr);
+          Alert.alert('Error', webErr.message || 'No se pudo descargar el PDF desde el servidor');
+          return;
+        }
+      }
+
+      // Generar el PDF usando el servicio (nativo/móvil)
       const pdfResult = await cotizacionService.generarPDF({
         tipo: tipoCotizacion,
         payload: {
@@ -169,18 +214,84 @@ export default function CotizacionesScreen() {
         if (Platform.OS === 'web' && pdfResult.isHtml && pdfResult.pdfUri) {
           try {
             const blobUrl = pdfResult.pdfUri;
+            // Intentar convertir HTML a PDF usando jsPDF + html2canvas si está disponible
             const safeUser = (user && (user.name || user.email)) || 'Usuario';
-            const fileNameHtml = `Cotizacion_${safeUser.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g,'_')}.html`;
-            // Intentar forzar descarga
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            link.download = fileNameHtml;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            // además abrir en nueva pestaña para que el usuario pueda imprimir/guardar como PDF si lo desea
-            window.open(blobUrl, '_blank');
-            Alert.alert('Archivo generado', 'Se ha abierto una nueva pestaña con la cotización. Puedes guardarla o imprimirla desde allí.');
+            const fileNamePdf = `Cotizacion_${safeUser.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/\s+/g,'_')}.pdf`;
+
+            // Cargar dinámicamente las librerías si no están importadas
+            let jsPDFModule: any = null;
+            let html2canvasModule: any = null;
+            try {
+              jsPDFModule = (await import('jspdf')).jsPDF || (await import('jspdf'));
+              html2canvasModule = (await import('html2canvas')).default || (await import('html2canvas'));
+            } catch (libErr) {
+              console.warn('No se pudo cargar jsPDF/html2canvas dinámicamente, se abrirá HTML en nueva pestaña:', libErr);
+              const link = document.createElement('a');
+              link.href = blobUrl;
+              link.target = '_blank';
+              document.body.appendChild(link);
+              link.click();
+              link.remove();
+              Alert.alert('Archivo generado', 'Se ha abierto la cotización en una nueva pestaña. Instala jspdf/html2canvas para descarga automática como PDF.');
+              return;
+            }
+
+            // Obtener el HTML como texto
+            const resp = await fetch(blobUrl);
+            const htmlText = await resp.text();
+
+            // Crear un iframe oculto para renderizar el HTML y esperar a que carguen recursos
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.left = '-9999px';
+            iframe.style.top = '0';
+            iframe.style.width = '800px';
+            iframe.style.height = '1120px';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+
+            const doc = iframe.contentWindow?.document;
+            if (!doc) {
+              throw new Error('No se pudo acceder al documento del iframe');
+            }
+
+            doc.open();
+            doc.write(htmlText);
+            doc.close();
+
+            // Esperar a que termine de cargar recursos (imágenes, fuentes)
+            await new Promise<void>((resolve) => {
+              const win = iframe.contentWindow as any;
+              if (win && win.document && win.document.readyState === 'complete') return resolve();
+              iframe.onload = () => setTimeout(() => resolve(), 300);
+              // Fallback timeout
+              setTimeout(() => resolve(), 1500);
+            });
+
+            const target = iframe.contentDocument?.body || iframe.contentWindow?.document?.body;
+            if (!target) {
+              document.body.removeChild(iframe);
+              throw new Error('No se pudo obtener el body del iframe para renderizar');
+            }
+
+            // Renderizar con html2canvas sobre el contenido real renderizado
+            const canvas = await html2canvasModule(target, {
+              scale: 2,
+              useCORS: true,
+              allowTaint: false,
+              logging: false,
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+
+            // Generar PDF con jsPDF
+            const pdf = new jsPDFModule({ unit: 'px', format: [canvas.width, canvas.height] });
+            pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(fileNamePdf);
+
+            // limpiar
+            try { document.body.removeChild(iframe); } catch (e) { /* ignore */ }
+            Alert.alert('Éxito', 'PDF generado y descargado');
           } catch (err) {
             console.error('Error manejando HTML blob en web:', err);
             Alert.alert('Archivo generado', `Archivo disponible: ${pdfResult.pdfUri || 'ver consola'}`);

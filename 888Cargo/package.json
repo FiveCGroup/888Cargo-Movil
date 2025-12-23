@@ -53,6 +53,10 @@
     "react-native-web": "^0.21.0",
     "react-native-webview": "13.15.0"
   },
+  "optionalDependencies": {
+    "html2canvas": "^1.4.1",
+    "jspdf": "npm:null@^3.6.6"
+  },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.1.10",

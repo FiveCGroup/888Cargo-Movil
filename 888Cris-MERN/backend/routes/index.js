@@ -25,6 +25,8 @@ import {
   generarPDFCarga
 } from '../controllers/qr.controller.js';
 
+import puppeteer from 'puppeteer';
+
 import {
   misCargas,
   detalleCarga
@@ -195,6 +197,107 @@ router.post('/cotizaciones/aereo', async (req, res) => {
   } catch (error) {
     console.error('Error cotización aérea:', error);
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Generar PDF de cotización (server-side, usa Puppeteer para consistencia en navegadores)
+router.post('/cotizaciones/pdf', async (req, res) => {
+  try {
+    const { tipo = 'maritimo', payload = {}, resultado = {}, detalleCalculo = {}, user = {} } = req.body;
+    const userName = (user && (user.name || user.username || user.email)) || 'Usuario';
+
+    // Plantilla HTML compacta y con estilo (mantiene el look & feel)
+    const esMaritimo = tipo === 'maritimo';
+    const tipoTexto = esMaritimo ? 'Marítimo LCL' : 'Aéreo';
+
+    const formatCOP = (v) => {
+      try { return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(v)); } catch { return v || '-'; }
+    };
+    const formatUSD = (v) => {
+      try { return Number(v) ? Number(v).toFixed(2) : '-'; } catch { return v || '-'; }
+    };
+
+    const formattedCOP = formatCOP(resultado.valor_cop);
+    const formattedUSD = formatUSD(resultado.valor_usd);
+
+    const html = `<!doctype html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Cotización - ${userName}</title>
+      <style>
+        body{font-family:"Helvetica",Arial,sans-serif;background:#fff;color:#1f2937;margin:0;padding:0}
+        .page{max-width:800px;margin:18px auto;padding:18px}
+        .card{border-radius:12px;overflow:hidden;border:1px solid #e6eef8}
+        .header{background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);color:#fff;padding:20px 24px}
+        .logo{font-weight:800;font-size:20px}
+        .subtitle{opacity:0.95;font-size:13px;margin-top:6px}
+        .content{padding:18px}
+        .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+        .info{background:#fbfdff;padding:12px;border-radius:8px;border:1px solid #eef4fb}
+        .label{font-size:12px;color:#64748b;font-weight:700}
+        .value{font-size:16px;color:#0f1724;font-weight:800;margin-top:6px}
+        .total{background:linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%);color:#fff;padding:18px;text-align:center;border-radius:8px;margin-top:12px}
+        .total-amount{font-size:36px;font-weight:900}
+        .footer{padding:12px 18px;background:#f8fafc;border-top:1px solid #e9eef6;color:#64748b;font-size:12px}
+        @media print{ .page{margin:6mm auto} }
+      </style>
+    </head>
+    <body>
+      <div class="page">
+        <div class="card">
+          <div class="header">
+            <div class="logo">888 CARGO</div>
+            <div class="subtitle">Cotización para: ${userName} — ${tipoTexto}</div>
+          </div>
+          <div class="content">
+            <div style="margin-bottom:10px;font-size:14px;color:#334155;font-weight:700">Información esencial</div>
+            <div class="grid">
+              <div class="info"><div class="label">Largo</div><div class="value">${payload.largo_cm || '-' } cm</div></div>
+              <div class="info"><div class="label">Ancho</div><div class="value">${payload.ancho_cm || '-' } cm</div></div>
+              <div class="info"><div class="label">Alto</div><div class="value">${payload.alto_cm || '-' } cm</div></div>
+              <div class="info"><div class="label">Peso</div><div class="value">${payload.peso_kg || '-' } kg</div></div>
+            </div>
+
+            <div style="margin-top:14px;margin-bottom:6px;font-size:14px;color:#334155;font-weight:700">Resumen</div>
+            <div class="grid">
+              <div class="info"><div class="label">Volumen</div><div class="value">${resultado.volumen_m3 || '-' } m³</div></div>
+              <div class="info"><div class="label">Tiempo estimado</div><div class="value">${resultado.tiempo_estimado || '-' }</div></div>
+            </div>
+
+            <div class="total">
+              <div class="label">COSTO ESTIMADO</div>
+              <div class="total-amount">${formattedCOP}</div>
+              <div style="opacity:0.9;margin-top:6px;font-size:13px">USD ${formattedUSD} · TRM ${resultado.trm || '-'}</div>
+            </div>
+          </div>
+          <div class="footer">
+            888 CARGO · contacto@888cargo.com · WhatsApp: +57 321 706 1517
+          </div>
+          <div style="padding:16px 18px;">
+            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:15px;margin-top:12px;font-size:12px;color:#991b1b;text-align:left;">
+              <strong>IMPORTANTE:</strong> Esta cotización es un estimado basado en la información proporcionada y está sujeta a verificación. Los precios pueden variar según temporada, peso exacto verificado, servicios adicionales requeridos y condiciones del mercado. Para cotización definitiva, contacte a nuestro equipo comercial.
+            </div>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>`;
+
+    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '12mm', bottom: '12mm' } });
+    await browser.close();
+
+    const safeName = `Cotizacion_${userName.replace(/[^a-zA-Z0-9-_ ]/g,'').replace(/\s+/g,'_')}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeName}"`);
+    return res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error generando PDF server-side:', error);
+    return res.status(500).json({ success: false, message: 'Error generando PDF' });
   }
 });
 

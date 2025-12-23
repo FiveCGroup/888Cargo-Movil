@@ -139,21 +139,27 @@ export const cotizarMaritimo = async (req, res) => {
         resultado.id = cotizacionId;
         console.log(`✅ Cotización guardada con ID: ${cotizacionId}`);
 
-        // Enviar PDF por WhatsApp
-        // try {
-        //   const user = await databaseRepository.users.findById(req.userId);
-        //   if (user && user.phone) {
-        //     const pdfBuffer = await generarPDFCotizacion(resultado);
-        //     const pdfPath = path.join(process.cwd(), 'uploads', `cotizacion_${cotizacionId}.pdf`);
-        //     fs.writeFileSync(pdfPath, pdfBuffer);
-        //     const baseUrl = process.env.BASE_URL || 'http://localhost:4000';
-        //     const pdfUrl = `${baseUrl}/uploads/cotizacion_${cotizacionId}.pdf`;
-        //     await sendDocumentWhatsApp(user.phone, pdfUrl, 'Tu cotización de envío 888Cargo');
-        //     console.log('✅ PDF enviado por WhatsApp');
-        //   }
-        // } catch (error) {
-        //   console.error('⚠️ Error enviando PDF por WhatsApp:', error);
-        // }
+        // Enviar PDF por WhatsApp (si el usuario tiene teléfono)
+        try {
+          const user = await databaseRepository.users.findById(req.userId);
+          if (user && user.phone) {
+            const pdfBuffer = await generarPDFCotizacion(resultado);
+            const uploadsDir = path.join(process.cwd(), 'uploads');
+            if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+            const pdfPath = path.join(uploadsDir, `cotizacion_${cotizacionId}.pdf`);
+            fs.writeFileSync(pdfPath, pdfBuffer);
+            const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 4000}`;
+            const pdfUrl = `${baseUrl}/uploads/cotizacion_${cotizacionId}.pdf`;
+            const sendResp = await sendDocumentWhatsApp(user.phone, pdfUrl, 'Tu cotización de envío 888Cargo');
+            if (sendResp && sendResp.success) {
+              console.log('✅ PDF enviado por WhatsApp');
+            } else {
+              console.warn('⚠️ WhatsApp send responded with error:', sendResp);
+            }
+          }
+        } catch (error) {
+          console.error('⚠️ Error enviando PDF por WhatsApp:', error);
+        }
       } catch (dbError) {
         console.error('⚠️ Error guardando cotización en BD:', dbError);
         // No fallar la respuesta, solo loguear
