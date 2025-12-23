@@ -31,7 +31,7 @@ const getWhatsAppConfig = () => {
 
 /**
  * Validar formato de teléfono y convertir a formato E.164 si es necesario
- * @param {string} phone - Número de teléfono (debe incluir código de país, ej. +57XXXXXXXXXX)
+ * @param {string} phone - Número de teléfono (puede incluir código de país o no)
  * @returns {string} - Número en formato E.164 (+XXXXXXXXXXX)
  */
 const formatPhoneNumber = (phone) => {
@@ -42,16 +42,21 @@ const formatPhoneNumber = (phone) => {
     
     // Si ya comienza con +, asumir que está en formato correcto (E.164)
     if (cleaned.startsWith('+')) {
-        // Validar longitud básica (mínimo 10 dígitos después de +)
-        if (cleaned.length < 11) {
+        // Validar longitud básica (mínimo 7 dígitos total para números válidos)
+        if (cleaned.length < 7) {
             console.warn('Número de teléfono demasiado corto:', cleaned);
             return null;
         }
         return cleaned;
     }
     
-    // Si no tiene +, intentar agregar código de país basado en prefijo (opcional, pero no forzar +57)
-    // Para Colombia (si comienza con 3), agregar +57
+    // Si no tiene +, intentar agregar código de país basado en prefijo
+    // Estados Unidos/Canadá (+1) - si comienza con 1 y tiene 10 dígitos
+    if (cleaned.startsWith('1') && cleaned.length === 11) {
+        return '+1' + cleaned.substring(1);
+    }
+    
+    // Colombia (+57) - si comienza con 3 y tiene 10 dígitos
     if (cleaned.startsWith('3') && cleaned.length === 10) {
         return '+57' + cleaned;
     }
@@ -79,6 +84,17 @@ export const sendWelcomeWhatsApp = async (phone, name) => {
             return { success: false, message: 'Invalid phone number' };
         }
 
+        // Determinar el lenguaje basado en el código de país
+        const hispanicCodes = ['+57', '+34', '+52', '+54', '+56', '+58', '+591', '+503', '+505', '+506', '+507', '+51', '+53', '+595', '+598', '+593', '+502', '+504'];
+        let language = 'en_CO'; // Inglés por defecto para países no hispanohablantes ni chinos
+        if (hispanicCodes.some(code => formattedPhone.startsWith(code))) {
+            language = 'es_CO'; // Español para países hispanohablantes
+        } else if (formattedPhone.startsWith('+86')) {
+            language = 'es_CO'; // Chino simplificado para China
+        } else if (formattedPhone.startsWith('+1')) {
+            language = 'es_CO'; // Usar español aprobado para EE.UU. mientras se aprueba en_US
+        }
+
         const messageData = {
             messaging_product: "whatsapp",
             to: formattedPhone,
@@ -86,7 +102,7 @@ export const sendWelcomeWhatsApp = async (phone, name) => {
             template: {
                 name: 'registro_exitoso_888cargo',
                 language: {
-                    code: 'es_CO',
+                    code: language,
                     policy: 'deterministic'
                 },
                 components: [
