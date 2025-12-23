@@ -1,4 +1,9 @@
 import { Cotizacion } from '../models/Cotizacion.js';
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
+import { sendDocumentWhatsApp } from '../services/whatsappService.js';
+import databaseRepository from '../repositories/index.js';
 
 // Configuración de logística (misma que en el frontend)
 const LOGISTICA_CONFIG = {
@@ -24,12 +29,41 @@ const LOGISTICA_CONFIG = {
   CAPACIDAD_CONTENEDOR_M3: 68,
 };
 
+// Función para generar PDF de cotización
+const generarPDFCotizacion = (cotizacionData) => {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument();
+    const buffers = [];
+    
+    doc.on('data', buffers.push.bind(buffers));
+    doc.on('end', () => {
+      const pdfData = Buffer.concat(buffers);
+      resolve(pdfData);
+    });
+    
+    // Contenido del PDF
+    doc.fontSize(20).text('888CARGO - Cotización de Envío', { align: 'center' });
+    doc.moveDown();
+    
+    doc.fontSize(14).text(`Tipo: ${cotizacionData.tipo}`);
+    doc.text(`Destino: ${cotizacionData.destino}`);
+    doc.text(`Volumen: ${cotizacionData.volumen_m3} m³`);
+    doc.text(`Peso: ${cotizacionData.peso_kg} kg`);
+    doc.text(`Valor USD: ${cotizacionData.valor_usd}`);
+    doc.text(`Valor COP: ${cotizacionData.valor_cop}`);
+    
+    doc.end();
+  });
+};
+
 // Calcular cotización marítima
 export const cotizarMaritimo = async (req, res) => {
   try {
     console.log('📦 [Cotización Marítima] Solicitud recibida:', req.body);
+    console.log('📦 [Cotización Marítima] Usuario autenticado:', !!req.userId, req.userId);
     
     const { largo_cm, ancho_cm, alto_cm, peso_kg, destino = 'China' } = req.body;
+    console.log('📦 [Cotización Marítima] Destino:', destino);
 
     // Validaciones
     if (!largo_cm || !ancho_cm || !alto_cm || !peso_kg) {
@@ -104,6 +138,22 @@ export const cotizarMaritimo = async (req, res) => {
         });
         resultado.id = cotizacionId;
         console.log(`✅ Cotización guardada con ID: ${cotizacionId}`);
+
+        // Enviar PDF por WhatsApp
+        // try {
+        //   const user = await databaseRepository.users.findById(req.userId);
+        //   if (user && user.phone) {
+        //     const pdfBuffer = await generarPDFCotizacion(resultado);
+        //     const pdfPath = path.join(process.cwd(), 'uploads', `cotizacion_${cotizacionId}.pdf`);
+        //     fs.writeFileSync(pdfPath, pdfBuffer);
+        //     const baseUrl = process.env.BASE_URL || 'http://localhost:4000';
+        //     const pdfUrl = `${baseUrl}/uploads/cotizacion_${cotizacionId}.pdf`;
+        //     await sendDocumentWhatsApp(user.phone, pdfUrl, 'Tu cotización de envío 888Cargo');
+        //     console.log('✅ PDF enviado por WhatsApp');
+        //   }
+        // } catch (error) {
+        //   console.error('⚠️ Error enviando PDF por WhatsApp:', error);
+        // }
       } catch (dbError) {
         console.error('⚠️ Error guardando cotización en BD:', dbError);
         // No fallar la respuesta, solo loguear
@@ -203,6 +253,22 @@ export const cotizarAereo = async (req, res) => {
         });
         resultado.id = cotizacionId;
         console.log(`✅ Cotización guardada con ID: ${cotizacionId}`);
+
+        // Enviar PDF por WhatsApp
+        try {
+          const user = await databaseRepository.users.findById(req.userId);
+          if (user && user.phone) {
+            const pdfBuffer = await generarPDFCotizacion(resultado);
+            const pdfPath = path.join(process.cwd(), 'uploads', `cotizacion_${cotizacionId}.pdf`);
+            fs.writeFileSync(pdfPath, pdfBuffer);
+            const baseUrl = process.env.BASE_URL || 'http://localhost:4000';
+            const pdfUrl = `${baseUrl}/uploads/cotizacion_${cotizacionId}.pdf`;
+            await sendDocumentWhatsApp(user.phone, pdfUrl, 'Tu cotización de envío 888Cargo');
+            console.log('✅ PDF enviado por WhatsApp');
+          }
+        } catch (error) {
+          console.error('⚠️ Error enviando PDF por WhatsApp:', error);
+        }
       } catch (dbError) {
         console.error('⚠️ Error guardando cotización en BD:', dbError);
       }

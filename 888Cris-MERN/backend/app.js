@@ -118,6 +118,7 @@ app.get('/api/health', (req, res) => {
 // Endpoint de prueba POST
 app.post('/api/test-post', (req, res) => {
     try {
+        console.log('🧪 [Test POST] Body recibido:', req.body);
         res.json({
             status: 'success',
             message: 'POST funcionando correctamente',

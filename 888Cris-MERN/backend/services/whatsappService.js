@@ -137,7 +137,54 @@ export const sendWelcomeWhatsApp = async (phone, name) => {
     }
 };
 
+/**
+ * Enviar documento (PDF) por WhatsApp
+ * @param {string} phone - Número de teléfono del usuario
+ * @param {string} documentUrl - URL del documento a enviar
+ * @param {string} caption - Texto opcional para el documento
+ * @returns {Promise}
+ */
+export const sendDocumentWhatsApp = async (phone, documentUrl, caption = '') => {
+    try {
+        const config = getWhatsAppConfig();
+        if (!config) {
+            return { success: false, message: 'WhatsApp not configured' };
+        }
+
+        const formattedPhone = formatPhoneNumber(phone);
+        if (!formattedPhone) {
+            return { success: false, message: 'Invalid phone number' };
+        }
+
+        const messageData = {
+            messaging_product: "whatsapp",
+            to: formattedPhone,
+            type: 'document',
+            document: {
+                link: documentUrl,
+                caption: caption
+            }
+        };
+
+        const response = await axios.post(`${config.baseUrl}/${config.phoneNumberId}/messages`, messageData, {
+            headers: {
+                'Authorization': `Bearer ${config.token}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: parseInt(process.env.WHATSAPP_TIMEOUT) || 30000
+        });
+
+        console.log('✅ Document WhatsApp message sent:', response.data);
+        return { success: true, message: 'Document WhatsApp message sent', messageId: response.data.messages?.[0]?.id };
+
+    } catch (error) {
+        console.error('❌ Error sending document WhatsApp:', error.response?.data || error.message);
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+};
+
 export default {
     sendWelcomeWhatsApp,
+    sendDocumentWhatsApp,
     formatPhoneNumber
 };

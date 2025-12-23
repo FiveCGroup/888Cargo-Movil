@@ -4,6 +4,7 @@ import CotizacionForm from '../components/cotizacion/CotizacionForm';
 import ResultadoCotizacion from '../components/cotizacion/ResultCotizacion';
 import BotonDescargarCotizacion from '../components/cotizacion/DescargarCoti';
 import ModalRegistroRequerido from '../components/cotizacion/ModalRegistro';
+import { router } from 'expo-router';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -87,8 +88,7 @@ const CotizacionScreen = () => {
         onCerrar={() => setMostrarModalRegistro(false)}
         onIrRegistro={() => {
           setMostrarModalRegistro(false);
-          // Aquí navegarás a tu screen de registro
-          alert('Navegar a registro...');
+          router.push('/register');
         }}
       />
 

@@ -17,16 +17,17 @@ export const authRequired = (req, res, next) => {
     
     console.log('📱 [AuthMiddleware] Es solicitud móvil:', isMobileRequest);
     
-    const token = req.cookies.token;
+    const token = req.cookies.token || req.headers.authorization?.replace('Bearer ', '');
         
     if (!token || token === 'undefined') {
-        console.log('❌ [AuthMiddleware] No hay token válido en cookies');
+        console.log('❌ [AuthMiddleware] No hay token válido en cookies ni Authorization header');
         return res.status(401).json({ message: 'No hay token, acceso denegado' });
     }
     
     try {
         const decoded = jwt.verify(token, TOKEN_SECRET);
         req.user = decoded;
+        req.userId = decoded.id; // Para compatibilidad
         req.isMobileRequest = isMobileRequest;
         console.log('✅ [AuthMiddleware] Token válido para usuario:', decoded.id, isMobileRequest ? '(MÓVIL)' : '(WEB)');
         next();

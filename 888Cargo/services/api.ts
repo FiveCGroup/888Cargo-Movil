@@ -4,6 +4,7 @@
 import { API_CONFIG, getFullURL, DEBUG_MODE } from '../constants/API';
 
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Tipos para respuestas comunes (ajusta según tu backend)
 interface ApiResponse<T = any> {
@@ -37,12 +38,42 @@ declare module 'axios' {
 
 // Crea la instancia
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:4000/api',
+  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:4000/api',
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Interceptor para extraer data automáticamente
+api.interceptors.response.use(
+  (response) => {
+    console.log('📡 [API] Response success:', response.status, response.data);
+    return response.data;
+  },
+  (error) => {
+    console.error('📡 [API] Response error:', error.response?.status, error.response?.data);
+    return Promise.reject(error.response?.data || error);
+  }
+);
+
+// Interceptor para agregar token de autenticación
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      const token = await AsyncStorage.getItem('@auth:token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Error obteniendo token:', error);
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Implementa el método register
 api.register = async (data: RegisterData) => {

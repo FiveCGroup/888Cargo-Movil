@@ -43,7 +43,8 @@ const CotizacionForm: React.FC<Props> = ({ usuarioLogueado, onCotizado, onRequie
       const resp = await cotizacionService.cotizarEnvio(tipoEnvio, payload, usuarioLogueado);
 
       if (!resp || resp.success === false) {
-        const msg = resp?.error?.message || 'Error al obtener cotización';
+        const r = resp as any;
+        const msg = (r && r.error && typeof r.error === 'object' && 'message' in r.error) ? r.error.message : (r?.error || 'Error al obtener cotización');
         alert(msg);
         setCargando(false);
         return;
