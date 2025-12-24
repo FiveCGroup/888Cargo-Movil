@@ -40,19 +40,34 @@ const CotizacionForm: React.FC<Props> = ({ usuarioLogueado, onCotizado, onRequie
     };
 
     try {
+      console.log('[CotizacionForm] usuarioLogueado:', usuarioLogueado);
+
+      // Si el usuario no está logueado, guardar borrador y pedir registro
+      if (!usuarioLogueado) {
+        try {
+          await cotizacionService.guardarDatosTemporales(tipoEnvio, payload, null);
+        } catch (e) {
+          console.warn('[CotizacionForm] No se pudo guardar borrador:', e);
+        }
+        onRequiereRegistro();
+        setCargando(false);
+        return;
+      }
+
       const resp = await cotizacionService.cotizarEnvio(tipoEnvio, payload, usuarioLogueado);
+
+      // Manejar primeramente el caso en que el servicio requiere registro
+      if (resp && resp.requiereRegistro) {
+        onRequiereRegistro();
+        // el servicio ya guardó borrador; no llamar onCotizado con datos incompletos
+        setCargando(false);
+        return;
+      }
 
       if (!resp || resp.success === false) {
         const r = resp as any;
         const msg = (r && r.error && typeof r.error === 'object' && 'message' in r.error) ? r.error.message : (r?.error || 'Error al obtener cotización');
         alert(msg);
-        setCargando(false);
-        return;
-      }
-
-      if (resp.requiereRegistro) {
-        onRequiereRegistro();
-        // el servicio ya guardó borrador; no llamar onCotizado con datos incompletos
         setCargando(false);
         return;
       }

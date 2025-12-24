@@ -13,13 +13,17 @@ import {
   Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
+import { Share } from 'react-native';
 import cotizacionService from '../../services/cotizacionService';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 export default function CotizacionesScreen() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useAuthContext();
+  const router = useRouter();
   const [tipoCotizacion, setTipoCotizacion] = useState<'maritimo' | 'aereo'>('maritimo');
   const [largo, setLargo] = useState('');
   const [ancho, setAncho] = useState('');
@@ -28,6 +32,9 @@ export default function CotizacionesScreen() {
   const [loading, setLoading] = useState(false);
   const [loadingPDF, setLoadingPDF] = useState(false);
   const [resultado, setResultado] = useState<any>(null);
+  const [pdfResult, setPdfResult] = useState<any>(null);
+  const [pendingAutoCotizar, setPendingAutoCotizar] = useState(false);
+  const [isAutoTriggered, setIsAutoTriggered] = useState(false);
   const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
 
   // Detectar cambios en el tamaño de pantalla
@@ -39,10 +46,13 @@ export default function CotizacionesScreen() {
     return () => subscription?.remove();
   }, []);
 
-  // Cargar datos guardados al iniciar
+  // Cargar datos guardados al iniciar (y preparar autocalcular si el usuario ya tiene token)
   useEffect(() => {
     const cargarDatosGuardados = async () => {
       try {
+        const token = await AsyncStorage.getItem('@auth:token');
+        const authReal = !!token;
+
         const datosGuardados = await cotizacionService.obtenerDatosTemporales();
         
         if (datosGuardados) {
@@ -68,15 +78,56 @@ export default function CotizacionesScreen() {
               'Datos restaurados',
               'Hemos recuperado tu cotización anterior.'
             );
+          } else {
+            // Si hay draft y el usuario ya está autenticado en el dispositivo, disparar cálculo automático
+            if (authReal) {
+              setPendingAutoCotizar(true);
+            }
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error cargando datos guardados:', error);
       }
     };
 
     cargarDatosGuardados();
   }, []);
+
+  // Si hay un draft restaurado y se detectó sesión, ejecutar cotizar automáticamente
+  useEffect(() => {
+    if (pendingAutoCotizar) {
+      setIsAutoTriggered(true);
+      handleCotizar();
+      setPendingAutoCotizar(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAutoCotizar]);
+
+  // Si el usuario inicia sesión mientras estamos en la pantalla y hay draft, disparar auto-cotizar
+  useEffect(() => {
+    if (isAuthenticated) {
+      (async () => {
+        try {
+          const datosGuardados = await cotizacionService.obtenerDatosTemporales();
+          if (datosGuardados && !resultado) {
+            console.log('[CotizacionesScreen] Usuario autenticado y existe draft — preparando auto-cotizar');
+            if (datosGuardados.payload) {
+              const p = datosGuardados.payload;
+              setLargo(String(p.largo_cm || ''));
+              setAncho(String(p.ancho_cm || ''));
+              setAlto(String(p.alto_cm || ''));
+              setPeso(String(p.peso_kg || ''));
+            }
+            if (datosGuardados.tipo) setTipoCotizacion(datosGuardados.tipo);
+            setPendingAutoCotizar(true);
+          }
+        } catch (e) {
+          console.warn('[CotizacionesScreen] Error comprobando draft tras login:', e);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const handleCotizar = async () => {
     // Validar campos
@@ -98,6 +149,10 @@ export default function CotizacionesScreen() {
     setLoading(true);
 
     try {
+      // Comprobar token en AsyncStorage para determinar sesión real
+      const token = await AsyncStorage.getItem('@auth:token');
+      const authReal = !!token;
+      console.log('[CotizacionesScreen] useAuth.isAuthenticated:', isAuthenticated, 'tokenExists:', authReal);
       const payload = {
         largo_cm: largoNum,
         ancho_cm: anchoNum,
@@ -105,16 +160,134 @@ export default function CotizacionesScreen() {
         peso_kg: pesoNum,
       };
 
+      // Si no está autenticado (según token real), guardar borrador y pedir registro inmediatamente
+      if (!authReal) {
+        try {
+          await cotizacionService.guardarDatosTemporales(tipoCotizacion, payload, null);
+        } catch (e: any) {
+          console.warn('[CotizacionesScreen] No se pudo guardar borrador:', e);
+        }
+        Alert.alert(
+          'Registro requerido',
+          'Debes registrarte para ver el total y descargar el PDF. ¿Deseas registrarte ahora?',
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            { text: 'Registrarse', onPress: () => router.push('/register') }
+          ]
+        );
+        setLoading(false);
+        return;
+      }
+
       // ✅ CORREGIDO: Usar cotizarEnvio con el tipo
       const result = await cotizacionService.cotizarEnvio(
-        tipoCotizacion, 
-        payload, 
-        isAuthenticated // ← Pasar estado de autenticación
+        tipoCotizacion,
+        payload,
+        authReal // ← Pasar estado de autenticación real (token)
       );
 
-      if (result.success) {
+      // Si el servicio indica que se requiere registro, avisar y redirigir
+      if (result && result.requiereRegistro) {
+        setLoading(false);
+        Alert.alert(
+          'Registro requerido',
+          'Debes registrarte para obtener cotizaciones. ¿Deseas registrarte ahora?',
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            { text: 'Registrarse', onPress: () => router.push('/register') }
+          ]
+        );
+        return;
+      }
+
+      if (result && result.success) {
         setResultado(result.data);
-        
+
+        // Si fue un disparo automático (después de login y restauración), generar PDF y enviar por WhatsApp
+        if (isAutoTriggered) {
+          try {
+            setIsAutoTriggered(false);
+            const pdfRes = await cotizacionService.generarPDF({
+              tipo: tipoCotizacion,
+              payload,
+              resultado: result.data,
+              detalleCalculo: result.data.detalleCalculo,
+              user: user
+            });
+            setPdfResult(pdfRes);
+            // intentar enviar por WhatsApp al número del usuario
+            try {
+              const phone = (user && (user.phone || user.telefono || user.phoneNumber)) || '';
+              const phoneSan = (phone || '').replace(/\D/g, '');
+              if (phoneSan) {
+                const message = 'Te comparto la cotización de 888Cargo.';
+                const pdfUri = pdfRes && (pdfRes.pdfUri || (pdfRes.pdfBase64 ? `data:application/pdf;base64,${pdfRes.pdfBase64}` : null));
+
+                if ((Platform.OS as string) === 'web') {
+                  const waUrl = `https://wa.me/${phoneSan}?text=${encodeURIComponent(message)}`;
+                  try { window.open(waUrl, '_blank'); } catch (e) { console.warn('No se pudo abrir wa.me:', e); }
+                } else {
+                  // En móvil: preferir abrir el diálogo de compartir con el PDF adjunto (WhatsApp aparecerá como opción)
+                  const canShare = await Sharing.isAvailableAsync().catch(() => false);
+
+                  // Asegurar que tenemos una URI válida para compartir. Si sólo tenemos base64, escribir archivo temporal.
+                  let shareUri = pdfRes && (pdfRes.pdfUri || null);
+                  if (!shareUri && pdfRes && pdfRes.pdfBase64) {
+                    try {
+                      const tmpName = `cotizacion_${Date.now()}.pdf`;
+                      const tmpUri = FileSystem.documentDirectory + tmpName;
+                      await FileSystem.writeAsStringAsync(tmpUri, pdfRes.pdfBase64, { encoding: FileSystem.EncodingType.Base64 });
+                      shareUri = tmpUri;
+                    } catch (writeErr) {
+                      console.warn('[CotizacionesScreen] No se pudo escribir PDF temporal:', writeErr);
+                    }
+                  }
+
+                  if (canShare && shareUri) {
+                    try {
+                      // Intent: si WhatsApp está instalado, abrir chat primero para mejorar UX
+                      const wpScheme = 'whatsapp://send';
+                      const canOpenWhatsApp = await Linking.canOpenURL(wpScheme).catch(() => false);
+                      if (canOpenWhatsApp && phoneSan) {
+                        try {
+                          const waChatUrl = `whatsapp://send?phone=${phoneSan}&text=${encodeURIComponent(message)}`;
+                          await Linking.openURL(waChatUrl).catch(() => null);
+                          // small delay to let WhatsApp open
+                          await new Promise(res => setTimeout(res, 700));
+                        } catch (waErr) {
+                          console.warn('[CotizacionesScreen] No se pudo abrir chat de WhatsApp previo:', waErr);
+                        }
+                      }
+
+                      // Finalmente abrir diálogo de compartir con el PDF adjunto
+                      await Sharing.shareAsync(shareUri, { mimeType: 'application/pdf', dialogTitle: 'Compartir cotización 888Cargo' });
+                    } catch (shareErr) {
+                      console.warn('[CotizacionesScreen] Error compartiendo PDF:', shareErr);
+                      // fallback: abrir WhatsApp sólo con texto
+                      const waUrl2 = `whatsapp://send?phone=${phoneSan}&text=${encodeURIComponent(message)}`;
+                      if (await Linking.canOpenURL(waUrl2)) await Linking.openURL(waUrl2);
+                    }
+                  } else {
+                    // fallback: intentar abrir WhatsApp con texto (no permite adjuntar archivos desde URL)
+                    const waUrl = `whatsapp://send?phone=${phoneSan}&text=${encodeURIComponent(message)}`;
+                    if (await Linking.canOpenURL(waUrl)) {
+                      await Linking.openURL(waUrl);
+                    } else {
+                      console.warn('[CotizacionesScreen] No se pudo abrir WhatsApp ni compartir el PDF');
+                    }
+                  }
+                }
+              } else {
+                console.warn('[CotizacionesScreen] Usuario no tiene número válido para WhatsApp');
+              }
+            } catch (e) {
+              console.warn('[CotizacionesScreen] Error enviando por WhatsApp:', e);
+            }
+          } catch (pdfErr) {
+            console.warn('[CotizacionesScreen] Error generando PDF automático:', pdfErr);
+          }
+        }
+
         if (result.isStub) {
           Alert.alert(
             'Cotización calculada (modo offline)',
@@ -124,7 +297,12 @@ export default function CotizacionesScreen() {
           Alert.alert('Éxito', 'Cotización calculada correctamente');
         }
       } else {
-        Alert.alert('Error', 'Error al calcular cotización');
+        let msg = 'Error al calcular cotización';
+        if (result) {
+          if ((result as any).error) msg = (result as any).error;
+          else if ((result as any).message) msg = (result as any).message;
+        }
+        Alert.alert('Error', String(msg));
       }
 
     } catch (error: any) {
@@ -145,7 +323,7 @@ export default function CotizacionesScreen() {
 
     try {
       // Para web: solicitar PDF al backend (Puppeteer) para obtener descarga consistente
-      if (Platform.OS === 'web') {
+      if ((Platform.OS as string) === 'web') {
         try {
           const endpoint = (await import('../../constants/API')).getFullURL('/cotizaciones/pdf');
           const resp = await fetch(endpoint, {
@@ -182,9 +360,10 @@ export default function CotizacionesScreen() {
           URL.revokeObjectURL(url);
           Alert.alert('Éxito', 'PDF descargado correctamente');
           return;
-        } catch (webErr) {
+        } catch (webErr: any) {
           console.error('Error descargando PDF desde backend:', webErr);
-          Alert.alert('Error', webErr.message || 'No se pudo descargar el PDF desde el servidor');
+          const webErrMsg = (webErr && (webErr.message || webErr.error)) ? (webErr.message || webErr.error) : String(webErr);
+          Alert.alert('Error', webErrMsg || 'No se pudo descargar el PDF desde el servidor');
           return;
         }
       }
@@ -211,7 +390,7 @@ export default function CotizacionesScreen() {
         
         // Verificar si se puede compartir
         // Si estamos en web y recibimos HTML (blob), abrir nueva pestaña o forzar descarga
-        if (Platform.OS === 'web' && pdfResult.isHtml && pdfResult.pdfUri) {
+        if ((Platform.OS as string) === 'web' && pdfResult.isHtml && pdfResult.pdfUri) {
           try {
             const blobUrl = pdfResult.pdfUri;
             // Intentar convertir HTML a PDF usando jsPDF + html2canvas si está disponible
@@ -224,7 +403,7 @@ export default function CotizacionesScreen() {
             try {
               jsPDFModule = (await import('jspdf')).jsPDF || (await import('jspdf'));
               html2canvasModule = (await import('html2canvas')).default || (await import('html2canvas'));
-            } catch (libErr) {
+            } catch (libErr: any) {
               console.warn('No se pudo cargar jsPDF/html2canvas dinámicamente, se abrirá HTML en nueva pestaña:', libErr);
               const link = document.createElement('a');
               link.href = blobUrl;
@@ -292,7 +471,7 @@ export default function CotizacionesScreen() {
             // limpiar
             try { document.body.removeChild(iframe); } catch (e) { /* ignore */ }
             Alert.alert('Éxito', 'PDF generado y descargado');
-          } catch (err) {
+            } catch (err: any) {
             console.error('Error manejando HTML blob en web:', err);
             Alert.alert('Archivo generado', `Archivo disponible: ${pdfResult.pdfUri || 'ver consola'}`);
           }
@@ -300,7 +479,7 @@ export default function CotizacionesScreen() {
         }
 
         // Si estamos en web y recibimos base64, forzar descarga para evitar imprimir la página
-        if (Platform.OS === 'web' && pdfResult.isBase64 && pdfResult.pdfBase64) {
+        if ((Platform.OS as string) === 'web' && pdfResult.isBase64 && pdfResult.pdfBase64) {
           try {
             const byteCharacters = atob(pdfResult.pdfBase64);
             const byteNumbers = new Array(byteCharacters.length);
@@ -320,7 +499,7 @@ export default function CotizacionesScreen() {
             link.remove();
             URL.revokeObjectURL(blobUrl);
             Alert.alert('Éxito', 'PDF descargado correctamente');
-          } catch (err) {
+          } catch (err: any) {
             console.error('Error descargando PDF en web:', err);
             Alert.alert('Archivo generado', `Archivo disponible: ${pdfResult.pdfUri || 'ver consola'}`);
           }
@@ -354,7 +533,7 @@ export default function CotizacionesScreen() {
                 }
               ]
             );
-          } catch (shareError) {
+          } catch (shareError: any) {
             console.warn('Error compartiendo:', shareError);
             Alert.alert(
               'Archivo generado',
@@ -533,6 +712,11 @@ export default function CotizacionesScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View style={{ width: '100%', alignItems: 'flex-start', marginBottom: 12 }}>
+        <TouchableOpacity onPress={() => router.push('/')} style={localStyles.backButton}>
+          <Text style={localStyles.backButtonText}>← Inicio</Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.card}>
         <Text style={styles.title}>Nueva Cotización</Text>
 
@@ -665,3 +849,16 @@ export default function CotizacionesScreen() {
     </ScrollView>
   );
 }
+
+const localStyles = StyleSheet.create({
+  backButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: '#0f77c5',
+    fontWeight: '700',
+    fontSize: 16,
+  }
+});

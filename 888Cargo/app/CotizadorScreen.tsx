@@ -278,6 +278,30 @@ export default function CotizadorScreen() {
 
       const tipo = type === 'Marítimo' ? 'maritimo' : 'aereo';
 
+      // Si no está logueado, guardar borrador y pedir registro inmediatamente
+      if (!isLoggedIn) {
+        try {
+          await cotizacionService.guardarDatosTemporales(tipo, payload, null);
+        } catch (e) {
+          console.warn('[CotizadorScreen] No se pudo guardar borrador:', e);
+          // como fallback, usar AsyncStorage directo
+          try {
+            await AsyncStorage.setItem('@cotizacion_temp', JSON.stringify({
+              tipo,
+              payload,
+              detalleCalculo: detalle,
+              costos,
+              destino,
+            }));
+          } catch (e2) {
+            console.warn('[CotizadorScreen] Fallback guardar borrador falló:', e2);
+          }
+        }
+
+        setMostrarModalRegistro(true);
+        return;
+      }
+
       // Intentar cotización con el backend
       const resp = await cotizacionService.cotizarEnvio(tipo, payload, isLoggedIn);
 

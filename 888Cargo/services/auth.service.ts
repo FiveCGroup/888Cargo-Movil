@@ -1,4 +1,5 @@
 import { API_CONFIG } from '../constants/API';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock temporal de AuthService para evitar errores de importación
 type User = {
@@ -36,6 +37,7 @@ export interface AuthResponse {
 
 // Estado global temporal para simular persistencia
 const AUTH_KEY = '__888cargo_auth__';
+const STORAGE_TOKEN_KEY = '@auth:token';
 
 declare global {
     // Extiende globalThis para incluir la propiedad AUTH_KEY
@@ -128,6 +130,12 @@ const AuthService = {
                 sessionType: 'mobile',
                 loginTime: new Date().toISOString()
             });
+            // Persistir token en AsyncStorage para que otras partes de la app lo detecten
+            try {
+                await AsyncStorage.setItem(STORAGE_TOKEN_KEY, token);
+            } catch (e) {
+                console.warn('[AuthService] No se pudo guardar token en AsyncStorage:', e);
+            }
             
             return { 
                 success: true, 
@@ -201,6 +209,12 @@ const AuthService = {
                 sessionType: 'mobile',
                 loginTime: new Date().toISOString()
             });
+            // Persistir token de sesión móvil
+            try {
+                await AsyncStorage.setItem(STORAGE_TOKEN_KEY, mobileSessionToken);
+            } catch (e) {
+                console.warn('[AuthService] No se pudo guardar token en AsyncStorage (register):', e);
+            }
             
             return { 
                 success: true, 
@@ -240,6 +254,12 @@ const AuthService = {
                 sessionType: null,
                 loginTime: null
             });
+            // Limpiar token persistido
+            try {
+                await AsyncStorage.removeItem(STORAGE_TOKEN_KEY);
+            } catch (e) {
+                console.warn('[AuthService] No se pudo eliminar token de AsyncStorage:', e);
+            }
             console.log('[AuthService] Mobile session closed successfully');
             
             return { success: true };
@@ -297,7 +317,25 @@ const AuthService = {
         }
     },
 
-    getAuthState: async () => getAuthStateInternal(),
+    getAuthState: async () => {
+        try {
+            const internal = getAuthStateInternal();
+            // Intentar leer token persistido en AsyncStorage como fallback
+            try {
+                const persisted = await AsyncStorage.getItem(STORAGE_TOKEN_KEY);
+                if (persisted && !internal.token) {
+                    console.log('[AuthService] Encontrado token en AsyncStorage, aplicando al estado interno');
+                    internal.token = persisted;
+                    internal.isAuthenticated = true;
+                }
+            } catch (e) {
+                console.warn('[AuthService] Error leyendo token de AsyncStorage en getAuthState:', e);
+            }
+            return internal;
+        } catch (e) {
+            return getAuthStateInternal();
+        }
+    },
     isAuthenticated: () => getAuthStateInternal().isAuthenticated
 };
 

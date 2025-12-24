@@ -173,6 +173,7 @@ class CotizacionService {
 
       // Si no está autenticado, requerir registro
       if (!isAuthenticated) {
+        console.log('🔒 [CotizacionService] Usuario no autenticado — solicitando registro (requiereRegistro)');
         return {
           success: false,
           requiereRegistro: true,
