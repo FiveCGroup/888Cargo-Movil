@@ -30,7 +30,7 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const response = await API.get('/api/profile');
+                const response = await API.get('/profile');
                 setUser(response.data);
             } catch (error) {
                 console.error('Error al obtener perfil:', error);

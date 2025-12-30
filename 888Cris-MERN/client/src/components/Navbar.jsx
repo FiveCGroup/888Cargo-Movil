@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
+import { CargoAlerts } from '../utils/sweetAlertConfig';
 import Logo888Cargo from './Logo888Cargo';
 import '../styles/components/Navbar.css';
 import '../styles/global/buttons.css';
@@ -8,14 +9,30 @@ import '../styles/global/buttons.css';
 const Navbar = ({ user }) => {
     const navigate = useNavigate();
 
-    // Función para cerrar sesión
+    // Función para cerrar sesión con confirmación
     const handleLogout = async () => {
         try {
-            await API.post('/api/logout');
-            localStorage.removeItem('user');
-            navigate('/auth');
+            const result = await CargoAlerts.showConfirmation(
+                'Cerrar Sesión',
+                '¿Estás seguro que deseas cerrar sesión? Tus cambios no guardados se perderán.',
+                'Cerrar Sesión',
+                'Cancelar'
+            );
+
+            if (result.isConfirmed) {
+                // Llamada al backend (no duplicar /api)
+                try {
+                    await API.post('/logout');
+                } catch (err) {
+                    console.warn('Advertencia: error notificando backend del logout:', err);
+                }
+
+                // Limpiar estado local y redirigir inmediatamente
+                localStorage.removeItem('user');
+                navigate('/auth');
+            }
         } catch (error) {
-            console.error('Error al cerrar sesión:', error);
+            console.error('Error en confirmación de logout:', error);
         }
     };
 

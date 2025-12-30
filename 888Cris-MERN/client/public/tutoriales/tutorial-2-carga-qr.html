@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial 2: Creación de Cargas y QR | 888Cargo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .tutorial-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            min-height: 100vh;
+        }
+        
+        .tutorial-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .tutorial-nav {
+            background: #343a40;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: #adb5bd;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: #495057;
+            color: white;
+        }
+        
+        .tutorial-content {
+            padding: 40px 60px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid #dc3545;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .section h2 {
+            color: #495057;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .section-content {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .step {
+            background: #fefefe;
+            margin: 25px 20px;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            width: calc(100% - 40px);
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .step-number {
+            background: #dc3545;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tutorial-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tutorial-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .image-caption {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-style: italic;
+            margin: 10px 0 20px 0;
+        }
+        
+        .step p {
+            margin: 15px 0;
+            line-height: 1.7;
+        }
+        
+        .step ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        
+        .step li {
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .tutorial-content {
+                padding: 20px;
+            }
+            .tutorial-nav {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tutorial-container">
+        <div class="tutorial-header">
+            <h1>Logística</h1>
+            <h2>Sistema de Cargas y Etiquetas QR</h2>
+            <div style="display: flex; gap: 20px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                    🕒 45 minutos
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                    📊 Avanzado
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                    📦 QR System
+                </span>
+            </div>
+        </div>
+        
+        <div class="tutorial-nav">
+            <a href="../index.html" class="nav-link">← Volver a Inicio</a>
+            <a href="index.html" class="nav-link">Todos los Tutoriales</a>
+            <a href="tutorial-3-base-de-datos.html" class="nav-link">Siguiente Tutorial →</a>
+        </div>
+        
+        <div class="tutorial-content">
+            
+            <div class="section">
+                <div class="section-header">
+                    <h2>📦 TUTORIAL 2: Creación de una Carga Completa, Generación de QRs y Descarga de PDF</h2>
+                </div>
+                <div class="section-content">
+                    <p>Sistema de Gestión de Cargas y Envíos Internacionales</p>
+                    <ul>
+                        <li>Proyecto: Plataforma Web y Móbil de Gestión Logística (China–Colombia)</li>
+                        <li>Tipo de Documento: Tutorial</li>
+                        <li>Revisión Técnica: Five Consulting Group</li>
+                        <li>Fecha de Emisión: 31 de octubre de 2025</li>
+                        <li>Ubicación: Medellín - Colombia</li>
+                    </ul>
+
+                    <h3>Creación de una Carga Completa, Generación de QRs y Descarga de PDF</h3>
+                    
+                    <h4>Objetivo</h4>
+                    <p>Guiar al usuario (rol Cliente) en el proceso completo para registrar una nueva carga en el sistema, subir el Packing List en formato Excel, generar las etiquetas con códigos QR únicos y descargar el archivo PDF final para impresión logística.</p>
+                    
+                    <h3>Requisitos Previos</h3>
+
+                    <div class="step">
+                        <div class="step-title">
+                            Antes de iniciar este proceso, asegúrese de cumplir con las siguientes condiciones:
+                        </div>
+                        <ul>
+                            <li>Tener una cuenta activa con rol Cliente.</li>
+                            <li>Haber iniciado sesión correctamente en la aplicación 888Cargo.</li>
+                            <li>Disponer del archivo de Packing List en formato .xls o .xlsx.</li>
+                            <li>Contar con conexión estable a Internet.</li>
+                            <li>Verificar que el archivo cumpla con el formato estructurado descrito en el Anexo C – Anexo Técnico de Componentes y APIs.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>🔐 Inicio de la Carga y Subida del Packing List</h2>
+                </div>
+                <div class="section-content">
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">1</span>
+                            Acceda al módulo de cargas:
+                        </div>
+                        <img src="images/tutorial-2-carga-qr/image_10.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">2</span>
+                            Cree una nueva carga:
+                        </div>
+                        <img src="images/tutorial-2-carga-qr/image_5.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">3</span>
+                            Seleccione el archivo de carga:
+                        </div>
+                        <p>Dentro de la ventana emergente, navegue hasta la carpeta en donde se encuentra el archivo y seleccione el archivo que desea cargar.</p>
+                        <img src="images/tutorial-2-carga-qr/image_1.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">4</span>
+                            Envíe el archivo a procesar:
+                        </div>
+                        <p>Presione el botón “Abrir” ubicado en la parte inferior de la ventana.</p>
+                        <p>El sistema se encargará de procesar el archivo y cargarlo en el sistema.</p>
+                        <img src="images/tutorial-2-carga-qr/image_18.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">5</span>
+                            Revise los resultados del procesamiento:
+                        </div>
+                        <p>Una vez procesado el archivo, el sistema devolverá una respuesta con estadísticas.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">6</span>
+                            El sistema devolverá una respuesta con las siguientes estadísticas:
+                        </div>
+                        <img src="images/tutorial-2-carga-qr/image_16.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                        <ul>
+                            <li>Total: Cantidad de filas procesadas.</li>
+                            <li>Filas Exitosas: Cantidad de ítems procesados correctamente.</li>
+                            <li>Filas con Errores: Celdas con datos inválidos detectados.</li>
+                            <li>Filas vacías.</li>
+                        </ul>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">7</span>
+                            De forma detallada podrá verificar:
+                        </div>
+                        <p>Podrá verificar los ítems procesados correctamente y aquellos que contienen errores:</p>
+                        <img src="images/tutorial-2-carga-qr/image_11.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                        <img src="images/tutorial-2-carga-qr/image_6.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>📦 Revisión de Datos y Generación de Códigos QR (RF-08)</h2>
+                </div>
+                <div class="section-content">
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">1</span>
+                            Cuando haya cargado el archivo correctamente, podrá proceder a terminar de crear la carga en el sistema, siguiendo en orden los siguientes pasos:
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">2</span>
+                            Verifique los datos cargados:
+                        </div>
+                        <p>La aplicación mostrará una tabla interactiva con los registros procesados.</p>
+                        <img src="images/tutorial-2-carga-qr/image_6.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">3</span>
+                            Corrija errores (si aplica):
+                        </div>
+                        <p>El sistema mostrará las herramientas necesarias para editar los datos con errores directamente en la interfaz.</p>
+                        <img src="images/tutorial-2-carga-qr/image_2.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                        <img src="images/tutorial-2-carga-qr/image_11.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">4</span>
+                            Cree la carga:
+                        </div>
+                        <p>Presione el botón para iniciar la creación de la carga.</p>
+                        <img src="images/tutorial-2-carga-qr/image_19.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">5</span>
+                            Complete la información de la carga:
+                        </div>
+                        <p>A continuación, complete el formulario e ingrese los datos restantes de la carga:</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">6</span>
+                            Luego complete el formulario e ingrese los datos restantes de la carga:
+                        </div>
+                        <img src="images/tutorial-2-carga-qr/image_14.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                        <ul>
+                            <li>Dirección de Entrega de Mercancía: dirección del lugar donde se alistará la carga.</li>
+                            <li>Código de Packing List: generado automáticamente por el sistema; si lo desea, puede crear uno nuevo.</li>
+                            <li>Dirección de Destino.</li>
+                        </ul>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">7</span>
+                            Cree la carga en el sistema:
+                        </div>
+                        <p>Presione “Guardar en Base de Datos”.</p>
+                        <img src="images/tutorial-2-carga-qr/image_8.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                        <p>Esta acción envía la información al sistema, donde se guardan los datos en la base de datos y se genera un código QR único para cada ítem o caja.</p>
+                        <img src="images/tutorial-2-carga-qr/image_7.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">8</span>
+                            Confirmación final:
+                        </div>
+                        <p>El sistema le mostrará un mensaje de confirmación de la carga.</p>
+                        <img src="images/tutorial-2-carga-qr/image_3.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>📦 Descarga y Obtención del PDF de Etiquetas</h2>
+                </div>
+                <div class="section-content">
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">1</span>
+                            Siguiendo el proceso anterior, desde la creación de la carga:
+                        </div>
+                        <p>Puede continuar con el siguiente paso para obtener las etiquetas.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">2</span>
+                            Acceda a la visualización de los QR generados:
+                        </div>
+                        <p>Presione el botón “Visualizar Códigos QR” para acceder a la interfaz donde podrá observar a detalle todos y cada uno de los códigos QR generados para el total de los ítems de su carga.</p>
+                        <img src="images/tutorial-2-carga-qr/image_17.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">3</span>
+                            Visualice los códigos QR generados para su carga:
+                        </div>
+                        <p>Al ingresar a la interfaz podrá ver la información de su carga, así como los códigos:</p>
+                        <img src="images/tutorial-2-carga-qr/image_9.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                        <img src="images/tutorial-2-carga-qr/image_4.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                        <p>Para salir solo debe dar clic nuevamente en el botón “X” ubicado en la parte superior de la ventana o bien puede dar clic por fuera de ella para que esta se cierre.</p>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">4</span>
+                            Descargue el archivo PDF:
+                        </div>
+                        <p>Podrá descargar un archivo PDF con todos los códigos QR generados para su carga. Para ello, deberá desplazarse hacia la parte superior de la interfaz de visualización de códigos QR y presionar el botón “Descargar PDF”.</p>
+                        <img src="images/tutorial-2-carga-qr/image_20.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">5</span>
+                            Visualice el PDF:
+                        </div>
+                        <p>El archivo PDF generado contiene las etiquetas listas para la impresión logística.</p>
+                        <img src="images/tutorial-2-carga-qr/image_15.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">
+                            <span class="step-number">6</span>
+                            Imprima las etiquetas:
+                        </div>
+                        <p>Una vez descargado, abra el archivo PDF en su dispositivo y envíelo a una impresora de etiquetas.</p>
+                        <img src="images/tutorial-2-carga-qr/image_12.png" alt="Captura de pantalla" class="tutorial-image">
+                        <div class="image-caption">Captura de pantalla del proceso</div>
+
+                        <h3>Advertencias de Seguridad</h3>
+                        <ul>
+                            <li>No cierre la aplicación durante el procesamiento o la generación del PDF.</li>
+                            <li>No modifique manualmente los códigos QR fuera del sistema.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="background: #343a40; color: #adb5bd; text-align: center; padding: 30px;">
+            <p><strong>888Cris - Sistema de Gestión Logística</strong></p>
+            <p>Five Consulting Group | 12 de noviembre de 2025</p>
+        </div>
+    </div>
+    
+    <script>
+        document.querySelectorAll('.tutorial-image').forEach(img => {
+            img.addEventListener('click', function() {
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; cursor: pointer;';
+                const modalImg = document.createElement('img');
+                modalImg.src = this.src;
+                modalImg.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px;';
+                modal.appendChild(modalImg);
+                document.body.appendChild(modal);
+                modal.addEventListener('click', () => document.body.removeChild(modal));
+            });
+        });
+    </script>
+</body>
+</html>

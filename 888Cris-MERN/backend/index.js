@@ -62,6 +62,37 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use(cookieParser());
 
+// Servir documentación técnica (code-docs) si existe
+try {
+  const maxSearchDepth = 6;
+  let codeDocsPath = null;
+  for (let i = 0; i < maxSearchDepth; i++) {
+    const candidate = path.resolve(__dirname, '..'.repeat(i), 'code-docs');
+    if (fs.existsSync(candidate)) {
+      codeDocsPath = candidate;
+      break;
+    }
+  }
+  if (!codeDocsPath) {
+    const cwdCandidate = path.resolve(process.cwd(), 'code-docs');
+    if (fs.existsSync(cwdCandidate)) codeDocsPath = cwdCandidate;
+  }
+
+  if (codeDocsPath) {
+    console.log('📚 [Index] Sirviendo documentación desde:', codeDocsPath);
+    app.use('/code-docs', express.static(codeDocsPath));
+  } else {
+    console.warn('⚠️ [Index] No se encontró `code-docs` para servir estáticos.');
+  }
+
+  // Endpoint debug para comprobar ruta de docs
+  app.get('/api/debug/docs-path', (req, res) => {
+    res.json({ path: codeDocsPath, exists: !!codeDocsPath, files: codeDocsPath && fs.existsSync(codeDocsPath) ? fs.readdirSync(codeDocsPath) : [] });
+  });
+} catch (err) {
+  console.error('Error configurando code-docs static:', err);
+}
+
 // RUTAS - SIN ERRORES DE SINTAXIS
 app.use('/api', routes);
 

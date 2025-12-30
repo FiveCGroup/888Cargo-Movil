@@ -18,13 +18,19 @@ const ProtectedRoute = () => {
 
         const verifyToken = async () => {
             try {
-                await API.get('/api/profile');
+                await API.get('/profile');
                 setIsAuthenticated(true);
             } catch (error) {
                 console.error("Error de autenticación:", error);
-                // Limpiar localStorage en caso de error de autenticación
-                localStorage.removeItem('user');
-                setIsAuthenticated(false);
+                // Sólo limpiar localStorage si el backend respondió 401 (token inválido/expirado)
+                if (error && error.response && error.response.status === 401) {
+                    localStorage.removeItem('user');
+                    setIsAuthenticated(false);
+                } else {
+                    // Error de red o servidor temporal: no forzar logout, asumir autenticado para evitar redirecciones
+                    console.warn('Fallo al verificar perfil pero no es 401; manteniendo sesión activa temporalmente.');
+                    setIsAuthenticated(true);
+                }
             } finally {
                 setIsLoading(false);
             }

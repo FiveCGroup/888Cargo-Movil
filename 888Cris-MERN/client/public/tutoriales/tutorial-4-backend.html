@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial 4: Backend APIs | 888Cargo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .tutorial-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            min-height: 100vh;
+        }
+        
+        .tutorial-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .tutorial-nav {
+            background: #343a40;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: #adb5bd;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: #495057;
+            color: white;
+        }
+        
+        .tutorial-content {
+            padding: 40px 60px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left: 4px solid #28a745;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .section h2 {
+            color: #495057;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        
+        .section-content {
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .step {
+            background: #fefefe;
+            margin: 25px 20px;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            width: calc(100% - 40px);
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .step-number {
+            background: #28a745;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tutorial-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tutorial-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .image-caption {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-style: italic;
+            margin: 10px 0 20px 0;
+        }
+        
+        .step p {
+            margin: 15px 0;
+            line-height: 1.7;
+        }
+        
+        .step ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        
+        .step li {
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .tutorial-content {
+                padding: 20px;
+            }
+            .tutorial-nav {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <style>
+        /* Nota: Mantenemos los estilos CSS para la estructura visual del tutorial. */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .tutorial-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .tutorial-header {
+            background-color: #007bff;
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .tutorial-header h1 {
+            margin: 0 0 5px 0;
+            font-size: 2.5em;
+        }
+        .tutorial-header h2 {
+            margin: 0 0 20px 0;
+            font-size: 1.5em;
+            font-weight: normal;
+        }
+        .tutorial-nav {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background-color: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .nav-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+        .tutorial-content {
+            padding: 20px;
+        }
+        .tutorial-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .image-caption {
+            text-align: center;
+            font-style: italic;
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+        }
+        .section-header {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .section-header h2 {
+            color: #007bff;
+            margin: 0;
+        }
+        .section-content ul, .section-content ol {
+            padding-left: 20px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+        .section-content li {
+            margin-bottom: 5px;
+        }
+        .step {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-left: 5px solid #28a745;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #007bff;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .step-number {
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+    
+    <div class="tutorial-container">
+        <div class="tutorial-header">
+            <h1>Backend: El Corazón del Sistema</h1>
+            <h2>¡Manos a la obra con las APIs REST!</h2>
+            <div style="display: flex; gap: 20px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                    🕒 40 minutos (¡Aproximado!)
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                    📊 Nivel: Avanzado (¡Pero no te asustes!)
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px;">
+                    🟢 Tecnología: Node.js + Express
+                </span>
+            </div>
+        </div>
+        
+        <div class="tutorial-nav">
+            <a href="../index.html" class="nav-link">← Volver a Inicio</a>
+            <a href="index.html" class="nav-link">Todos los Tutoriales</a>
+            <a href="tutorial-5-frontend-movil.html" class="nav-link">Siguiente Tutorial →</a>
+        </div>
+
+        
+                
+            <div class="section">
+
+                <div class="section-header">
+                    <h2> TUTORIAL 4: Backend </h2>
+                </div>
+                <div class="section-header">
+                    <h2>🚀 Introducción: Por qué nuestro Backend es Genial</h2>
+                </div>
+                <div class="section-content">
+                    <p>El backend de 888Cargo no es solo una API; es la espina dorsal de la logística. Lo construimos con Node.js y Express pensando en la velocidad y en que pudiera manejar todo tipo de cosas: desde la generación automática de esos códigos QR personalizados hasta el manejo seguro de usuarios y la gestión de archivos.</p>
+                    <p>Aplicamos patrones de diseño que aprendimos en la universidad (¡y que de verdad sirven!), como el Repository Pattern para no tener que preocuparnos por la base de datos cada vez, y el Service Layer para que la lógica del negocio esté súper limpia y sea fácil de probar. Nuestro enfoque es "API-First", así que lo que funcione para la web, funciona para la app móvil, ¡siempre!</p>
+                    <p>Y claro, la seguridad es de nivel pro: usamos JWT con refresh tokens para que las sesiones sean robustas, y validamos absolutamente todo lo que entra para evitar problemas.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>🔧 Las Super-Funcionalidades del Backend</h2>
+                </div>
+                <div class="section-content">
+                    
+                    <h3>🔒 Sistema de Autenticación con Tokens (JWT)</h3>
+                    <ul>
+                        <li>Usamos JSON Web Tokens (JWT) con refresh tokens (los temporales) para manejar sesiones seguras y con expiración.</li>
+                        <li>El middleware de autenticación revisa el token en cada solicitud.</li>
+                        <li>Permite diferentes niveles de acceso (autorización) según el rol del usuario.</li>
+                    </ul>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.001.png" alt="">
+
+                    <h3>📦 Manejo de Listas de Empaque (Packing Lists)</h3>
+                    <p>El sistema se encarga de leer esos archivos de Excel que nos envían con los artículos. El backend valida el archivo, revisa que los datos mínimos estén correctos (cliente, cantidad, etc.), y luego guarda todo de forma estructurada en la base de datos (SQLite).</p>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.002.png" alt="">
+                    <h4>Lo que hace con el Excel:</h4>
+                    <ul>
+                        <li>Soporte solo para archivos .xls / .xlsx.</li>
+                        <li>Validación automática de estructura y contenido.</li>
+                        <li>Procesamiento asíncrono (para no colgar el servidor) con respuesta JSON detallada.</li>
+                        <li>Asociación automática al cliente y código de carga.</li>
+                        <li>Se conecta directo con el módulo de generación de QR.</li>
+                    </ul>
+
+                    <h3>🏷️ Generación Mágica de Códigos QR</h3>
+                    <ul>
+                        <li>Generador de QR súper configurable: puedes cambiar logos, colores y estilos.</li>
+                        <li>Múltiples niveles de corrección de errores (¡por si se ensucian!).</li>
+                        <li>Generación masiva (batch) para muchos códigos a la vez.</li>
+                        <li>Los códigos llevan información encriptada dentro (metadata).</li>
+                    </ul>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.003.png" alt="">
+
+                    <h3>🛡️ Seguridad a Prueba de Todo</h3>
+                    <ul>
+                        <li>Seguridad defensiva en profundidad: validamos y "limpiamos" todos los inputs.</li>
+                        <li>Protección contra ataques comunes como Inyección SQL, XSS y CSRF.</li>
+                        <li>Encriptación de datos sensibles.</li>
+                        <li>Auditoría completa de quién hizo qué.</li>
+                    </ul>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.004.png" alt="">
+
+                    <h3>💾 Base de Datos (SQLite) Optimizada</h3>
+                    <ul>
+                        <li>Usamos SQLite3: es súper ligero, rápido y no necesita configuración extra.</li>
+                        <li>Tenemos índices estratégicos para que las búsquedas sean veloces.</li>
+                        <li>Patrón Repository para que la BD sea fácil de cambiar si necesitamos.</li>
+                    </ul>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.005.png" alt="">
+
+                    <h3>📱 Notificaciones por WhatsApp</h3>
+                    <ul>
+                        <li>Conexión con la API de WhatsApp Business para enviar mensajes automáticos (recuperación de contraseña, envío de documentos, etc.).</li>
+                    </ul>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.006.png" alt="">
+
+                    <h3>🖼️ Procesamiento de Imágenes Pro</h3>
+                    <ul>
+                        <li>Usamos librerías como Sharp y Canvas para redimensionar, convertir y optimizar imágenes automáticamente para la web.</li>
+                    </ul>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.007.png" alt="">
+                    
+                    <h3>📄 PDFs Dinámicos</h3>
+                    <ul>
+                        <li>Generación de documentos PDF al vuelo con códigos QR incrustados, plantillas y marcas de agua.</li>
+                    </ul>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.008.png" alt="">
+                    
+                    <h3>🚨 Trazabilidad y Logs</h3>
+                    <ul>
+                        <li>Guardamos registro (logging) de absolutamente todo: accesos, cambios, errores y rendimiento.</li>
+                    </ul>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.009.png" alt="">
+
+                    <h3>🧐 Validación Avanzada de Archivos</h3>
+                    <ul>
+                        <li>No solo miramos la extensión, ¡revisamos el contenido interno (magic numbers)!</li>
+                        <li>Detección básica de malware.</li>
+                    </ul>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.010.png" alt="">
+
+                    
+                    <h3> Recuperación de Contraseñas Multi-Canal</h3>
+                    <ul>
+                        <li>soporta múltiples canales (WhatsApp, email, SMS)</li>
+                        <li>tokens temporales seguros</li>
+                        <li>validación de identidad en múltiples pasos</li>
+                    </ul>
+                    <img src="images/tutorial-4-backend/Aspose.Words.980f6fde-3c17-4b4d-8cc2-f20e5bcc3508.011.png" alt="">
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>⚙️ Nuestro Stack: Las Herramientas del Proyecto</h2>
+                </div>
+                <div class="section-content">
+                    <p>Elegimos estas herramientas porque son rápidas, escalables y tienen una comunidad enorme detrás. Aquí el porqué de cada una:</p>
+                    
+                    <h3>Justificación de Tecnologías:</h3>
+                    <ul>
+                        <li>Node.js: Por su velocidad y el event loop no-bloqueante. Ideal para APIs que manejan muchas entradas/salidas.</li>
+                        <li>Express.js: Es minimalista y flexible. Nos permite construir la API sin tanta complicación.</li>
+                        <li>SQLite3: Base de datos embebida y ACID. Perfecto para nuestro tamaño, sin dolores de cabeza de configuración.</li>
+                        <li>JWT (jsonwebtoken): El estándar para la autenticación sin estado (stateless).</li>
+                        <li>Validator.js: Para asegurarnos de que los emails, URLs, etc., tengan el formato correcto.</li>
+                        <li>Sharp: Para procesar imágenes rapidísimo.</li>
+                        <li>Helmet: Un set de middlewares que añade headers HTTP seguros por defecto.</li>
+                        <li>Bcrypt: El algoritmo más seguro para guardar contraseñas (con su salt configurable).</li>
+                        <li>Multer: El mejor amigo para manejar la subida de archivos (upload).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>🏰 La Arquitectura: 5 Capas Mágicas</h2>
+                </div>
+                <div class="section-content">
+                    <p>Implementamos la Arquitectura en Capas (N-Tier). ¿Por qué? Porque si algo falla o cambia, solo tenemos que tocar esa capa sin romper el resto del sistema. ¡Bajo acoplamiento, alta cohesión!</p>
+                    
+                    <h3>Las 5 Capas de nuestra Arquitectura</h3>
+                    
+                    <div class="step">
+                        <div class="step-title">1️⃣ Capa de Presentación (Controllers)</div>
+                        <ul>
+                            <li>Es la puerta de entrada de todas las peticiones (el Controller de Express).</li>
+                            <li>Recibe la solicitud, valida rápido los parámetros y llama a la siguiente capa.</li>
+                            <li>Aquí se encargan los middlewares de autenticar, hacer logging y limitar las peticiones (rate limiting).</li>
+                        </ul>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">2️⃣ Capa de Lógica de Negocio (Services)</div>
+                        <ul>
+                            <li>El cerebro del sistema. Aquí están las reglas de 888Cargo.</li>
+                            <li>Los Services coordinan las operaciones complejas (ej: "procesar-packing-list" implica llamar a la BD, generar QR, etc.).</li>
+                            <li>Manejan transacciones y garantizan la consistencia de los datos.</li>
+                        </ul>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">3️⃣ Capa de Acceso a Datos (Repositories)</div>
+                        <ul>
+                            <li>La traductora de la aplicación.</li>
+                            <li>Implementa el patrón Repository para abstraer el acceso a datos.</li>
+                            <li>Le dice a la capa de Negocio: "Dame este usuario", sin que esta sepa si está en SQLite o en un archivo de texto.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-title">4️⃣ Capa de Infraestructura</div>
+                        <ul>
+                            <li>Maneja todo el entorno (servidor, configuración, seguridad).</li>
+                            <li>Configura Express, los middlewares de seguridad (Helmet, CORS), el manejo de archivos y las variables de entorno.</li>
+                        </ul>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-title">5️⃣ Capa de Persistencia (SQLite)</div>
+                        <ul>
+                            <li>Aquí es donde los datos se guardan físicamente.</li>
+                            <li>Se encarga de la configuración específica de SQLite, los índices de performance y el backup.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2>🏗️ Patrones de Diseño: ¡No es Magia, es Ingeniería!</h2>
+                </div>
+                <div class="section-content">
+                    <p>Usamos patrones de diseño para resolver problemas comunes con soluciones ya probadas. Esto hace que el código sea limpio y fácil de mantener.</p>
+
+                    <h3>Patrones Clave:</h3>
+                    <ul>
+                        <li>Repository Pattern: Lo usamos para que si cambiamos de base de datos (por ejemplo, a PostgreSQL), solo tengamos que cambiar esta capa.</li>
+                        <li>Service Layer Pattern: Mantiene la lógica de negocio centralizada y fuera de los Controllers. ¡Es lo que hace que todo sea testeable!</li>
+                        <li>Middleware Pattern: La forma elegante de manejar funcionalidades transversales (autenticación, logging, seguridad) sin repetir código en cada ruta.</li>
+                        <li>Factory Pattern: Lo usamos para crear objetos complejos (como los generadores de QR o la conexión a la BD) de forma controlada.</li>
+                        <li>Singleton Pattern: Para asegurarnos de que solo exista una instancia de cosas costosas como la conexión a la base de datos o el logger.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <h2>📁 Estructura de Capas (¡El detalle!)</h2>
+                </div>
+                <div class="section-content">
+                    
+                    <h3>📂 CONTROLLERS (Controladores)</h3>
+                    <h4>Lo que hacen:</h4>
+                    <ul>
+                        <li>Recibir la petición HTTP y validar datos básicos.</li>
+                        <li>Llamar a la función del Service que necesitan.</li>
+                        <li>Formatear la respuesta JSON y enviar el código HTTP correcto.</li>
+                    </ul>
+
+                    <h3>📂 SERVICES (Servicios)</h3>
+                    <h4>Lo que hacen:</h4>
+                    <ul>
+                        <li>Contener toda la lógica de negocio y las reglas del sistema.</li>
+                        <li>Coordinar múltiples operaciones entre Repositorios.</li>
+                        <li>Manejar transacciones complejas.</li>
+                        <li>Integración con servicios externos (WhatsApp, generación QR).</li>
+                    </ul>
+
+                    <h3>📂 MODELS (Modelos)</h3>
+                    <h4>Lo que hacen:</h4>
+                    <ul>
+                        <li>Definir la estructura de datos (entidades como Usuarios, Cargas).</li>
+                        <li>Especificar las relaciones entre entidades (uno a muchos, etc.).</li>
+                        <li>Implementar reglas básicas de validación de datos.</li>
+                    </ul>
+
+                    <h3>📂 REPOSITORIES (Repositorios)</h3>
+                    <h4>Lo que hacen:</h4>
+                    <ul>
+                        <li>Abstraer completamente las operaciones de CRUD (Crear, Leer, Actualizar, Borrar).</li>
+                        <li>Traducir las peticiones del Service a comandos de SQLite optimizados.</li>
+                        <li>Manejar la conexión y las transacciones de la BD.</li>
+                    </ul>
+
+                    <h3>📂 ROUTES (Rutas)</h3>
+                    <h4>Lo que hacen:</h4>
+                    <ul>
+                        <li>Definir los endpoints RESTful (la URL y el método HTTP).</li>
+                        <li>Asignar qué Controller se debe ejecutar para cada ruta.</li>
+                        <li>Aplicar los middlewares de autenticación y autorización.</li>
+                    </ul>
+
+                    <h3>📂 MIDDLEWARES (Funciones Intermedias)</h3>
+                    <h4>Lo que hacen:</h4>
+                    <ul>
+                        <li>Autenticación (revisar el token JWT).</li>
+                        <li>Autorización (revisar si el usuario tiene permiso).</li>
+                        <li>Validación exhaustiva de datos de entrada.</li>
+                        <li>Seguridad (añadir headers seguros).</li>
+                        <li>Limitar peticiones (Rate Limiting).</li>
+                    </ul>
+
+                    <h3>📂 VALIDATORS (Validadores)</h3>
+                    <h4>Lo que hacen:</h4>
+                    <ul>
+                        <li>Centralizar la lógica de validación de datos.</li>
+                        <li>Implementar reglas de negocio complejas de validación.</li>
+                        <li>Sanitizar (limpiar) los datos de entrada.</li>
+                        <li>Validar archivos subidos (tipo, tamaño, contenido).</li>
+                    </ul>
+
+                    <h3>📂 UTILS (Utilidades)</h3>
+                    <h4>Lo que hacen:</h4>
+                    <ul>
+                        <li>Funciones auxiliares y helpers reutilizables.</li>
+                        <li>Encriptación y generación de identificadores únicos.</li>
+                        <li>Manejo de fechas y transformación de datos.</li>
+                    </ul>
+
+                    <h3>📂 CONFIG (Configuraciones)</h3>
+                    <h4>Lo que hacen:</h4>
+                    <ul>
+                        <li>Centralizar todas las variables de entorno y parámetros del sistema.</li>
+                        <li>Definir la configuración para los diferentes ambientes (desarrollo, producción).</li>
+                        <li>Configurar conexiones a BD y servicios externos.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div style="background: #343a40; color: #adb5bd; text-align: center; padding: 30px;">
+            <p><strong>¡Listo! Ahora tienes una idea clara de cómo está construido el backend.</strong></p>
+            <p>Five Consulting Group | 12 de noviembre de 2025</p>
+        </div>
+    </div>
+    
+    <script>
+        document.querySelectorAll('.tutorial-image').forEach(img => {
+            img.addEventListener('click', function() {
+                const modal = document.createElement('div');
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; cursor: pointer;';
+                const modalImg = document.createElement('img');
+                modalImg.src = this.src;
+                modalImg.style.cssText = 'max-width: 90%; max-height: 90%; border-radius: 8px;';
+                modal.appendChild(modalImg);
+                document.body.appendChild(modal);
+                modal.addEventListener('click', () => document.body.removeChild(modal));
+            });
+        });
+    </script>
+</body>
+</html>

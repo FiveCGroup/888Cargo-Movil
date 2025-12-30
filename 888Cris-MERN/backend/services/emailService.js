@@ -101,6 +101,45 @@ export const sendWelcomeEmail = async (email, name) => {
     }
 };
 
+export const sendRegistrationConfirmation = async (email, name, username) => {
+    try {
+        const config = getEmailConfig();
+        if (!config) {
+            return { success: false, message: 'Email not configured' };
+        }
+
+        const transporter = createTransporter(config);
+
+        const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+                <div style="background-color: #ffffff; padding: 20px; border-radius: 8px;">
+                    <h2 style="color: #333;">Confirmación de registro</h2>
+                    <p style="color: #555;">Hola ${name},</p>
+                    <p style="color: #555;">Tu cuenta ha sido creada correctamente. Tu usuario es <strong>${username}</strong>.</p>
+                    <p style="color: #555;">Si no reconoces esta acción, por favor contacta al soporte.</p>
+                    <p style="color: #333;">Saludos,<br/>Equipo 888Cargo</p>
+                </div>
+            </div>
+        `;
+
+        const mailOptions = {
+            from: config.from,
+            to: email,
+            subject: 'Confirmación de registro - 888Cargo',
+            html
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Registration confirmation email sent:', info.messageId);
+        return { success: true, message: 'Registration confirmation email sent', messageId: info.messageId };
+
+    } catch (error) {
+        console.error('❌ Error sending registration confirmation email:', error.message || error);
+        return { success: false, message: error.message || 'Error sending registration confirmation' };
+    }
+};
+
 export default {
-    sendWelcomeEmail
+    sendWelcomeEmail,
+    sendRegistrationConfirmation
 };

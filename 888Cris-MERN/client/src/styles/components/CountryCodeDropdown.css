@@ -11,13 +11,15 @@
 /* Selector de código de país */
 .country-code-selector {
   position: relative;
-  width: 80px;
+  min-width: 110px; /* dar más espacio al selector para evitar desbordes */
+  width: auto;
 }
 
 .selected-code {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* evitar centrado que provoca saltos de línea */
+  gap: 6px;
   background-color: var(--bg-secondary);
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-sm);
@@ -26,6 +28,9 @@
   user-select: none;
   border: 1px solid var(--border-color);
   transition: all var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .selected-code:hover {
@@ -96,8 +101,9 @@
 
 /* Input para el número de teléfono */
 .phone-number-input {
-  flex: 1;
   padding: var(--spacing-sm);
+  width: 100%;
+  box-sizing: border-box;
   border-radius: var(--border-radius-xl);
   border: 1px solid var(--border-color);
   background-color: var(--bg-secondary);
@@ -137,6 +143,9 @@
 .phone-input-wrapper {
   position: relative;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .phone-input-wrapper .error-message {
@@ -173,4 +182,95 @@
   margin-left: var(--spacing-sm);
   color: var(--color-danger);
   font-size: var(--font-size-xs);
+}
+
+/* Ajustes para mostrar banderas y formato como en móvil */
+.country-flag {
+  display: inline-block;
+  width: 22px;
+  height: 16px;
+  line-height: 1;
+  vertical-align: middle;
+  object-fit: cover;
+}
+
+.flag-emoji {
+  font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', 'Twemoji Mozilla', sans-serif;
+  font-size: 18px;
+  display: none; /* ocultar por defecto; se mostrará si falla la imagen */
+  width: 22px;
+  text-align: center;
+}
+
+.country-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  color: var(--text-secondary);
+}
+
+.country-item .country-iso {
+  width: 36px;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.country-item .country-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.country-item .country-code {
+  min-width: 48px;
+  text-align: right;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.country-dropdown {
+  width: 320px; /* un poco más ancho para layout A-Z */
+}
+
+/* .selected-code definido arriba con reglas robustas */
+
+/* Scrollbar ligero para el dropdown */
+.country-list::-webkit-scrollbar {
+  width: 8px;
+}
+.country-list::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.08);
+  border-radius: 6px;
+}
+
+/* Pequeños ajustes responsivos */
+@media (max-width: 480px) {
+  .country-dropdown { width: 260px; }
+  .country-flag { font-size: 16px; width: 20px; }
+}
+
+/* Hint de teléfono: ocupa todo el ancho debajo del grupo */
+.phone-hint {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  display: block;
+  max-width: 92%; /* ligeramente más corto que el input */
+}
+.phone-hint .phone-hint-main {
+  margin-bottom: 2px;
+}
+.phone-status.pending { color: #6c757d; }
+.phone-status.ok { color: #198754; }
+.phone-status.over { color: #dc3545; }
+
+.phone-group {
+  display: block;
+  width: 100%;
 }

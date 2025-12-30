@@ -196,6 +196,35 @@
   flex-shrink: 0;
 }
 
+/* Wrapper y toggle para inputs de contraseña */
+.password-input-wrapper {
+  position: relative;
+  display: block;
+}
+.password-input-wrapper .form-input {
+  padding-right: 44px; /* espacio para el icono */
+}
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+.password-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13,110,253,0.12);
+  border-radius: 4px;
+}
+.password-toggle svg { display: block; }
+
 /* Input de búsqueda */
 .input-search {
   padding: var(--spacing-xs) var(--spacing-sm);

@@ -14,7 +14,7 @@ const AuthPage = () => {
         const checkAuth = async () => {
             try {
                 if (localStorage.getItem('user')) {
-                    await API.get('/api/profile');
+                    await API.get('/profile');
                     navigate('/dashboard');
                 }
             } catch {

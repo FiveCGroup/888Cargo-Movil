@@ -93,7 +93,7 @@ export const register = async (req, res) => {
         
         // WhatsApp de bienvenida (async, no bloquea)
         if (whatsappService && phone) {
-            whatsappService.sendWelcomeWhatsApp(phone, name)
+            whatsappService.sendWelcomeWhatsApp(phone, name, country)
                 .catch(err => console.error('⚠️ WhatsApp bienvenida error:', err.message));
         }
         

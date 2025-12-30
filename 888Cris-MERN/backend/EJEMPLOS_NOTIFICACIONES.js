@@ -57,7 +57,8 @@ export const example_sendConfirmationEmail = async () => {
 export const example_sendWelcomeWhatsApp = async () => {
     const result = await whatsappService.sendWelcomeWhatsApp(
         '+56912345678',  // Número de teléfono
-        'Juan'           // Nombre
+        'Juan',          // Nombre
+        'Chile'          // País (opcional) para selección de plantilla
     );
     
     if (result.success) {

@@ -51,7 +51,7 @@ export const useCrearCarga = () => {
         const cargarDatosUsuario = async () => {
             try {
                 // Primero intentar obtener datos completos del perfil
-                const response = await API.get('/api/profile');
+                const response = await API.get('/profile');
                 
                 if (response.data) {
                     setInfoCliente(prev => ({
@@ -94,7 +94,7 @@ export const useCrearCarga = () => {
                 
                 const cargarDatosFormulario = async () => {
                     try {
-                        const response = await API.get('/api/profile');
+                        const response = await API.get('/profile');
                         if (response.data) {
                             setInfoCliente(prev => ({
                                 ...prev,

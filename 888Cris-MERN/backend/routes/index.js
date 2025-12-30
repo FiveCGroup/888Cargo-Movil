@@ -74,6 +74,46 @@ router.post('/debug/frontend-log', (req, res) => {
   res.json({ success: true });
 });
 
+// Webhook de WhatsApp (Verificación y recepción de estados/mensajes)
+router.get('/webhook/whatsapp', (req, res) => {
+  // Endpoint para verificación (hub.challenge)
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+
+  console.log('[WhatsApp Webhook] GET verification request', { mode, token, challenge });
+
+  if (mode && token) {
+    // Aceptar cualquier token en desarrollo; en producción comparar con env WHATSAPP_WEBHOOK_TOKEN
+    if (challenge) {
+      return res.status(200).send(challenge);
+    }
+  }
+  res.sendStatus(403);
+});
+
+router.post('/webhook/whatsapp', express.json(), (req, res) => {
+  try {
+    console.log('[WhatsApp Webhook] Event received:', JSON.stringify(req.body));
+    // Aquí puedes procesar estados de entrega (delivered, failed) y persistir en DB
+    // Ejemplo: recorrer entry -> changes -> value -> statuses/messages
+    const body = req.body;
+    if (body.entry && Array.isArray(body.entry)) {
+      body.entry.forEach(entry => {
+        if (entry.changes && Array.isArray(entry.changes)) {
+          entry.changes.forEach(change => {
+            console.log('[WhatsApp Webhook] change:', JSON.stringify(change));
+          });
+        }
+      });
+    }
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('[WhatsApp Webhook] Error processing webhook:', error);
+    res.sendStatus(500);
+  }
+});
+
 // RUTA PERFIL
 router.get('/profile', authRequired, async (req, res) => {
   res.json({
@@ -86,7 +126,7 @@ router.get('/profile', authRequired, async (req, res) => {
 // RUTAS DE COTIZACIONES
 // =====================================
 
-const TRM_COP_USD = 4250;
+const TRM_COP_USD = 3720;
 const FACTOR_VOLUMETRICO = {
   MARITIMO: 1000,
   AEREO: 167

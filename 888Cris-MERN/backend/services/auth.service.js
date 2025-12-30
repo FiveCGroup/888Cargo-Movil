@@ -52,7 +52,7 @@ export const register = async (userData) => {
   }
 
   try {
-    const whatsappResult = await sendWelcomeWhatsApp(userData.phone, userData.full_name);
+    const whatsappResult = await sendWelcomeWhatsApp(userData.phone, userData.full_name, userData.country);
     console.log('📱 WhatsApp notification result:', whatsappResult);
   } catch (error) {
     console.error('❌ Error sending welcome WhatsApp:', error);

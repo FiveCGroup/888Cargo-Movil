@@ -79,6 +79,13 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 5173,
+      // Forzar HMR a usar localhost/ws para evitar que el cliente intente conectar
+      // a la IP de la interfaz (que puede fallar por firewall o rutas)
+      hmr: {
+        host: 'localhost',
+        protocol: 'ws',
+        clientPort: 5173
+      },
       proxy: {
         '/api': {
           target: 'http://192.168.58.115:4000',

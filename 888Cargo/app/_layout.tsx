@@ -16,6 +16,7 @@ function RootLayoutContent() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
+  // Esperar a que carguen fuentes antes de renderizar
   if (!loaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -23,10 +24,12 @@ function RootLayoutContent() {
       </View>
     );
   }
+  // Nota: la orden de pantallas en el Stack coloca `login` primero
+  // por lo que al iniciar la app se mostrará la pantalla de login.
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <Stack initialRouteName="login">
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="CotizadorScreen" options={{ title: 'Cotización' }} />

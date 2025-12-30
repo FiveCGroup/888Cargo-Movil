@@ -27,11 +27,7 @@ const LoginForm = () => {
     
     // Log al backend
     try {
-      await fetch('/api/debug/frontend-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: '🔍 [FRONTEND] HandleSubmit ejecutado', timestamp: new Date().toISOString() })
-      }).catch(() => {});
+      await API.post('/debug/frontend-log', { message: '🔍 [FRONTEND] HandleSubmit ejecutado', timestamp: new Date().toISOString() }).catch(() => {});
     } catch{}
     
     // Validar que se hayan ingresado datos antes de intentar iniciar sesión
@@ -52,7 +48,7 @@ const LoginForm = () => {
 
     try {
       console.log("🔍 [FRONTEND] Haciendo request con API.post...");
-      const response = await API.post("/api/login", formData);
+      const response = await API.post("/login", formData);
       console.log("🔍 [FRONTEND] Response recibida:", response);
 
       // Verificación corregida - los datos están en response.data.user
@@ -152,11 +148,7 @@ const LoginForm = () => {
     
     // También enviamos un log al backend para confirmar que llega
     try {
-      await fetch('/api/debug/frontend-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: '🔍 [FRONTEND] Login click iniciado', timestamp: new Date().toISOString() })
-      }).catch(() => {}); // Ignorar errores de este log
+      await API.post('/debug/frontend-log', { message: '🔍 [FRONTEND] Login click iniciado', timestamp: new Date().toISOString() }).catch(() => {});
     } catch {}
     
     await handleSubmit(e);

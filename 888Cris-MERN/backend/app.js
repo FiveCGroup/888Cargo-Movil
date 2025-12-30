@@ -72,10 +72,32 @@ const uploadsPath = path.resolve(process.cwd(), UPLOAD_CONFIG.uploadPath);
 app.use('/uploads', express.static(uploadsPath));
 
 // Servir documentación técnica generada con TypeDoc
-// La carpeta code-docs está en la raíz del workspace (2 niveles arriba)
-const codeDocsPath = path.resolve(__dirname, '../../code-docs');
-console.log('📚 [Backend] Ruta de documentación:', codeDocsPath);
-app.use('/code-docs', express.static(codeDocsPath));
+// Buscar la carpeta `code-docs` subiendo desde __dirname hasta N niveles.
+const fs = require('fs');
+let codeDocsPath = null;
+const maxSearchDepth = 6; // cubrir varios niveles por seguridad
+let current = __dirname;
+for (let i = 0; i < maxSearchDepth; i++) {
+    const candidate = path.resolve(current, '..'.repeat(i), 'code-docs');
+    if (fs.existsSync(candidate)) {
+        codeDocsPath = candidate;
+        break;
+    }
+}
+
+// También comprobar process.cwd() como fallback
+if (!codeDocsPath) {
+    const cwdCandidate = path.resolve(process.cwd(), 'code-docs');
+    if (fs.existsSync(cwdCandidate)) codeDocsPath = cwdCandidate;
+}
+
+if (codeDocsPath) {
+    console.log('📚 [Backend] Sirviendo documentación desde:', codeDocsPath);
+    app.use('/code-docs', express.static(codeDocsPath));
+} else {
+    console.warn('⚠️ [Backend] No se encontró la carpeta `code-docs` (buscada desde __dirname y process.cwd()).');
+    console.warn('      Se intentaron búsquedas relativas y no se encontró el directorio.');
+}
 
 // Endpoint de depuración para verificar la ruta de documentación
 app.get('/api/debug/docs-path', (req, res) => {
