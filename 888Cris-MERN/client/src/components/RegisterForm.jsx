@@ -306,9 +306,13 @@ const RegisterForm = () => {
         name,
         lastname,
         email,
-        phoneNumber: fullPhoneNumber,
+        phoneNumber: fullPhoneNumber, // formato internacional: +57...
+        phone: fullPhoneNumber,       // enviar también campo alternativo
+        mobile: fullPhoneNumber,      // enviar también mobile por compatibilidad
         country,
         password,
+        acceptWhatsapp: formData.acceptWhatsapp, // consentimiento que exige la UI
+        username: email // opcional, por si el backend usa username
       });
       // Mostrar alerta estilizada y limpiar formulario
       await CargoAlerts.showRegistrationSuccess(name);

@@ -53,6 +53,14 @@ export default function CotizacionesScreen() {
         const token = await AsyncStorage.getItem('@auth:token');
         const authReal = !!token;
 
+        // Ignorar draft si el usuario acaba de registrarse (flag puesto en flujo de registro)
+        const justRegistered = await AsyncStorage.getItem('@auth:just_registered');
+        if (justRegistered === 'true') {
+          console.log('[CotizacionesScreen] Ignorando draft: usuario recién registrado');
+          await AsyncStorage.removeItem('@auth:just_registered');
+          return;
+        }
+
         const datosGuardados = await cotizacionService.obtenerDatosTemporales();
         
         if (datosGuardados) {

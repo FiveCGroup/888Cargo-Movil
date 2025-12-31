@@ -49,12 +49,6 @@ const formatPhoneNumber = (phone) => {
         }
         return cleaned;
     }
-
-    // Soportar prefijo internacional con 00 (ej. 005995...) => +5995...
-    if (cleaned.startsWith('00')) {
-        const asPlus = '+' + cleaned.substring(2);
-        if (asPlus.length >= 7) return asPlus;
-    }
     
     // Si no tiene +, intentar agregar código de país basado en prefijo
     // Estados Unidos/Canadá (+1) - si comienza con 1 y tiene 10 dígitos
@@ -68,7 +62,7 @@ const formatPhoneNumber = (phone) => {
     }
     
     // Para otros países, requerir que el usuario ingrese el + manualmente
-    console.warn('Número sin código de país (+). Ingrese el número completo con código internacional (ej. +1XXXXXXXXXX) o use prefijo 00:', cleaned);
+    console.warn('Número sin código de país (+). Ingrese el número completo con código internacional (ej. +1XXXXXXXXXX):', cleaned);
     return null; // O lanza error para forzar corrección
 };
 
@@ -78,7 +72,7 @@ const formatPhoneNumber = (phone) => {
  * @param {string} name - Nombre del usuario
  * @returns {Promise}
  */
-export const sendWelcomeWhatsApp = async (phone, name, countryParam = '') => {
+export const sendWelcomeWhatsApp = async (phone, name) => {
     try {
         const config = getWhatsAppConfig();
         if (!config) {
@@ -90,36 +84,25 @@ export const sendWelcomeWhatsApp = async (phone, name, countryParam = '') => {
             return { success: false, message: 'Invalid phone number' };
         }
 
-        // Seleccionar plantilla e idioma según país proporcionado en el registro (countryParam).
-        const decideTemplate = (country, phoneNumber) => {
-            const c = (country || '').toString().toLowerCase().trim();
-            const spanish = ['colombia','argentina','mexico','españa','chile','perú','peru','ecuador','bolivia','paraguay','uruguay','venezuela','cuba','república dominicana','dominican republic','panamá','panama','guatemala','honduras','el salvador','nicaragua','costa rica','costarica'];
-            const english = ['united states','united states of america','usa','canada','united kingdom','uk','australia','new zealand','ireland','singapore'];
-            const chinese = ['china','chn','people\'s republic of china','prc'];
-
-            if (c) {
-                if (spanish.some(s => c.includes(s))) return { template: 'registro_exitoso_888cargo', lang: 'es_CO' };
-                if (english.some(s => c.includes(s))) return { template: 'bienvenida_registro', lang: 'en_US' };
-                if (chinese.some(s => c.includes(s))) return { template: 'registro_bienvenida_chino', lang: 'zh_CN' };
-            }
-
-            // Fallback a detección por prefijo telefónico
-            if (phoneNumber && phoneNumber.startsWith('+86')) return { template: 'registro_bienvenida_chino', lang: 'zh_CN' };
-            if (phoneNumber && phoneNumber.startsWith('+1')) return { template: 'bienvenida_registro', lang: 'en_US' };
-            // Por defecto usar español
-            return { template: 'registro_exitoso_888cargo', lang: 'es_CO' };
-        };
-
-        const chosen = decideTemplate(countryParam, formattedPhone);
+        // Determinar el lenguaje basado en el código de país
+        const hispanicCodes = ['+57', '+34', '+52', '+54', '+56', '+58', '+591', '+503', '+505', '+506', '+507', '+51', '+53', '+595', '+598', '+593', '+502', '+504'];
+        let language = 'en_CO'; // Inglés por defecto para países no hispanohablantes ni chinos
+        if (hispanicCodes.some(code => formattedPhone.startsWith(code))) {
+            language = 'es_CO'; // Español para países hispanohablantes
+        } else if (formattedPhone.startsWith('+86')) {
+            language = 'es_CO'; // Chino simplificado para China
+        } else if (formattedPhone.startsWith('+1')) {
+            language = 'es_CO'; // Usar español aprobado para EE.UU. mientras se aprueba en_US
+        }
 
         const messageData = {
             messaging_product: "whatsapp",
             to: formattedPhone,
             type: 'template',
             template: {
-                name: chosen.template,
+                name: 'registro_exitoso_888cargo',
                 language: {
-                    code: chosen.lang,
+                    code: language,
                     policy: 'deterministic'
                 },
                 components: [
@@ -136,11 +119,6 @@ export const sendWelcomeWhatsApp = async (phone, name, countryParam = '') => {
             }
         };
 
-        // Se envía siempre con language.code = 'es' (configurado arriba)
-
-        // Log request for debugging international delivery issues
-        console.log('[WhatsApp] Sending message to:', formattedPhone, 'payload:', JSON.stringify(messageData));
-
         const response = await axios.post(`${config.baseUrl}/${config.phoneNumberId}/messages`, messageData, {
             headers: {
                 'Authorization': `Bearer ${config.token}`,
@@ -148,12 +126,9 @@ export const sendWelcomeWhatsApp = async (phone, name, countryParam = '') => {
             },
             timeout: parseInt(process.env.WHATSAPP_TIMEOUT) || 30000
         });
-        console.log('✅ Welcome WhatsApp message sent:', response.status, response.data);
-        const messageId = response.data.messages?.[0]?.id;
-        if (!messageId) {
-            console.warn('[WhatsApp] No message id returned for', formattedPhone, 'response:', response.data);
-        }
-        return { success: true, message: 'Welcome WhatsApp message sent', messageId };
+
+        console.log('✅ Welcome WhatsApp message sent:', response.data);
+        return { success: true, message: 'Welcome WhatsApp message sent', messageId: response.data.messages?.[0]?.id };
 
     } catch (error) {
         console.error('❌ Error sending welcome WhatsApp:', error.response?.data || error.message);
@@ -208,64 +183,8 @@ export const sendDocumentWhatsApp = async (phone, documentUrl, caption = '') => 
     }
 };
 
-/**
- * Enviar confirmación de registro por WhatsApp (incluye username)
- */
-export const sendRegistrationConfirmationWhatsApp = async (phone, name, username, countryParam = '') => {
-    try {
-        const config = getWhatsAppConfig();
-        if (!config) {
-            return { success: false, message: 'WhatsApp not configured' };
-        }
-
-        const formattedPhone = formatPhoneNumber(phone);
-        if (!formattedPhone) {
-            return { success: false, message: 'Invalid phone number' };
-        }
-
-        // Usar plantilla genérica de confirmación; si no existe, reutiliza la de bienvenida con usuario
-        const templateName = 'registro_confirmacion_888cargo';
-
-        const messageData = {
-            messaging_product: "whatsapp",
-            to: formattedPhone,
-            type: 'template',
-            template: {
-                name: templateName,
-                language: { code: 'es_CO', policy: 'deterministic' },
-                components: [
-                    {
-                        type: 'body',
-                        parameters: [
-                            { type: 'text', text: name },
-                            { type: 'text', text: username }
-                        ]
-                    }
-                ]
-            }
-        };
-
-        console.log('[WhatsApp] Sending registration confirmation to:', formattedPhone);
-        const response = await axios.post(`${config.baseUrl}/${config.phoneNumberId}/messages`, messageData, {
-            headers: {
-                'Authorization': `Bearer ${config.token}`,
-                'Content-Type': 'application/json'
-            },
-            timeout: parseInt(process.env.WHATSAPP_TIMEOUT) || 30000
-        });
-
-        console.log('✅ Registration confirmation WhatsApp sent:', response.data);
-        return { success: true, message: 'Registration confirmation WhatsApp sent', messageId: response.data.messages?.[0]?.id };
-
-    } catch (error) {
-        console.error('❌ Error sending registration confirmation WhatsApp:', error.response?.data || error.message);
-        return { success: false, message: error.response?.data?.message || error.message };
-    }
-};
-
 export default {
     sendWelcomeWhatsApp,
     sendDocumentWhatsApp,
-    formatPhoneNumber,
-    sendRegistrationConfirmationWhatsApp
+    formatPhoneNumber
 };

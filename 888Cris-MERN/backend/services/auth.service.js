@@ -3,8 +3,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import databaseRepository from '../repositories/index.js';
 import { TOKEN_SECRET } from '../config.js';
-import { sendWelcomeEmail } from './emailService.js';
-import { sendWelcomeWhatsApp } from './whatsappService.js';
+import whatsappService from './whatsappService.js';
+import { sendWelcomeEmail, sendRegistrationConfirmation } from './emailService.js';
 
 const { users, roles, user_roles, recovery_tokens } = databaseRepository;
 
@@ -43,22 +43,30 @@ export const register = async (userData) => {
     await user_roles.create({ user_id: userId, role_id: clienteRole.id });
   }
 
-  // Enviar notificaciones de bienvenida (no bloqueante para el registro)
-  try {
-    const emailResult = await sendWelcomeEmail(userData.email, userData.full_name);
-    console.log('📧 Email notification result:', emailResult);
-  } catch (error) {
-    console.error('❌ Error sending welcome email:', error);
-  }
+  // Enviar notificaciones en background; no bloquea el flujo existente
+  void (async () => {
+    try {
+      const tasks = [];
+      if (userData.email) {
+        tasks.push(sendWelcomeEmail(userData.email, userData.full_name));
+        tasks.push(sendRegistrationConfirmation(userData.email, userData.full_name, userData.username || userData.email.split('@')[0]));
+      }
+      const phone = userData.phone || '';
+      if (phone) {
+        const fullName = `${userData.full_name}`.trim();
+        tasks.push(whatsappService.sendWelcomeWhatsApp(phone, fullName, userData.country || ''));
+      }
+      if (tasks.length === 0) return;
+      const results = await Promise.allSettled(tasks);
+      results.forEach((r, i) => {
+        if (r.status === 'rejected') console.error('[Notifications] task', i, 'rejected:', r.reason);
+      });
+    } catch (notifyErr) {
+      console.error('[Notifications] unexpected error:', notifyErr);
+    }
+  })();
 
-  try {
-    const whatsappResult = await sendWelcomeWhatsApp(userData.phone, userData.full_name, userData.country);
-    console.log('📱 WhatsApp notification result:', whatsappResult);
-  } catch (error) {
-    console.error('❌ Error sending welcome WhatsApp:', error);
-  }
-
-  return { success: true, message: 'Usuario registrado', userId };
+  return { success: true, user: { id: userId, name: userData.full_name, email: userData.email } };
 };
 
 /**
