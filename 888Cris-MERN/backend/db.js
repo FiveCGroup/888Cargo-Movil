@@ -69,7 +69,9 @@ export async function initializeDatabase() {
       '014_create_carga_contenedor_table.sql',
       '015_create_notifications_table.sql',
       '016_create_audit_log_table.sql',
-      '017_add_indexes_and_constraints.sql'
+      '017_add_indexes_and_constraints.sql',
+      '018_add_cantidad_to_articulo_packing_list.sql',
+      '019_fix_clientes_nombre_from_users.sql'
     ];
 
     for (const migration of migrations) {
@@ -77,12 +79,21 @@ export async function initializeDatabase() {
       if (fs.existsSync(migrationPath)) {
         console.log(`Ejecutando migración: ${migration}`);
         const sql = fs.readFileSync(migrationPath, 'utf8');
-        await new Promise((resolve, reject) => {
-          db.exec(sql, (err) => {
-            if (err) reject(err);
-            else resolve();
+        try {
+          await new Promise((resolve, reject) => {
+            db.exec(sql, (err) => {
+              if (err) reject(err);
+              else resolve();
+            });
           });
-        });
+        } catch (err) {
+          // Si la migración falla porque la columna ya existe, continuar (idempotencia básica)
+          if (err && err.message && err.message.includes('duplicate column name')) {
+            console.warn(`Migración ${migration} ya aplicada (columna duplicada). Continuando...`);
+            continue;
+          }
+          throw err;
+        }
       } else {
         console.warn(`Migración no encontrada: ${migration}. Saltando...`);
       }

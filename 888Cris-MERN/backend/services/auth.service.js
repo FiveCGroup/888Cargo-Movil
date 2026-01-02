@@ -6,7 +6,7 @@ import { TOKEN_SECRET } from '../config.js';
 import whatsappService from './whatsappService.js';
 import { sendWelcomeEmail, sendRegistrationConfirmation } from './emailService.js';
 
-const { users, roles, user_roles, recovery_tokens } = databaseRepository;
+const { users, roles, user_roles, recovery_tokens, clientes } = databaseRepository;
 
 /**
  * Registro de usuario (cliente por defecto)
@@ -41,6 +41,25 @@ export const register = async (userData) => {
   const clienteRole = await roles.findOne({ name: 'cliente' });
   if (clienteRole) {
     await user_roles.create({ user_id: userId, role_id: clienteRole.id });
+  }
+
+  // Crear registro en la tabla `clientes` para mantener sincronía
+  try {
+    const clienteData = {
+      nombre_cliente: userData.full_name || (userData.username || userData.email.split('@')[0]),
+      correo_cliente: userData.email,
+      telefono_cliente: userData.phone || '',
+      pais_cliente: userData.country || 'Colombia',
+      ciudad_cliente: userData.city || null,
+      direccion_entrega: userData.address || null,
+      cliente_shippingMark: userData.shippingMark || null
+    };
+
+    const createdCliente = await clientes.create(clienteData);
+    // Opcional: si deseas mantener relación explícita, podrías guardar createdCliente.id en otra tabla.
+    console.log('[Auth] Cliente creado con id:', createdCliente.id);
+  } catch (err) {
+    console.error('[Auth] Falló creación de cliente (no crítico):', err.message);
   }
 
   // Enviar notificaciones en background; no bloquea el flujo existente

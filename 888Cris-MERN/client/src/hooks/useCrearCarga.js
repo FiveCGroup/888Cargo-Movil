@@ -52,13 +52,13 @@ export const useCrearCarga = () => {
             try {
                 // Primero intentar obtener datos completos del perfil
                 const response = await API.get('/profile');
-                
-                if (response.data) {
+                const userData = response.data?.user || response.data;
+                if (userData) {
                     setInfoCliente(prev => ({
                         ...prev,
-                        nombre_cliente: response.data.name || '',
-                        correo_cliente: response.data.email || '',
-                        telefono_cliente: response.data.phone || ''
+                        nombre_cliente: userData.full_name || userData.name || userData.username || '',
+                        correo_cliente: userData.email || '',
+                        telefono_cliente: userData.phone || ''
                     }));
                 }
             } catch (error) {
@@ -95,12 +95,13 @@ export const useCrearCarga = () => {
                 const cargarDatosFormulario = async () => {
                     try {
                         const response = await API.get('/profile');
-                        if (response.data) {
+                        const userData = response.data?.user || response.data;
+                        if (userData) {
                             setInfoCliente(prev => ({
                                 ...prev,
-                                nombre_cliente: response.data.name || '',
-                                correo_cliente: response.data.email || '',
-                                telefono_cliente: response.data.phone || ''
+                                nombre_cliente: userData.full_name || userData.name || userData.username || '',
+                                correo_cliente: userData.email || '',
+                                telefono_cliente: userData.phone || ''
                             }));
                         }
                     } catch (error) {

@@ -6,7 +6,8 @@ class CargaService {
             console.log(`[CargaService] Uploading file: ${archivo.name} (${(archivo.size / (1024 * 1024)).toFixed(2)}MB)`);
             
             const formData = new FormData();
-            formData.append('archivo', archivo);
+            // El backend espera el campo 'file' en upload.single('file')
+            formData.append('file', archivo);
             
             // Configuración con timeout extendido para archivos grandes
             const config = {
@@ -18,7 +19,7 @@ class CargaService {
                 }
             };
             
-            const response = await API.post('/api/carga/procesar-excel', formData, config);
+            const response = await API.post('/carga/procesar-excel', formData, config);
             console.log('✅ Archivo procesado exitosamente');
             return { success: true, data: response.data };
         } catch (error) {
@@ -42,7 +43,7 @@ class CargaService {
 
     async guardarPackingListConQR(datosCompletos) {
         try {
-            const response = await API.post('/api/carga/guardar-con-qr', datosCompletos);
+            const response = await API.post('/carga/guardar-con-qr', datosCompletos);
             return response.data;
         } catch (error) {
             console.error('❌ Error al guardar packing list con QR:', error);
@@ -58,7 +59,7 @@ class CargaService {
             // Usar versión optimizada por defecto y agregar parámetro aleatorio para evitar caché
             const params = useOptimized ? '?useOptimized=true' : '?useOptimized=false';
             const nocache = `&nocache=${Date.now()}`;
-            const response = await API.get(`/api/qr/pdf-carga/${idCarga}${params}${nocache}`, { responseType: 'blob' });
+            const response = await API.get(`/qr/pdf-carga/${idCarga}${params}${nocache}`, { responseType: 'blob' });
             const blob = new Blob([response.data], { type: 'application/pdf' });
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -81,7 +82,7 @@ class CargaService {
 
     async buscarPackingList(codigoCarga) {
         try {
-            const response = await API.get(`/api/carga/buscar/${encodeURIComponent(codigoCarga)}`);
+            const response = await API.get(`/carga/buscar/${encodeURIComponent(codigoCarga)}`);
             
             if (response.data && response.data.success && response.data.data && response.data.data.length > 0) {
                 return { success: true, data: response.data.data, mensaje: response.data.mensaje || `Se encontraron ${response.data.data.length} packing lists` };
@@ -99,7 +100,7 @@ class CargaService {
 
     async obtenerPackingList(idCarga) {
         try {
-            const response = await API.get(`/api/carga/packing-list/${idCarga}`);
+            const response = await API.get(`/carga/packing-list/${idCarga}`);
             return { success: true, data: response.data };
         } catch (error) {
             console.error('Error al obtener packing list:', error);
@@ -109,7 +110,7 @@ class CargaService {
 
     async obtenerCargaMeta(idCarga) {
         try {
-            const response = await API.get(`/api/carga/carga/${idCarga}`);
+            const response = await API.get(`/carga/carga/${idCarga}`);
             return { success: true, data: response.data };
         } catch (error) {
             console.error('Error al obtener metadata de la carga:', error);
