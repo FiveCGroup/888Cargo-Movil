@@ -18,12 +18,18 @@ import { logout } from '../controllers/auth.controller.simple.js';
 import {
   procesarExcel,
   generarQRs,
-  getMisCargas
+  getMisCargas,
+  guardarConQR,
+  obtenerPackingList,
+  obtenerCargaPorId,
+  transformarExcel
 } from '../controllers/carga.controller.js';
 
 import {
   validarEscaneo,
-  generarPDFCarga
+  generarPDFCarga,
+  obtenerQRsParaCargaDebug,
+  obtenerImagenQR
 } from '../controllers/qr.controller.js';
 
 import puppeteer from 'puppeteer';
@@ -47,7 +53,8 @@ const __dirname = path.dirname(__filename);
 // Multer para subir Excel
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 },
+  // Permitir hasta 50MB para archivos Excel grandes (alineado con cliente)
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     if (!['.xlsx', '.xls'].includes(ext)) {
@@ -114,6 +121,12 @@ router.post('/webhook/whatsapp', express.json(), (req, res) => {
     res.sendStatus(500);
   }
 });
+
+// Obtener packing list (artículos + cajas)
+router.get('/carga/packing-list/:id', authRequired, obtenerPackingList);
+
+// Alias público para obtener metadata de carga (compatibilidad móvil)
+router.get('/carga/carga/:id', obtenerCargaPorId);
 
 // RUTA PERFIL
 router.get('/profile', authRequired, async (req, res) => {
@@ -359,13 +372,27 @@ router.get('/cliente/mis-cargas', authRequired, misCargas);
 router.get('/cliente/carga/:codigo', authRequired, detalleCarga);
 
 // RUTAS CARGA
+// Endpoints existentes
 router.post('/carga/excel', authRequired, upload.single('file'), procesarExcel);
 router.post('/carga/:cargaId/generar-qr', authRequired, generarQRs);
 router.get('/carga/mis-cargas', authRequired, getMisCargas);
 
+// Aliases de compatibilidad con frontend (mantener rutas antiguas usadas por cliente)
+router.post('/carga/procesar-excel', authRequired, upload.single('file'), procesarExcel);
+router.post('/carga/guardar-con-qr', authRequired, guardarConQR);
+router.post('/carga/transformar-excel', authRequired, upload.single('file'), transformarExcel);
+
 // RUTAS QR
 router.post('/qr/validate', authRequired, validarEscaneo);
 router.get('/qr/pdf/:cargaId', authRequired, generarPDFCarga);
+// Alias para compatibilidad con cliente móvil
+router.get('/qr/pdf-carga/:cargaId', generarPDFCarga);
+
+// Endpoint debug público que usa el cliente móvil para obtener QRs de una carga
+router.get('/qr/debug/carga/:id/data', obtenerQRsParaCargaDebug);
+
+// Obtener imagen PNG del QR (genera on-the-fly). Público para consumo desde app.
+router.get('/qr/image/:id', obtenerImagenQR);
 
 // RUTAS ADMIN
 router.post('/admin/crear-usuario', authRequired, crearUsuarioAdmin);

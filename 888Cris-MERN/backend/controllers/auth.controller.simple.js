@@ -28,7 +28,7 @@ export const register = async (req, res) => {
         console.log("Request data:", req.body);
         
         const { name, lastname, email, phone, country, password } = req.body;
-        
+
         // Validación básica
         if (!name || !lastname || !email || !password) {
             return res.status(400).json({ 
@@ -36,32 +36,34 @@ export const register = async (req, res) => {
             });
         }
 
-        // Verificar si ya existe un usuario con el mismo correo
+        // Normalizar email
         const normalizedEmail = email.toLowerCase().trim();
-        
-        try {
-            const existingUser = await userRepository.findByEmail(normalizedEmail);
-            if (existingUser) {
-                return res.status(400).json({ 
-                    message: "Ya existe un usuario con ese correo" 
-                });
-            }
-        } catch (error) {
-            console.log("Error verificando usuario existente (puede ser normal si no existe):", error.message);
+
+        // Verificar si ya existe un usuario con el mismo correo
+        const existingUser = await userRepository.findByEmail(normalizedEmail);
+        if (existingUser) {
+            return res.status(400).json({ message: 'Ya existe un usuario con ese correo' });
         }
 
-        // Crear el nuevo usuario usando el repository
-        const newUser = await userRepository.createUser({
-            username: `${name}_${lastname}`.toLowerCase().replace(' ', '_'),
+        // Hashear la contraseña antes de guardar
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Mapear los campos al esquema de la tabla `users`
+        const username = `${name}_${lastname}`.toLowerCase().replace(/\s+/g, '_');
+        const userData = {
+            username,
             email: normalizedEmail,
-            password: password, // El repository se encarga del hash
-            nombre_cliente: `${name} ${lastname}`,
-            correo_cliente: normalizedEmail,
-            telefono_cliente: phone || '',
-            ciudad_cliente: '', 
-            pais_cliente: country || '',
-            is_active: 1
-        });
+            password: hashedPassword,
+            full_name: `${name} ${lastname}`,
+            phone: phone || '',
+            country: country || '',
+            status: 'active'
+        };
+
+        // Crear el nuevo usuario usando el repository genérico
+        const result = await userRepository.create(userData);
+        const newUser = { id: result.id, ...userData };
 
         // Generar token
         const token = await createAccessToken({ id: newUser.id });
@@ -77,17 +79,18 @@ export const register = async (req, res) => {
         console.log("Usuario registrado exitosamente:", newUser);
         
         // Enviar notificaciones por email y WhatsApp (sin esperar, sin bloquear)
-        const username = `${name}_${lastname}`.toLowerCase().replace(' ', '_');
-        
+        // Reutilizamos `username` y `newUser` mapeados al esquema `users`
+        const notifUsername = username;
+
         // Email de bienvenida (async, no bloquea)
         if (emailService) {
-            emailService.sendWelcomeEmail(newUser.correo_cliente, name)
+            emailService.sendWelcomeEmail(newUser.email, name)
                 .catch(err => console.error('⚠️ Email bienvenida error:', err.message));
         }
-        
+
         // Email de confirmación (async, no bloquea)
         if (emailService) {
-            emailService.sendRegistrationConfirmation(newUser.correo_cliente, name, username)
+            emailService.sendRegistrationConfirmation(newUser.email, name, notifUsername)
                 .catch(err => console.error('⚠️ Email confirmación error:', err.message));
         }
         
@@ -105,8 +108,8 @@ export const register = async (req, res) => {
         
         res.status(201).json({
             id: newUser.id,
-            name: newUser.nombre_cliente,
-            email: newUser.correo_cliente,
+            name: newUser.full_name,
+            email: newUser.email,
             message: 'Usuario registrado exitosamente. Revisa tu email y WhatsApp para confirmar.'
         });
         

@@ -143,7 +143,7 @@ export const generarQRParaCarga = async (cargaId, cantidad = 1) => {
     });
 
     qrCodes.push({
-      id: nuevoQR.id_qr,
+      id: nuevoQR.id,
       codigo: datosQR,
       qrImage: qrImage.toString('base64'),
       caja: {

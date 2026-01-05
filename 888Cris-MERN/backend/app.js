@@ -43,11 +43,11 @@ app.use(cors({
         const allowedOrigins = [
             "http://localhost:5173",
             "http://localhost:5174",
-            "http://192.168.18.21:5173",
-            "http://192.168.18.21:5174",
+            "http://192.168.58.113:5173",
+            "http://192.168.58.113:5174",
             "http://10.0.2.2:4000",
             "http://localhost:8081",
-            "http://192.168.18.21:8081",
+            "http://192.168.58.113:8081",
         ];
 
         if (!origin || allowedOrigins.includes(origin)) {
@@ -76,9 +76,9 @@ app.use('/uploads', express.static(uploadsPath));
 const fs = require('fs');
 let codeDocsPath = null;
 const maxSearchDepth = 6; // cubrir varios niveles por seguridad
-let current = __dirname;
 for (let i = 0; i < maxSearchDepth; i++) {
-    const candidate = path.resolve(current, '..'.repeat(i), 'code-docs');
+    const ups = Array(i).fill('..');
+    const candidate = path.resolve(__dirname, ...ups, 'code-docs');
     if (fs.existsSync(candidate)) {
         codeDocsPath = candidate;
         break;

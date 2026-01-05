@@ -222,6 +222,32 @@
     </style>
 </head>
 <body>
+    <a class="back-to-app" href="/" onclick="(function(e){e.preventDefault(); const devFrontend = 'http://localhost:5173/'; try{ if (window.parent && window.parent !== window) { try { window.parent.location.href = devFrontend; return; } catch (errParent) { /* cross-origin or other error */ } } // If we're running on the backend origin (e.g., :4000) or parent nav failed, redirect to frontend dev server
+            if (window.location.origin && window.location.origin.indexOf(':4000') !== -1) {
+                window.location.href = devFrontend;
+            } else {
+                // Default fallback to frontend host
+                window.location.href = devFrontend;
+            }
+        } catch (e) {
+            window.location.href = devFrontend;
+        } })(event)">← Volver al perfil</a>
+    <style>
+        .back-to-app{
+            position:fixed;
+            top:16px;
+            left:16px;
+            z-index:9999;
+            background:#0366d6;
+            color:#fff;
+            padding:8px 12px;
+            border-radius:8px;
+            text-decoration:none;
+            font-weight:700;
+            box-shadow:0 6px 18px rgba(3,102,214,0.2);
+        }
+        .back-to-app:hover{ opacity:0.95; transform:translateY(-1px); }
+    </style>
     <div class="container">
         <div class="header">
             <h1>📦 888 Cargo</h1>

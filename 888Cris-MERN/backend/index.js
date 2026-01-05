@@ -54,7 +54,7 @@ const app = express();
 // Middlewares - CORS Permisivo en Desarrollo
 const isDevelopment = process.env.NODE_ENV !== 'production';
 app.use(cors({
-  origin: isDevelopment ? true : ['http://localhost:5173', 'http://192.168.18.21:5173', 'exp://*'],
+  origin: isDevelopment ? true : ['http://localhost:5173', 'http://192.168.58.113:5173', 'exp://*'],
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -67,7 +67,9 @@ try {
   const maxSearchDepth = 6;
   let codeDocsPath = null;
   for (let i = 0; i < maxSearchDepth; i++) {
-    const candidate = path.resolve(__dirname, '..'.repeat(i), 'code-docs');
+    // Construir la ruta subiendo i niveles (seguro y compatible)
+    const ups = Array(i).fill('..');
+    const candidate = path.resolve(__dirname, ...ups, 'code-docs');
     if (fs.existsSync(candidate)) {
       codeDocsPath = candidate;
       break;

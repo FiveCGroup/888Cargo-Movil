@@ -14,8 +14,10 @@ const AuthPage = () => {
         const checkAuth = async () => {
             try {
                 if (localStorage.getItem('user')) {
+                    // validar token en background pero NO redirigir automáticamente
                     await API.get('/profile');
-                    navigate('/dashboard');
+                    // dejamos que la app muestre la pantalla de login; el flujo normal de Login
+                    // seguirá redirigiendo a /dashboard cuando el usuario inicie sesión.
                 }
             } catch {
                 localStorage.removeItem('user');

@@ -20,11 +20,12 @@ const Documentacion = () => {
 
   const isDev = import.meta.env.MODE === 'development';
   const backendBase = isDev ? 'http://localhost:4000' : '';
-  // Fallback local path (served by Vite) en desarrollo
-  const viteDocsBase = isDev ? '' : '';
 
-  // En desarrollo preferimos cargar desde el frontend público si existe
-  const iframeSrc = isDev ? `/tutoriales/${currentDoc.id === 'index' ? 'index.html' : currentDoc.path.split('/').pop()}`.replace('//','/') : `${backendBase}${currentDoc.path}`;
+  // En desarrollo preferimos cargar directamente desde el backend (puede usarse proxy de Vite)
+  // Construimos la URL final apuntando a /code-docs/<...>
+  const iframeSrc = isDev
+    ? `${backendBase}${currentDoc.path}`
+    : currentDoc.path; // en producción asumimos que /code-docs está servido por el backend o CDN
 
   return (
     <div className="documentacion-container">

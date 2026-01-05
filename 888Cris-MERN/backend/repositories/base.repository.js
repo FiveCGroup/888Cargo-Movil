@@ -6,20 +6,30 @@ export class BaseRepository {
     this.table = tableName;
   }
 
-  async findAll(conditions = {}, orderBy = 'id DESC') {
+  async findAll(conditions = {}, orderBy = null) {
     let sql = `SELECT * FROM ${this.table}`;
     const params = [];
     if (Object.keys(conditions).length > 0) {
       sql += ' WHERE ' + Object.keys(conditions).map(key => `${key} = ?`).join(' AND ');
       params.push(...Object.values(conditions));
     }
-    sql += ` ORDER BY ${orderBy}`;
+    // Añadir ORDER BY solo si se pasó explícitamente
+    if (orderBy) {
+      sql += ` ORDER BY ${orderBy}`;
+    }
+
     return await query(sql, params);
   }
 
   async findOne(conditions) {
-    const rows = await this.findAll(conditions, 'id DESC');
-    return rows.length > 0 ? rows[0] : null;
+    // Construir consulta independiente para no asumir la existencia de columna `id`
+    const keys = Object.keys(conditions || {});
+    if (keys.length === 0) return null;
+    const whereClause = keys.map(k => `${k} = ?`).join(' AND ');
+    const params = Object.values(conditions);
+    const sql = `SELECT * FROM ${this.table} WHERE ${whereClause} LIMIT 1`;
+    const rows = await query(sql, params);
+    return rows && rows.length > 0 ? rows[0] : null;
   }
 
   async findById(id) {
