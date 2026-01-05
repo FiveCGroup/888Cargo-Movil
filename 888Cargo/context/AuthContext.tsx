@@ -11,6 +11,7 @@ interface User {
 interface AuthContextType {
     isLoading: boolean;
     isAuthenticated: boolean;
+    isAuthInitialized: boolean;
     token: string | null;
     user: User | null;
     error: string | null;
@@ -25,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [authState, setAuthState] = useState({
         isLoading: true,
         isAuthenticated: false,
+        isAuthInitialized: false,
         token: null as string | null,
         user: null as User | null,
         error: null as string | null
@@ -49,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAuthState({
                 isLoading: false,
                 isAuthenticated: state.isAuthenticated,
+                isAuthInitialized: true,
                 token: state.token,
                 user: state.user,
                 error: null
@@ -58,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAuthState({
                 isLoading: false,
                 isAuthenticated: false,
+                isAuthInitialized: true,
                 token: null,
                 user: null,
                 error: 'Error al cargar autenticación'
@@ -76,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setAuthState({
                     isLoading: false,
                     isAuthenticated: true,
+                    isAuthInitialized: true,
                     token: result.data.token,
                     user: result.data.user,
                     error: null
@@ -109,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAuthState({
                 isLoading: false,
                 isAuthenticated: false,
+                isAuthInitialized: true,
                 token: null,
                 user: null,
                 error: null
@@ -127,6 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAuthState({
                 isLoading: false,
                 isAuthenticated: false,
+                isAuthInitialized: true,
                 token: null,
                 user: null,
                 error: null

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, Redirect } from 'expo-router';
 import LoginForm from '../components/LoginForm';
 import { useAuthContext } from '../context/AuthContext';
@@ -8,9 +8,18 @@ import { useColorScheme } from '../hooks/useColorScheme';
 
 export default function LoginScreen() {
     const router = useRouter();
-    const { isAuthenticated } = useAuthContext();
+    const { isAuthenticated, isAuthInitialized } = useAuthContext();
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme ?? 'light'];
+
+    // Esperar inicialización de auth antes de decidir
+    if (!isAuthInitialized) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.authBackground, justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
 
     // Si ya está autenticado, redirigir al dashboard
     if (isAuthenticated) {

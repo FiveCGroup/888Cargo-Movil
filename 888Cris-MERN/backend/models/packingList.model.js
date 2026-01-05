@@ -1,4 +1,22 @@
 import { query, run, get } from '../db.js';
+import mongoose from 'mongoose';
+
+const ItemSchema = new mongoose.Schema({
+  codigo: String,
+  sku: String,
+  descripcion: String,
+  cantidad: Number,
+  peso: Number
+}, { _id: false });
+
+const PackingListSchema = new mongoose.Schema({
+  codigoCarga: { type: String, required: true },
+  items: [ItemSchema],
+  origem: { type: String },
+  createdAt: { type: Date, default: Date.now }
+});
+
+export default mongoose.models.PackingList || mongoose.model('PackingList', PackingListSchema);
 
 export class PackingListModel {
     

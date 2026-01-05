@@ -8,6 +8,7 @@ console.log('📦 [CargaService] Inicializando servicio de cargas (SOLO DATOS RE
 // Configuración dinámica de la API basada en la plataforma (BACKEND WEB UNIFICADO)
 import { Platform } from 'react-native';
 import { API_CONFIG } from '../constants/API';
+import axios from 'axios';
 
 // Usar la configuración centralizada
 let API_BASE_URL = API_CONFIG.BASE_URL;
@@ -15,12 +16,9 @@ let API_BASE_URL = API_CONFIG.BASE_URL;
 console.log('🔧 [CargaService] Plataforma detectada:', Platform.OS);
 console.log('🔧 [CargaService] Configurando con URL:', API_BASE_URL);
 
-class CargaService {
-  constructor() {
-    console.log('🔧 [CargaService] Configurado para plataforma:', Platform.OS, 'con URL:', API_BASE_URL);
-    console.log('[CargaService] Service initialized - Production mode active');
-  }
+const API_BASE = 'http://localhost:4000'; // <- NO incluir "/api" aquí
 
+const CargaService = {
   // Método para procesar archivo Excel - SOLO DATOS REALES
   async procesarExcel(archivo) {
     console.log('📤 [CargaService] Iniciando procesamiento de Excel REAL...');
@@ -135,7 +133,7 @@ class CargaService {
     // Si llegamos aquí, todos los endpoints fallaron
     console.error('[CargaService] All endpoints failed to process the file');
     throw new Error(`Error al procesar archivo: ${ultimoError?.message || 'Conexión fallida'}`);
-  }
+  },
 
   // Buscar packing list por código
   async buscarPackingList(codigoCarga) {
@@ -154,7 +152,7 @@ class CargaService {
       console.error('[CargaService] Search operation failed:', error);
       throw new Error(`Error al buscar packing list: ${error.message}`);
     }
-  }
+  },
 
   // Guardar packing list completo con QR
   async guardarPackingListConQR(datos, metadata) {
@@ -205,7 +203,7 @@ class CargaService {
       console.error('[CargaService] Save operation failed:', error);
       throw new Error(`Error al guardar: ${error.message}`);
     }
-  }
+  },
 
   // Generar código único para carga
   async generarCodigoCarga() {
@@ -226,7 +224,7 @@ class CargaService {
       console.error('[CargaService] Code generation failed:', error);
       throw new Error(`Error al generar código: ${error.message}`);
     }
-  }
+  },
 
   // Obtener datos de QR de una carga
   async obtenerQRDataDeCarga(idCarga) {
@@ -263,7 +261,7 @@ class CargaService {
       console.error('[CargaService] Failed to fetch QR data:', error);
       throw new Error(`Error al obtener códigos QR: ${error.message}`);
     }
-  }
+  },
 
   // Obtener información meta de una carga
   async obtenerCargaMeta(idCarga) {
@@ -284,7 +282,7 @@ class CargaService {
       console.error('[CargaService] Failed to fetch cargo information:', error);
       throw new Error(`Error al obtener información de carga: ${error.message}`);
     }
-  }
+  },
 
   // Descargar PDF de QRs - Adaptado de la lógica web
   async descargarPDFQRs(idCarga, useOptimized = true) {
@@ -342,11 +340,28 @@ class CargaService {
       console.error('[ERROR] [CargaService] Error al descargar PDF:', error);
       throw new Error(`Error al descargar PDF de QRs: ${error.message}`);
     }
-  }
-}
+  },
 
-// Exportar instancia única del servicio
-const cargaService = new CargaService();
-export default cargaService;
+  // Guardar packing list desde archivo
+  async uploadPackingList(file) {
+    const form = new FormData();
+    form.append('file', {
+      uri: file.uri,
+      name: file.name || 'packing.xlsx',
+      type:
+        file.type ||
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+
+    // Usar /api una sola vez
+    const res = await axios.post(`${API_BASE}/api/carga/procesar-excel`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000
+    });
+    return res.data;
+  },
+};
+
+export default CargaService;
 
 console.log('[CargaService] Service module loaded successfully');

@@ -1,5 +1,6 @@
 // backend/routes/index.js
 import express from 'express';
+import cargaRoutes from './carga.routes.js';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';

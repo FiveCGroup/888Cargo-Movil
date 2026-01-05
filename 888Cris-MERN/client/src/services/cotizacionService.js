@@ -26,45 +26,94 @@ const LOGISTICA_CONFIG = {
 
 // Cálculo local (fallback)
 function calcularCotizacionLocal(tipo, payload, destino = 'China') {
-  const volumen = (payload.largo_cm * payload.ancho_cm * payload.alto_cm) / 1000000;
-  const peso = payload.peso_kg;
-  
+  const cfg = LOGISTICA_CONFIG;
+  const peso = Number(payload.peso_kg ?? payload.peso ?? 0);
+  const volumen = Number(payload.volumen_m3 ?? 0) || (
+    Number(payload.largo_cm || 0) *
+    Number(payload.ancho_cm || 0) *
+    Number(payload.alto_cm || 0)
+  ) / 1000000;
+
+  // variables compartidas para evitar eslint no-undef
   let costoUSD = 0;
   let detalleCalculo = {};
 
   if (tipo === 'maritimo') {
-    const volumenCobrable = Math.max(volumen, LOGISTICA_CONFIG.MINIMO_MARITIMO_M3);
-    const pesoVolumetrico = volumen * LOGISTICA_CONFIG.FACTOR_VOLUMETRICO.MARITIMO;
-    const tarifaDestino = LOGISTICA_CONFIG.TARIFAS_USD.MARITIMO_LCL[destino] || LOGISTICA_CONFIG.TARIFAS_USD.MARITIMO_LCL.China;
-    const tarifaUSD = tarifaDestino.promedio;
-    
-    costoUSD = volumenCobrable * tarifaUSD;
-    
+    const volumenReal = Number(volumen.toFixed(3));
+    const volumenCobrable = Math.max(volumenReal, cfg.MINIMO_MARITIMO_M3);
+    const pesoVolumetrico = Number((volumenReal * cfg.FACTOR_VOLUMETRICO.MARITIMO).toFixed(2));
+    const tarifaObj = cfg.TARIFAS_USD.MARITIMO_LCL[destino] || cfg.TARIFAS_USD.MARITIMO_LCL.China;
+    const tarifaUSD = tarifaObj.promedio;
+
+    // Opción A
+    let costoPorVolumenUSD = volumenCobrable * tarifaUSD;
+    let costoFclUSD = null;
+    if (volumenReal >= cfg.CAPACIDAD_CONTENEDOR_M3) {
+      const descuentoFcl = 0.30;
+      costoFclUSD = (tarifaUSD * cfg.CAPACIDAD_CONTENEDOR_M3) * (1 - descuentoFcl);
+      if (costoFclUSD < costoPorVolumenUSD) costoPorVolumenUSD = costoFclUSD;
+    }
+
+    // Opción B
+    const factorPesoUSD = 0.10;
+    const costoPorPesoUSD = Number((peso * factorPesoUSD).toFixed(2));
+    const costoVolumenMasPesoUSD = Number(((volumenCobrable * tarifaUSD) + costoPorPesoUSD).toFixed(2));
+
+    // Selección: mayor de ambas opciones
+    const baseSeleccionadaUSD = Math.max(costoPorVolumenUSD, costoVolumenMasPesoUSD);
+    const elegido = costoPorVolumenUSD >= costoVolumenMasPesoUSD ? 'volumen' : 'volumen+peso';
+
+    // Cargos adicionales
+    const porcentajeSeguro = 0.005;
+    const cargoHandlingUSD = 20;
+    const cargoDocsUSD = 10;
+    const seguroUSD = Number((baseSeleccionadaUSD * porcentajeSeguro).toFixed(2));
+    const totalUSD = Number((baseSeleccionadaUSD + seguroUSD + cargoHandlingUSD + cargoDocsUSD).toFixed(2));
+    const totalCOP = Math.round(totalUSD * cfg.TRM_COP_USD);
+
     detalleCalculo = {
-      pesoReal: peso,
-      pesoVolumetrico: pesoVolumetrico.toFixed(2),
-      volumenReal: volumen.toFixed(3),
-      volumenCobrable: volumenCobrable.toFixed(3),
+      volumenReal,
+      volumenCobrable: Number(volumenCobrable.toFixed(3)),
+      pesoReal: Number(peso.toFixed(2)),
+      pesoVolumetrico,
       tarifaUSD,
       tipoCobro: 'USD/m³',
-      factorUsado: LOGISTICA_CONFIG.FACTOR_VOLUMETRICO.MARITIMO,
-      gana: 'volumen (m³)',
-      explicacion: 'En marítimo LCL se cobra SIEMPRE por volumen'
+      factorUsado: cfg.FACTOR_VOLUMETRICO.MARITIMO,
+      costoPorVolumenUSD: Number(costoPorVolumenUSD.toFixed(2)),
+      costoPorVolumenMasPesoUSD: Number(costoVolumenMasPesoUSD.toFixed(2)),
+      costoPorPesoUSD,
+      elegido,
+      cargos: { seguroUSD, handlingUSD: cargoHandlingUSD, docsUSD: cargoDocsUSD, fclApplied: costoFclUSD != null && costoFclUSD < (volumenReal * tarifaUSD) },
+      explicacion: elegido === 'volumen' ? 'Se eligió la opción por volumen (mayor o igual).' : 'Se eligió la opción volumen + peso (mayor).'
+    };
+
+    costoUSD = totalUSD;
+
+    return {
+      volumen_m3: Number(volumenReal.toFixed(3)),
+      peso_kg: Number(peso.toFixed(2)),
+      valor_usd: totalUSD,
+      valor_cop: totalCOP,
+      detalleCalculo,
+      destino,
+      tipo: 'maritimo',
+      trm: cfg.TRM_COP_USD,
+      tiempo_estimado: '25-35 días'
     };
   } else {
     const pesoVolumetrico = volumen * LOGISTICA_CONFIG.FACTOR_VOLUMETRICO.AEREO;
     const pesoCobrable = Math.max(peso, pesoVolumetrico, LOGISTICA_CONFIG.MINIMO_AEREO_KG);
     const tarifaDestino = LOGISTICA_CONFIG.TARIFAS_USD.AEREO_KG[destino] || LOGISTICA_CONFIG.TARIFAS_USD.AEREO_KG.China;
     const tarifaUSD = tarifaDestino.promedio;
-    
+
     costoUSD = pesoCobrable * tarifaUSD;
     const gana = peso > pesoVolumetrico ? 'peso real' : 'peso volumétrico';
-    
+
     detalleCalculo = {
-      pesoReal: peso,
-      pesoVolumetrico: pesoVolumetrico.toFixed(2),
-      pesoCobrable: pesoCobrable.toFixed(2),
-      volumenReal: volumen.toFixed(3),
+      pesoReal: Number(peso.toFixed(2)),
+      pesoVolumetrico: Number(pesoVolumetrico.toFixed(2)),
+      pesoCobrable: Number(pesoCobrable.toFixed(2)),
+      volumenReal: Number(volumen.toFixed(3)),
       tarifaUSD,
       tipoCobro: 'USD/kg',
       factorUsado: LOGISTICA_CONFIG.FACTOR_VOLUMETRICO.AEREO,
@@ -76,9 +125,9 @@ function calcularCotizacionLocal(tipo, payload, destino = 'China') {
   const costoCOP = Math.round(costoUSD * LOGISTICA_CONFIG.TRM_COP_USD);
 
   return {
-    volumen_m3: volumen.toFixed(3),
-    peso_kg: peso,
-    valor_usd: costoUSD.toFixed(2),
+    volumen_m3: Number(volumen.toFixed(3)),
+    peso_kg: Number(peso.toFixed(2)),
+    valor_usd: Number(costoUSD.toFixed(2)),
     valor_cop: costoCOP,
     detalleCalculo,
     destino,
@@ -87,64 +136,56 @@ function calcularCotizacionLocal(tipo, payload, destino = 'China') {
   };
 }
 
+function normalizeForLocal(datos) {
+  return {
+    peso_kg: Number(datos.peso_kg ?? datos.peso ?? datos.pesoKg ?? 0),
+    largo_cm: Number(datos.largo_cm ?? datos.largo ?? datos.largoCm ?? 0),
+    ancho_cm: Number(datos.ancho_cm ?? datos.ancho ?? datos.anchoCm ?? 0),
+    alto_cm: Number(datos.alto_cm ?? datos.alto ?? datos.altoCm ?? 0),
+    destino: datos.destino ?? 'China',
+  };
+}
+
 class CotizacionService {
-  
+
   async cotizarMaritimo(datos) {
     try {
-      const payload = {
-        peso_kg: datos.peso,
-        largo_cm: datos.largo,
-        ancho_cm: datos.ancho,
-        alto_cm: datos.alto,
-        destino: datos.destino
-      };
+      // enviar payload ya normalizado al backend (no prefijar '/api' aquí)
+      const payload = normalizeForLocal(datos);
+      // opcional: si cliente calculó volumen manual, incluirlo
+      if (datos.volumen_m3) payload.volumen_m3 = Number(datos.volumen_m3);
 
-      const response = await API.post('/api/cotizaciones/maritimo', payload);
-      
+      const response = await API.post('/cotizaciones/maritimo', payload);
+
       if (response.data && response.data.success) {
         return response.data;
       }
-      
+
       throw new Error('Respuesta inválida');
-    } catch {
-      console.warn('⚠️ Usando cálculo local para marítimo');
-      const resultado = calcularCotizacionLocal('maritimo', {
-        peso_kg: datos.peso,
-        largo_cm: datos.largo,
-        ancho_cm: datos.ancho,
-        alto_cm: datos.alto
-      }, datos.destino);
-      
+    } catch (err) {
+      console.warn('⚠️ Usando cálculo local para marítimo', err?.message ?? err);
+      const normalized = normalizeForLocal(datos);
+      const resultado = calcularCotizacionLocal('maritimo', normalized, datos.destino);
       return { success: true, data: resultado, isLocal: true };
     }
   }
 
   async cotizarAereo(datos) {
     try {
-      const payload = {
-        peso_kg: datos.peso,
-        largo_cm: datos.largo,
-        ancho_cm: datos.ancho,
-        alto_cm: datos.alto,
-        destino: datos.destino
-      };
+      const payload = normalizeForLocal(datos);
+      if (datos.volumen_m3) payload.volumen_m3 = Number(datos.volumen_m3);
 
-      const response = await API.post('/api/cotizaciones/aereo', payload);
-      
+      const response = await API.post('/cotizaciones/aereo', payload);
+
       if (response.data && response.data.success) {
         return response.data;
       }
-      
+
       throw new Error('Respuesta inválida');
-    } catch {
-      console.warn('⚠️ Usando cálculo local para aéreo');
-      const resultado = calcularCotizacionLocal('aereo', {
-        peso_kg: datos.peso,
-        largo_cm: datos.largo,
-        ancho_cm: datos.ancho,
-        alto_cm: datos.alto
-      }, datos.destino);
-      
+    } catch (err) {
+      console.warn('⚠️ Usando cálculo local para aéreo', err?.message ?? err);
+      const normalized = normalizeForLocal(datos);
+      const resultado = calcularCotizacionLocal('aereo', normalized, datos.destino);
       return { success: true, data: resultado, isLocal: true };
     }
   }
@@ -152,6 +193,30 @@ class CotizacionService {
   getConfig() {
     return LOGISTICA_CONFIG;
   }
+}
+
+export async function descargarPdfCotizacion(id) {
+  const resp = await fetch(`/cotizaciones/${id}/pdf`, { credentials: 'include' });
+  if (!resp.ok) throw new Error('Error descargando PDF');
+  const blob = await resp.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cotizacion_${id}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function enviarCotizacionWhatsapp(id, phone) {
+  const resp = await fetch(`/cotizaciones/${id}/send-whatsapp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ phone })
+  });
+  return resp.json();
 }
 
 export default new CotizacionService();

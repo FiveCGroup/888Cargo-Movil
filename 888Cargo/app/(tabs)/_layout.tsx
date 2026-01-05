@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { Platform, View, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Redirect } from 'expo-router';
 
@@ -13,11 +13,20 @@ import { useAuthContext } from '@/context/AuthContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { isAuthenticated } = useAuthContext();
+  const { isAuthenticated, isAuthInitialized } = useAuthContext();
 
   useEffect(() => {
     console.log('📱 [TabLayout] isAuthenticated cambió a:', isAuthenticated);
   }, [isAuthenticated]);
+
+  // Esperar inicialización de auth antes de decidir
+  if (!isAuthInitialized) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   // Si NO está autenticado, redirigir a login
   if (!isAuthenticated) {

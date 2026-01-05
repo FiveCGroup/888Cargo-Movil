@@ -1,139 +1,56 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import cotizacionService from '../services/cotizacionService';
-import '../styles/Cotizador.css';
+import useCotizador from '../hooks/useCotizador';
+import CotizadorForm from '../components/CotizadorForm';
+import ResultadoCotizacion from '../components/ResultadoCotizacion';
+import '../styles/Cotizador.css'; // <-- conexión al CSS
 
 const DESTINOS = ['China', 'Miami', 'Europa'];
-const CONFIG = cotizacionService.getConfig();
+const CONFIG = cotizacionService.getConfig ? cotizacionService.getConfig() : {};
+
+// helper local para formatear números de forma segura
+const fmt = (v, dp = 2) => Number(v ?? 0).toFixed(dp);
 
 const Cotizador = () => {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState(null);
-  const [tipoEnvio, setTipoEnvio] = useState('maritimo');
-  
-  const [formData, setFormData] = useState({
-    largoCm: '',
-    anchoCm: '',
-    altoCm: '',
-    largoMt: '',
-    anchoMt: '',
-    altoMt: '',
-    peso: '',
-    volumenManual: '',
-    destino: 'China'
-  });
+    const navigate = useNavigate();
+    const {
+        loading,
+        resultado,
+        resultadoId,
+        tipoEnvio,
+        setTipoEnvio,
+        formData,
+        volumenCalculado,
+        handleChange,
+        handleSubmit,
+        limpiarFormulario
+    } = useCotizador('maritimo');
 
-  // Calcular volumen automáticamente
-  const volumenCalculado = useMemo(() => {
-    // Prioridad: manual > metros > centímetros
-    if (formData.volumenManual.trim() !== '') {
-      const vol = parseFloat(formData.volumenManual) || 0;
-      if (vol > 0) return vol;
-    }
-
-    const lm = parseFloat(formData.largoMt) || 0;
-    const am = parseFloat(formData.anchoMt) || 0;
-    const hm = parseFloat(formData.altoMt) || 0;
-    if (lm > 0 && am > 0 && hm > 0) {
-      return lm * am * hm;
-    }
-
-    const lcm = parseFloat(formData.largoCm) || 0;
-    const acm = parseFloat(formData.anchoCm) || 0;
-    const hcm = parseFloat(formData.altoCm) || 0;
-    if (lcm > 0 && acm > 0 && hcm > 0) {
-      return (lcm / 100) * (acm / 100) * (hcm / 100);
-    }
-
-    return 0;
-  }, [formData]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    // tarifa actual según tipo y destino (evita referencia indefinida)
+    const tarifaActual = tipoEnvio === 'maritimo'
+      ? CONFIG.TARIFAS_USD?.MARITIMO_LCL?.[formData.destino]?.promedio ?? 0
+      : CONFIG.TARIFAS_USD?.AEREO_KG?.[formData.destino]?.promedio ?? 0;
     
-    const peso = parseFloat(formData.peso) || 0;
-    const volumen = volumenCalculado;
+    // antes del return, calcular comparativa segura
+    const detalle = resultado?.detalleCalculo ?? {};
+    const volumenReal = Number(detalle.volumenReal ?? resultado?.volumen_m3 ?? volumenCalculado ?? 0);
+    const volumenCobrable = Number(detalle.volumenCobrable ?? Math.max(volumenReal, CONFIG.MINIMO_MARITIMO_M3 || 1));
+    const pesoReal = Number(detalle.pesoReal ?? resultado?.peso_kg ?? 0);
+    const tarifaUSD = Number(detalle.tarifaUSD ?? tarifaActual ?? 0);
 
-    if (peso <= 0) {
-      alert('Por favor ingresa un peso válido mayor a 0 kg.');
-      return;
-    }
+    // opción A: solo volumen (considera posible FCL si tienes ese dato en detalle)
+    const costoPorVolumenUSD = Number(detalle.costoPorVolumenUSD ?? (volumenCobrable * tarifaUSD).toFixed(2)) || 0;
+    // opción B: volumen + peso (componente peso configurable; usar 0.10 si no viene)
+    const factorPesoUSD = Number(detalle.factorPesoUSD ?? 0.10);
+    const costoPorPesoUSD = Number(detalle.costoPorPesoUSD ?? (pesoReal * factorPesoUSD).toFixed(2)) || 0;
+    const costoPorVolumenMasPesoUSD = Number(detalle.costoPorVolumenMasPesoUSD ?? ( (volumenCobrable * tarifaUSD) + costoPorPesoUSD ).toFixed(2)) || 0;
+    const elegido = detalle.elegido ?? (costoPorVolumenUSD >= costoPorVolumenMasPesoUSD ? 'volumen' : 'volumen+peso');
+    // si UI usa resultado.detalleCalculo.*, podemos mejorar antes de renderizar:
+    const detalleParaMostrar = { ...detalle, costoPorVolumenUSD, costoPorVolumenMasPesoUSD, costoPorPesoUSD, elegido };
 
-    if (volumen <= 0) {
-      alert('Por favor ingresa dimensiones válidas o un volumen manual.');
-      return;
-    }
-
-    if (volumen > CONFIG.CAPACIDAD_CONTENEDOR_M3) {
-      alert(`El volumen (${volumen.toFixed(3)} m³) excede la capacidad del contenedor estándar (${CONFIG.CAPACIDAD_CONTENEDOR_M3} m³). Se requiere cotización FCL.`);
-    }
-
-    setLoading(true);
-    setResultado(null);
-
-    try {
-      // Obtener dimensiones en cm
-      const largo = parseFloat(formData.largoCm) || (parseFloat(formData.largoMt) * 100) || 100;
-      const ancho = parseFloat(formData.anchoCm) || (parseFloat(formData.anchoMt) * 100) || 100;
-      const alto = parseFloat(formData.altoCm) || (parseFloat(formData.altoMt) * 100) || 100;
-
-      const datos = {
-        peso,
-        largo,
-        ancho,
-        alto,
-        destino: formData.destino
-      };
-
-      let response;
-      if (tipoEnvio === 'maritimo') {
-        response = await cotizacionService.cotizarMaritimo(datos);
-      } else {
-        response = await cotizacionService.cotizarAereo(datos);
-      }
-
-      if (response.success) {
-        setResultado({
-          ...response.data,
-          tipo: tipoEnvio,
-          isLocal: response.isLocal
-        });
-      }
-    } catch (error) {
-      console.error('Error al cotizar:', error);
-      alert('Error al realizar la cotización');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const limpiarFormulario = () => {
-    setFormData({
-      largoCm: '',
-      anchoCm: '',
-      altoCm: '',
-      largoMt: '',
-      anchoMt: '',
-      altoMt: '',
-      peso: '',
-      volumenManual: '',
-      destino: 'China'
-    });
-    setResultado(null);
-  };
-
-  const tarifaActual = tipoEnvio === 'maritimo' 
-    ? CONFIG.TARIFAS_USD.MARITIMO_LCL[formData.destino]?.promedio 
-    : CONFIG.TARIFAS_USD.AEREO_KG[formData.destino]?.promedio;
-
-  return (
-    <div className="cotizador-container">
+    return (
+        <div className="cotizador-container">
       <div className="cotizador-header">
         <button className="btn-volver" onClick={() => navigate('/dashboard')}>
           ← Volver
@@ -315,7 +232,7 @@ const Cotizador = () => {
           {/* Volumen Calculado */}
           <div className="volumen-calculado">
             <span className="label">📦 Volumen Calculado:</span>
-            <span className="valor">{volumenCalculado.toFixed(3)} m³</span>
+            <span className="valor">{(Number(volumenCalculado) || 0).toFixed(3)} m³</span>
           </div>
 
           {/* Botones */}
@@ -375,23 +292,52 @@ const Cotizador = () => {
                   <div className="detalle-grid">
                     <div className="detalle-item">
                       <span className="label">📦 Volumen Real</span>
-                      <span className="valor">{resultado.detalleCalculo?.volumenReal || resultado.volumen_m3} m³</span>
+                      <span className="valor">{fmt(detalleParaMostrar.volumenReal ?? resultado.volumen_m3, 3)} m³</span>
                     </div>
                     <div className="detalle-item destacado">
                       <span className="label">📦 Volumen Cobrable</span>
-                      <span className="valor">{resultado.detalleCalculo?.volumenCobrable || resultado.volumen_m3} m³</span>
+                      <span className="valor">{fmt(detalleParaMostrar.volumenCobrable ?? resultado.volumen_m3, 3)} m³</span>
                     </div>
                     <div className="detalle-item">
                       <span className="label">⚖️ Peso Real (ref)</span>
-                      <span className="valor">{resultado.peso_kg} kg</span>
+                      <span className="valor">{fmt(detalleParaMostrar.pesoReal ?? resultado.peso_kg, 2)} kg</span>
                     </div>
                     <div className="detalle-item">
                       <span className="label">⚖️ Peso Volumétrico (ref)</span>
-                      <span className="valor">{resultado.detalleCalculo?.pesoVolumetrico} kg</span>
+                      <span className="valor">{fmt(detalleParaMostrar.pesoVolumetrico ?? 0, 2)} kg</span>
                     </div>
                   </div>
-                  <div className="info-banner maritimo">
-                    <p>💡 En marítimo LCL se cobra SIEMPRE por volumen (m³), no por peso. Mínimo: {CONFIG.MINIMO_MARITIMO_M3} m³</p>
+
+                  {/* Eliminado aviso repetitivo — diseño reorganizado abajo */}
+                  <div className="detalle-layout">
+                    <div className="left-panel">
+                      {/* comparativa y explicación */}
+                      <div className="comparativa-maritima">
+                        <h4>🔍 Comparativa Marítima</h4>
+                        <div className="detalle-grid">
+                          <div className="detalle-item">
+                            <span className="label">Opción A — Por volumen</span>
+                            <span className="valor">${fmt(detalleParaMostrar.costoPorVolumenUSD, 2)} USD</span>
+                          </div>
+                          <div className="detalle-item">
+                            <span className="label">Opción B — Volumen + Peso</span>
+                            <span className="valor">${fmt(detalleParaMostrar.costoPorVolumenMasPesoUSD, 2)} USD</span>
+                          </div>
+                          <div className="detalle-item">
+                            <span className="label">Componente peso (USD)</span>
+                            <span className="valor">${fmt(detalleParaMostrar.costoPorPesoUSD, 2)} USD</span>
+                          </div>
+                          <div className="detalle-item destacado">
+                            <span className="label">Elegido</span>
+                            <span className="valor">{detalleParaMostrar.elegido ?? 'volumen'}</span>
+                          </div>
+                        </div>
+                        <p className="explicacion">{detalleParaMostrar.explicacion}</p>
+                      </div>
+                    </div>
+                    <div className="right-panel">
+                      {/* espacio para tarjetas resumen si hace falta, reuse existing detalles */}
+                    </div>
                   </div>
                 </>
               ) : (
@@ -411,7 +357,7 @@ const Cotizador = () => {
                     </div>
                     <div className="detalle-item destacado">
                       <span className="label">💰 Peso Cobrable</span>
-                      <span className="valor">{resultado.detalleCalculo?.pesoCobrable} kg</span>
+                      <span className="valor">{detalleParaMostrar.pesoCobrable} kg</span>
                     </div>
                   </div>
                   <div className="info-banner aereo">
@@ -423,7 +369,7 @@ const Cotizador = () => {
               <div className="detalle-grid extra">
                 <div className="detalle-item">
                   <span className="label">Tarifa Base</span>
-                  <span className="valor">${resultado.detalleCalculo?.tarifaUSD} {resultado.detalleCalculo?.tipoCobro}</span>
+                  <span className="valor">${detalleParaMostrar.tarifaUSD} {detalleParaMostrar.tipoCobro}</span>
                 </div>
                 <div className="detalle-item">
                   <span className="label">TRM</span>
@@ -437,14 +383,28 @@ const Cotizador = () => {
             </div>
 
             {/* Botón descargar */}
-            <button className="btn-descargar" onClick={() => window.print()}>
+            <button
+              className="btn-descargar"
+              onClick={async () => {
+                if (!resultadoId) {
+                  // si no hay id, fallback a imprimir
+                  return window.print();
+                }
+                try {
+                  await cotizacionService.descargarPdfCotizacion(resultadoId);
+                } catch (err) {
+                  console.error('Error descargando PDF:', err);
+                  window.print();
+                }
+              }}
+            >
               📄 Descargar Cotización
             </button>
           </div>
         )}
       </div>
     </div>
-  );
+    );
 };
 
 export default Cotizador;

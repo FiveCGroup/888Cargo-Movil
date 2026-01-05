@@ -1,6 +1,8 @@
 import { API_CONFIG } from '../constants/API';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const API_URL = 'http://192.168.18.21:4000/api'; // o usar config existente
+
 // Mock temporal de AuthService para evitar errores de importación
 type User = {
     id: string;
@@ -317,24 +319,39 @@ const AuthService = {
         }
     },
 
-    getAuthState: async () => {
-        try {
-            const internal = getAuthStateInternal();
-            // Intentar leer token persistido en AsyncStorage como fallback
-            try {
-                const persisted = await AsyncStorage.getItem(STORAGE_TOKEN_KEY);
-                if (persisted && !internal.token) {
-                    console.log('[AuthService] Encontrado token en AsyncStorage, aplicando al estado interno');
-                    internal.token = persisted;
-                    internal.isAuthenticated = true;
-                }
-            } catch (e) {
-                console.warn('[AuthService] Error leyendo token de AsyncStorage en getAuthState:', e);
-            }
-            return internal;
-        } catch (e) {
-            return getAuthStateInternal();
+    // Reemplaza/asegura getAuthState para validar token contra backend
+    async getAuthState() {
+      try {
+        const token = await AsyncStorage.getItem('@auth:token');
+        if (!token) return { isAuthenticated: false, token: null, user: null };
+
+        // Intentar validar/refresh en backend
+        const res = await fetch(`${API_URL}/auth/validate`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          // si backend devuelve user/refresh token, guardarlo
+          if (data.token && data.token !== token) {
+            await AsyncStorage.setItem('@auth:token', data.token);
+          }
+          return { isAuthenticated: true, token: data.token || token, user: data.user || null };
         }
+
+        // token inválido/expirado -> limpiar storage
+        await AsyncStorage.removeItem('@auth:token');
+        return { isAuthenticated: false, token: null, user: null };
+      } catch (err) {
+        console.warn('[AuthService] fallo validando token:', err);
+        // fallback: limpiar y no autenticar
+        await AsyncStorage.removeItem('@auth:token').catch(()=>{});
+        return { isAuthenticated: false, token: null, user: null };
+      }
     },
     isAuthenticated: () => getAuthStateInternal().isAuthenticated
 };
