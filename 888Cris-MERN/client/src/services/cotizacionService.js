@@ -45,30 +45,39 @@ function calcularCotizacionLocal(tipo, payload, destino = 'China') {
     const tarifaObj = cfg.TARIFAS_USD.MARITIMO_LCL[destino] || cfg.TARIFAS_USD.MARITIMO_LCL.China;
     const tarifaUSD = tarifaObj.promedio;
 
-    // Opción A
-    let costoPorVolumenUSD = volumenCobrable * tarifaUSD;
+    // Cargos adicionales (aplicados a ambas opciones)
+    const porcentajeSeguro = 0.005;
+    const cargoHandlingUSD = 20;
+    const cargoDocsUSD = 10;
+
+    // Opción A: solo volumen (considera FCL si aplica)
+    let costoPorVolumenBaseUSD = volumenCobrable * tarifaUSD;
     let costoFclUSD = null;
     if (volumenReal >= cfg.CAPACIDAD_CONTENEDOR_M3) {
       const descuentoFcl = 0.30;
       costoFclUSD = (tarifaUSD * cfg.CAPACIDAD_CONTENEDOR_M3) * (1 - descuentoFcl);
-      if (costoFclUSD < costoPorVolumenUSD) costoPorVolumenUSD = costoFclUSD;
+      if (costoFclUSD < costoPorVolumenBaseUSD) costoPorVolumenBaseUSD = costoFclUSD;
     }
+    
+    // Calcular cargos para Opción A
+    const seguroOpcionA = Number((costoPorVolumenBaseUSD * porcentajeSeguro).toFixed(2));
+    const totalOpcionA = Number((costoPorVolumenBaseUSD + seguroOpcionA + cargoHandlingUSD + cargoDocsUSD).toFixed(2));
 
-    // Opción B
+    // Opción B: volumen + peso (añade componente por peso)
     const factorPesoUSD = 0.10;
     const costoPorPesoUSD = Number((peso * factorPesoUSD).toFixed(2));
-    const costoVolumenMasPesoUSD = Number(((volumenCobrable * tarifaUSD) + costoPorPesoUSD).toFixed(2));
+    const costoVolumenMasPesoBaseUSD = Number(((volumenCobrable * tarifaUSD) + costoPorPesoUSD).toFixed(2));
+    
+    // Calcular cargos para Opción B
+    const seguroOpcionB = Number((costoVolumenMasPesoBaseUSD * porcentajeSeguro).toFixed(2));
+    const totalOpcionB = Number((costoVolumenMasPesoBaseUSD + seguroOpcionB + cargoHandlingUSD + cargoDocsUSD).toFixed(2));
 
-    // Selección: mayor de ambas opciones
-    const baseSeleccionadaUSD = Math.max(costoPorVolumenUSD, costoVolumenMasPesoUSD);
-    const elegido = costoPorVolumenUSD >= costoVolumenMasPesoUSD ? 'volumen' : 'volumen+peso';
+    // Selección: mayor de ambas opciones (comparando los totales con cargos)
+    const totalUSD = Math.max(totalOpcionA, totalOpcionB);
+    const elegido = totalOpcionA >= totalOpcionB ? 'volumen' : 'volumen+peso';
+    const baseSeleccionadaUSD = elegido === 'volumen' ? costoPorVolumenBaseUSD : costoVolumenMasPesoBaseUSD;
+    const seguroUSD = elegido === 'volumen' ? seguroOpcionA : seguroOpcionB;
 
-    // Cargos adicionales
-    const porcentajeSeguro = 0.005;
-    const cargoHandlingUSD = 20;
-    const cargoDocsUSD = 10;
-    const seguroUSD = Number((baseSeleccionadaUSD * porcentajeSeguro).toFixed(2));
-    const totalUSD = Number((baseSeleccionadaUSD + seguroUSD + cargoHandlingUSD + cargoDocsUSD).toFixed(2));
     const totalCOP = Math.round(totalUSD * cfg.TRM_COP_USD);
 
     detalleCalculo = {
@@ -79,12 +88,25 @@ function calcularCotizacionLocal(tipo, payload, destino = 'China') {
       tarifaUSD,
       tipoCobro: 'USD/m³',
       factorUsado: cfg.FACTOR_VOLUMETRICO.MARITIMO,
-      costoPorVolumenUSD: Number(costoPorVolumenUSD.toFixed(2)),
-      costoPorVolumenMasPesoUSD: Number(costoVolumenMasPesoUSD.toFixed(2)),
+      // Valores base (sin cargos)
+      costoPorVolumenBaseUSD: Number(costoPorVolumenBaseUSD.toFixed(2)),
+      costoPorVolumenMasPesoBaseUSD: Number(costoVolumenMasPesoBaseUSD.toFixed(2)),
       costoPorPesoUSD,
+      // Valores totales (con cargos) - estos son los que se muestran en la comparativa
+      costoPorVolumenUSD: totalOpcionA, // Total con cargos para Opción A
+      costoPorVolumenMasPesoUSD: totalOpcionB, // Total con cargos para Opción B
       elegido,
-      cargos: { seguroUSD, handlingUSD: cargoHandlingUSD, docsUSD: cargoDocsUSD, fclApplied: costoFclUSD != null && costoFclUSD < (volumenReal * tarifaUSD) },
-      explicacion: elegido === 'volumen' ? 'Se eligió la opción por volumen (mayor o igual).' : 'Se eligió la opción volumen + peso (mayor).'
+      cargos: {
+        seguroUSD,
+        handlingUSD: cargoHandlingUSD,
+        docsUSD: cargoDocsUSD,
+        fclApplied: costoFclUSD != null && costoFclUSD < (volumenReal * tarifaUSD),
+        seguroOpcionA,
+        seguroOpcionB
+      },
+      explicacion: elegido === 'volumen'
+        ? `Se eligió la opción por volumen (mayor o igual). Total: $${totalOpcionA.toFixed(2)} USD vs $${totalOpcionB.toFixed(2)} USD`
+        : `Se eligió la opción volumen + peso (mayor). Total: $${totalOpcionB.toFixed(2)} USD vs $${totalOpcionA.toFixed(2)} USD`
     };
 
     costoUSD = totalUSD;

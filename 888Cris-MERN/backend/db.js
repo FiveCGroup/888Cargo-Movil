@@ -12,11 +12,47 @@ dotenv.config();
 
 const dbPath = path.join(__dirname, '..', 'db', 'packing_list.db');
 
-const db = new sqlite3.Database(dbPath, (err) => {
+// Configurar SQLite para manejar múltiples conexiones y bloqueos
+const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
   if (err) {
     console.error('Error al conectar con SQLite:', err.message);
   } else {
     console.log('Base de datos SQLite conectada');
+    
+    // Configurar PRAGMAs de forma secuencial para asegurar que se apliquen
+    db.serialize(() => {
+      // Configurar WAL mode para mejor rendimiento y menos bloqueos
+      db.run('PRAGMA journal_mode = WAL;', (err) => {
+        if (err) {
+          console.warn('No se pudo activar WAL mode:', err.message);
+        } else {
+          console.log('WAL mode activado');
+        }
+      });
+      
+      // Configurar timeout para reintentos automáticos en caso de bloqueo (30 segundos)
+      db.run('PRAGMA busy_timeout = 30000;', (err) => {
+        if (err) {
+          console.warn('No se pudo configurar busy_timeout:', err.message);
+        } else {
+          console.log('busy_timeout configurado a 30000ms');
+        }
+      });
+      
+      // Configurar foreign keys
+      db.run('PRAGMA foreign_keys = ON;', (err) => {
+        if (err) {
+          console.warn('No se pudo activar foreign keys:', err.message);
+        }
+      });
+      
+      // Configurar synchronous para mejor rendimiento con WAL
+      db.run('PRAGMA synchronous = NORMAL;', (err) => {
+        if (err) {
+          console.warn('No se pudo configurar synchronous:', err.message);
+        }
+      });
+    });
   }
 });
 
@@ -49,6 +85,31 @@ export const get = (sql, params = []) => {
 
 export async function initializeDatabase() {
   try {
+    // Esperar un momento para que las configuraciones PRAGMA se apliquen
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Verificar que la conexión esté lista
+    await new Promise((resolve, reject) => {
+      db.get('SELECT 1', (err) => {
+        if (err) {
+          // Si hay un error de bloqueo, esperar y reintentar
+          if (err.code === 'SQLITE_BUSY') {
+            console.warn('Base de datos ocupada, esperando...');
+            setTimeout(() => {
+              db.get('SELECT 1', (retryErr) => {
+                if (retryErr) reject(retryErr);
+                else resolve();
+              });
+            }, 1000);
+          } else {
+            reject(err);
+          }
+        } else {
+          resolve();
+        }
+      });
+    });
+    
     console.log('Inicializando base de datos completa...');
     
     // TUS MIGRACIONES REALES (según tu imagen)
@@ -80,16 +141,59 @@ export async function initializeDatabase() {
         console.log(`Ejecutando migración: ${migration}`);
         const sql = fs.readFileSync(migrationPath, 'utf8');
         try {
-          await new Promise((resolve, reject) => {
-            db.exec(sql, (err) => {
-              if (err) reject(err);
-              else resolve();
-            });
-          });
+          // Reintentar hasta 3 veces en caso de bloqueo
+          let retries = 3;
+          let lastError = null;
+          
+          while (retries > 0) {
+            try {
+              await new Promise((resolve, reject) => {
+                db.exec(sql, (err) => {
+                  if (err) {
+                    // Si la migración falla porque la columna/tabla ya existe, continuar (idempotencia básica)
+                    if (err.message && (
+                      err.message.includes('duplicate column name') ||
+                      err.message.includes('already exists') ||
+                      err.message.includes('UNIQUE constraint failed')
+                    )) {
+                      console.warn(`Migración ${migration} ya aplicada. Continuando...`);
+                      resolve();
+                    } else if (err.code === 'SQLITE_BUSY') {
+                      // Si hay bloqueo, rechazar para reintentar
+                      reject(err);
+                    } else {
+                      reject(err);
+                    }
+                  } else {
+                    resolve();
+                  }
+                });
+              });
+              // Si llegamos aquí, la migración fue exitosa
+              break;
+            } catch (err) {
+              lastError = err;
+              if (err.code === 'SQLITE_BUSY' && retries > 1) {
+                console.warn(`Migración ${migration} bloqueada, reintentando... (${retries - 1} intentos restantes)`);
+                retries--;
+                await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries))); // Backoff exponencial
+              } else {
+                throw err;
+              }
+            }
+          }
+          
+          if (lastError && lastError.code === 'SQLITE_BUSY') {
+            throw new Error(`No se pudo ejecutar migración ${migration} después de 3 intentos: ${lastError.message}`);
+          }
         } catch (err) {
           // Si la migración falla porque la columna ya existe, continuar (idempotencia básica)
-          if (err && err.message && err.message.includes('duplicate column name')) {
-            console.warn(`Migración ${migration} ya aplicada (columna duplicada). Continuando...`);
+          if (err && err.message && (
+            err.message.includes('duplicate column name') ||
+            err.message.includes('already exists') ||
+            err.message.includes('UNIQUE constraint failed')
+          )) {
+            console.warn(`Migración ${migration} ya aplicada. Continuando...`);
             continue;
           }
           throw err;
@@ -106,6 +210,11 @@ export async function initializeDatabase() {
   }
 }
 
-initializeDatabase();
+// Inicializar base de datos de forma asíncrona, pero no bloquear el módulo
+initializeDatabase().catch((err) => {
+  console.error('Error crítico al inicializar base de datos:', err);
+  // No lanzar el error aquí para permitir que el servidor inicie
+  // El error se manejará cuando se intente usar la base de datos
+});
 
 export default db;

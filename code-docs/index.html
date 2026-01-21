@@ -222,11 +222,11 @@
     </style>
 </head>
 <body>
-    <a class="back-to-app" href="/" onclick="(function(e){e.preventDefault(); const devFrontend = 'http://localhost:5173/'; try{ if (window.parent && window.parent !== window) { try { window.parent.location.href = devFrontend; return; } catch (errParent) { /* cross-origin or other error */ } } // If we're running on the backend origin (e.g., :4000) or parent nav failed, redirect to frontend dev server
+    <a class="back-to-app" href="/dashboard" onclick="(function(e){e.preventDefault(); const devFrontend = 'http://localhost:5173/dashboard'; try{ if (window.parent && window.parent !== window) { try { window.parent.location.href = devFrontend; return; } catch (errParent) { /* cross-origin or other error */ } } // If we're running on the backend origin (e.g., :4000) or parent nav failed, redirect to frontend dev server
             if (window.location.origin && window.location.origin.indexOf(':4000') !== -1) {
                 window.location.href = devFrontend;
             } else {
-                // Default fallback to frontend host
+                // Default fallback to frontend host - redirigir directamente al dashboard
                 window.location.href = devFrontend;
             }
         } catch (e) {

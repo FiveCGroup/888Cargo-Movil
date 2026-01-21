@@ -40,7 +40,7 @@ const VisualizarQR = () => {
                 const items = payload.items || [];
 
                 let meta = null;
-                try { const m = await cargaService.obtenerCargaMeta(idCarga); if (m.success) meta = m.data.data || m.data; } catch (e) {}
+                try { const m = await cargaService.obtenerCargaMeta(idCarga); if (m.success) meta = m.data.data || m.data; } catch {/* */}
 
                 setCargaData({
                     carga: {
@@ -54,23 +54,53 @@ const VisualizarQR = () => {
 
                 const qrResp = await cargaService.obtenerQRDataDeCarga(idCarga);
                 if (qrResp.success && qrResp.data) {
-                    const qrs = (qrResp.data.data || qrResp.data).qrs || [];
+                    const responseData = qrResp.data.data || qrResp.data;
+                    
+                    // Actualizar información de carga con datos del cliente si están disponibles
+                    if (responseData.carga) {
+                        setCargaData(prev => ({
+                            ...prev,
+                            carga: {
+                                ...prev.carga,
+                                ...responseData.carga,
+                                nombre_cliente: responseData.cliente?.nombre_cliente || prev.carga?.nombre_cliente,
+                                correo_cliente: responseData.cliente?.correo_cliente,
+                                telefono_cliente: responseData.cliente?.telefono_cliente,
+                                ciudad_cliente: responseData.cliente?.ciudad_cliente,
+                                shipping_mark: responseData.carga.shipping_mark || responseData.cliente?.cliente_shippingMark
+                            }
+                        }));
+                    }
+                    
+                    const qrs = responseData.qrs || [];
                     const mapped = qrs.map(qr => {
-                        let parsed = null; try { parsed = qr.parsed_data || (qr.datos_qr ? JSON.parse(qr.datos_qr) : null); } catch(e){}
+                        let parsed = null; 
+                        try { 
+                            parsed = qr.parsed_data || (qr.datos_qr ? JSON.parse(qr.datos_qr) : null); 
+                        } catch(e) {
+                            console.warn('Error parseando datos QR:', e);
+                        }
                         return {
                             id: qr.id_qr || qr.id,
                             id_articulo: qr.id_articulo,
                             numeroCaja: qr.numero_caja || (parsed ? parsed.numero_caja : null),
                             totalCajas: qr.total_cajas || (parsed ? parsed.total_cajas : null),
                             descripcion_espanol: qr.descripcion_espanol || (parsed ? parsed.descripcion : null),
-                            cantidad_en_caja: qr.cantidad_en_caja || (parsed ? parsed.cantidad : null),
+                            descripcion_chino: qr.descripcion_chino,
+                            cantidad_en_caja: qr.cantidad_en_caja || (parsed ? parsed.cantidad_en_caja : null),
                             codigo_qr: qr.codigo_qr || (parsed ? parsed.codigo_unico : null),
-                            ref_art: qr.ref_art || (parsed ? parsed.item : null),
+                            ref_art: qr.ref_art || (parsed ? parsed.ref_art : null),
+                            peso: qr.peso_caja || qr.peso_articulo || (parsed ? parsed.peso : null),
+                            cbm: qr.volumen_caja || qr.volumen_articulo || (parsed ? parsed.cbm : null),
+                            destino: qr.destino || (parsed ? parsed.destino : null),
+                            codigo_carga: qr.codigo_carga || (parsed ? parsed.codigo_carga : null),
                             datos_parseados: parsed
                         };
                     });
                     setQrData(mapped);
-                } else setQrData([]);
+                } else {
+                    setQrData([]);
+                }
 
             } catch (e) {
                 console.error('Error cargar datos:', e);
@@ -98,7 +128,7 @@ const VisualizarQR = () => {
         if (!idCarga) return;
         setDescargandoPDF(true);
         try { const res = await cargaService.descargarPDFQRs(idCarga); if (!res.success) setError(res.error || 'Error al descargar PDF'); }
-        catch (e) { setError('Error al descargar PDF'); }
+        catch { setError('Error al descargar PDF'); }
         finally { setDescargandoPDF(false); }
     };
 
@@ -204,12 +234,42 @@ const VisualizarQR = () => {
                         <div className="qr-info-grid">
                             <div className="qr-info-item">
                                 <div className="qr-info-label">Cliente:</div>
-                                <div className="qr-info-value">{cargaData.carga?.nombre_cliente || 'N/A'}</div>
+                                <div className="qr-info-value">{cargaData.carga?.nombre_cliente || cargaData.carga?.correo_cliente || 'N/A'}</div>
                             </div>
+                            {cargaData.carga?.correo_cliente && (
+                                <div className="qr-info-item">
+                                    <div className="qr-info-label">Email:</div>
+                                    <div className="qr-info-value">{cargaData.carga.correo_cliente}</div>
+                                </div>
+                            )}
+                            {cargaData.carga?.telefono_cliente && (
+                                <div className="qr-info-item">
+                                    <div className="qr-info-label">Teléfono:</div>
+                                    <div className="qr-info-value">{cargaData.carga.telefono_cliente}</div>
+                                </div>
+                            )}
                             <div className="qr-info-item">
-                                <div className="qr-info-label">Código:</div>
+                                <div className="qr-info-label">Código Carga:</div>
                                 <div className="qr-info-value">{cargaData.carga?.codigo_carga || 'N/A'}</div>
                             </div>
+                            {cargaData.carga?.destino && (
+                                <div className="qr-info-item">
+                                    <div className="qr-info-label">Destino:</div>
+                                    <div className="qr-info-value">{cargaData.carga.destino}</div>
+                                </div>
+                            )}
+                            {cargaData.carga?.shipping_mark && (
+                                <div className="qr-info-item">
+                                    <div className="qr-info-label">Shipping Mark:</div>
+                                    <div className="qr-info-value">{cargaData.carga.shipping_mark}</div>
+                                </div>
+                            )}
+                            {cargaData.carga?.estado && (
+                                <div className="qr-info-item">
+                                    <div className="qr-info-label">Estado:</div>
+                                    <div className="qr-info-value">{cargaData.carga.estado}</div>
+                                </div>
+                            )}
                             <div className="qr-info-item">
                                 <div className="qr-info-label">Total de Cajas:</div>
                                 <div className="qr-info-value">{qrData.length}</div>
@@ -245,25 +305,61 @@ const VisualizarQR = () => {
                                             title="Clic para ampliar el código QR"
                                         >
                                             <img 
-                                                src={`/api/qr/image/${qr.id}?width=150&margin=10`} 
+                                                src={`http://localhost:4000/api/qr/image/${qr.id}?width=150&margin=10`} 
                                                 alt={`QR ${index+1}`} 
                                                 className="qr-image"
-                                                onError={(e)=>{e.target.style.display='none'}}
+                                                onError={(e)=>{
+                                                    console.error('Error cargando imagen QR:', e);
+                                                    e.target.style.display='none';
+                                                    e.target.parentNode.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Error cargando QR</div>';
+                                                }}
                                             />
                                         </div>
                                         <div className="qr-details">
-                                            {qr.datos_parseados ? (
-                                                <div className="qr-details-grid">
-                                                    <div className="qr-detail-label">ID QR:</div>
-                                                    <div className="qr-detail-value">{qr.datos_parseados.qr_id || qr.id}</div>
-                                                    <div className="qr-detail-label">Número de Caja:</div>
-                                                    <div className="qr-detail-value">{qr.datos_parseados.numero_caja}</div>
-                                                    <div className="qr-detail-label">Descripción:</div>
-                                                    <div className="qr-detail-value">{qr.datos_parseados.descripcion}</div>
-                                                </div>
-                                            ) : (
-                                                <div className="qr-no-data">Sin datos adicionales</div>
-                                            )}
+                                            <div className="qr-details-grid">
+                                                {qr.ref_art && (
+                                                    <>
+                                                        <div className="qr-detail-label">Ref. Artículo:</div>
+                                                        <div className="qr-detail-value">{qr.ref_art}</div>
+                                                    </>
+                                                )}
+                                                {qr.descripcion_espanol && (
+                                                    <>
+                                                        <div className="qr-detail-label">Descripción:</div>
+                                                        <div className="qr-detail-value">{qr.descripcion_espanol}</div>
+                                                    </>
+                                                )}
+                                                {qr.cantidad_en_caja && (
+                                                    <>
+                                                        <div className="qr-detail-label">Cantidad:</div>
+                                                        <div className="qr-detail-value">{qr.cantidad_en_caja}</div>
+                                                    </>
+                                                )}
+                                                {qr.peso && (
+                                                    <>
+                                                        <div className="qr-detail-label">Peso (GW):</div>
+                                                        <div className="qr-detail-value">{qr.peso} kg</div>
+                                                    </>
+                                                )}
+                                                {qr.cbm && (
+                                                    <>
+                                                        <div className="qr-detail-label">Volumen (CBM):</div>
+                                                        <div className="qr-detail-value">{qr.cbm} m³</div>
+                                                    </>
+                                                )}
+                                                {qr.destino && (
+                                                    <>
+                                                        <div className="qr-detail-label">Destino:</div>
+                                                        <div className="qr-detail-value">{qr.destino}</div>
+                                                    </>
+                                                )}
+                                                {qr.codigo_qr && (
+                                                    <>
+                                                        <div className="qr-detail-label">Código QR:</div>
+                                                        <div className="qr-detail-value" style={{ fontSize: '11px', wordBreak: 'break-all' }}>{qr.codigo_qr}</div>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -306,9 +402,13 @@ const VisualizarQR = () => {
                             {/* Imagen QR ampliada */}
                             <div className="qr-modal-image-container">
                                 <img 
-                                    src={`/api/qr/image/${selectedQR.id}?width=400&margin=20`} 
+                                    src={`http://localhost:4000/api/qr/image/${selectedQR.id}?width=400&margin=20`} 
                                     alt={`QR ampliado - ${selectedQR.descripcion_espanol || 'QR Code'}`}
                                     className="qr-modal-image"
+                                    onError={(e) => {
+                                        console.error('Error cargando imagen QR ampliada:', e);
+                                        e.target.parentNode.innerHTML = '<div style="padding:40px;text-align:center;color:#999;">Error cargando QR</div>';
+                                    }}
                                 />
                             </div>
 
@@ -319,13 +419,6 @@ const VisualizarQR = () => {
                                     <span className="qr-modal-value">{selectedQR.id}</span>
                                 </div>
                                 
-                                {selectedQR.descripcion_espanol && (
-                                    <div className="qr-modal-detail">
-                                        <span className="qr-modal-label">Descripción:</span>
-                                        <span className="qr-modal-value">{selectedQR.descripcion_espanol}</span>
-                                    </div>
-                                )}
-                                
                                 {selectedQR.ref_art && (
                                     <div className="qr-modal-detail">
                                         <span className="qr-modal-label">Ref. Artículo:</span>
@@ -333,10 +426,45 @@ const VisualizarQR = () => {
                                     </div>
                                 )}
                                 
+                                {selectedQR.descripcion_espanol && (
+                                    <div className="qr-modal-detail">
+                                        <span className="qr-modal-label">Descripción:</span>
+                                        <span className="qr-modal-value">{selectedQR.descripcion_espanol}</span>
+                                    </div>
+                                )}
+                                
+                                {selectedQR.cantidad_en_caja && (
+                                    <div className="qr-modal-detail">
+                                        <span className="qr-modal-label">Cantidad en Caja:</span>
+                                        <span className="qr-modal-value">{selectedQR.cantidad_en_caja}</span>
+                                    </div>
+                                )}
+                                
+                                {selectedQR.peso && (
+                                    <div className="qr-modal-detail">
+                                        <span className="qr-modal-label">Peso (GW):</span>
+                                        <span className="qr-modal-value">{selectedQR.peso} kg</span>
+                                    </div>
+                                )}
+                                
+                                {selectedQR.cbm && (
+                                    <div className="qr-modal-detail">
+                                        <span className="qr-modal-label">Volumen (CBM):</span>
+                                        <span className="qr-modal-value">{selectedQR.cbm} m³</span>
+                                    </div>
+                                )}
+                                
+                                {selectedQR.destino && (
+                                    <div className="qr-modal-detail">
+                                        <span className="qr-modal-label">Destino:</span>
+                                        <span className="qr-modal-value">{selectedQR.destino}</span>
+                                    </div>
+                                )}
+                                
                                 {selectedQR.codigo_qr && (
                                     <div className="qr-modal-detail qr-modal-code">
                                         <span className="qr-modal-label">Código QR:</span>
-                                        <span className="qr-modal-value qr-modal-code-text">{selectedQR.codigo_qr}</span>
+                                        <span className="qr-modal-value qr-modal-code-text" style={{ wordBreak: 'break-all', fontSize: '12px' }}>{selectedQR.codigo_qr}</span>
                                     </div>
                                 )}
                             </div>
@@ -344,7 +472,7 @@ const VisualizarQR = () => {
                             {/* Botones de acción */}
                             <div className="qr-modal-actions">
                                 <button 
-                                    onClick={() => window.open(`/api/qr/image/${selectedQR.id}?width=800&margin=20`, '_blank')}
+                                    onClick={() => window.open(`http://localhost:4000/api/qr/image/${selectedQR.id}?width=800&margin=20`, '_blank')}
                                     className="qr-modal-btn qr-modal-btn-primary"
                                     title="Abrir QR en nueva ventana"
                                 >

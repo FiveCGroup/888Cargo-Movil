@@ -55,7 +55,7 @@ const Navbar = ({ user }) => {
                     📚 Docs
                 </button>
                 <div className="notification-icon">🔔</div>
-                <div className="user-name">{user?.name}</div>
+                <div className="user-name">{user?.name || user?.full_name || user?.username}</div>
                 <div className="user-avatar">👤</div>
                 <button className="btn btn-danger btn-sm logout-btn" onClick={handleLogout}>
                     <i className="fas fa-sign-out-alt"></i>Cerrar Sesión

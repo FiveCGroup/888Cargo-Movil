@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import cargaService from '../services/cargaService';
 import API from '../services/api';
 
 export const useCrearCarga = () => {
@@ -32,7 +31,16 @@ export const useCrearCarga = () => {
     const [infoCarga, setInfoCarga] = useState({
         codigo_carga: '',
         direccion_destino: '',
-        archivo_original: ''
+        archivo_original: '',
+        shipping_mark: '',
+        destino: '',
+        estado: 'En bodega China',
+        ubicacion_actual: 'China',
+        fecha_recepcion: '',
+        fecha_envio: '',
+        fecha_arribo: '',
+        contenedor_asociado: '',
+        observaciones: ''
     });
     
     // Estados de control
@@ -60,6 +68,22 @@ export const useCrearCarga = () => {
                         correo_cliente: userData.email || '',
                         telefono_cliente: userData.phone || ''
                     }));
+                    
+                    // Pre-llenar shippingMark si está disponible en el perfil del cliente
+                    if (userData.shippingMark) {
+                        setInfoCarga(prev => ({
+                            ...prev,
+                            shipping_mark: userData.shippingMark
+                        }));
+                    }
+                    
+                    // Pre-llenar destino (ciudad) si está disponible en el perfil del cliente
+                    if (userData.ciudad) {
+                        setInfoCarga(prev => ({
+                            ...prev,
+                            destino: userData.ciudad
+                        }));
+                    }
                 }
             } catch (error) {
                 console.error('❌ Error al obtener perfil del usuario:', error);
@@ -90,7 +114,7 @@ export const useCrearCarga = () => {
     useEffect(() => {
         if (mostrarFormulario) {
             // Si los campos están vacíos, cargar datos del usuario
-            if (!infoCliente.nombre_cliente || !infoCliente.correo_cliente) {
+            if (!infoCliente.nombre_cliente || !infoCliente.correo_cliente || !infoCarga.shipping_mark) {
                 
                 const cargarDatosFormulario = async () => {
                     try {
@@ -103,8 +127,24 @@ export const useCrearCarga = () => {
                                 correo_cliente: userData.email || '',
                                 telefono_cliente: userData.phone || ''
                             }));
+                            
+                            // Pre-llenar shippingMark si está disponible y el campo está vacío
+                            if (userData.shippingMark && !infoCarga.shipping_mark) {
+                                setInfoCarga(prev => ({
+                                    ...prev,
+                                    shipping_mark: userData.shippingMark
+                                }));
+                            }
+                            
+                            // Pre-llenar destino (ciudad) si está disponible y el campo está vacío
+                            if (userData.ciudad && !infoCarga.destino) {
+                                setInfoCarga(prev => ({
+                                    ...prev,
+                                    destino: userData.ciudad
+                                }));
+                            }
                         }
-                    } catch (error) {
+                    } catch {
                         const userData = localStorage.getItem('user');
                         if (userData) {
                             const user = JSON.parse(userData);
@@ -146,11 +186,21 @@ export const useCrearCarga = () => {
             // nombre_cliente, correo_cliente y telefono_cliente se mantienen
         }));
         
-        setInfoCarga({
+        // Mantener shipping_mark y destino si ya están prellenados desde el perfil del cliente
+        setInfoCarga(prev => ({
             codigo_carga: '',
             direccion_destino: '',
-            archivo_original: ''
-        });
+            archivo_original: '',
+            shipping_mark: prev.shipping_mark || '', // Mantener el shippingMark prellenado
+            destino: prev.destino || '', // Mantener el destino (ciudad) prellenado
+            estado: 'En bodega China',
+            ubicacion_actual: 'China',
+            fecha_recepcion: '',
+            fecha_envio: '',
+            fecha_arribo: '',
+            contenedor_asociado: '',
+            observaciones: ''
+        }));
     };
 
     const limpiarBusqueda = () => {

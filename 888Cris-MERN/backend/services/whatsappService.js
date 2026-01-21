@@ -183,8 +183,53 @@ export const sendDocumentWhatsApp = async (phone, documentUrl, caption = '') => 
     }
 };
 
+/**
+ * Enviar mensaje personalizado por WhatsApp
+ * @param {string} phone - Número de teléfono del usuario
+ * @param {string} message - Mensaje a enviar
+ * @returns {Promise}
+ */
+export const sendWhatsAppMessage = async (phone, message) => {
+    try {
+        const config = getWhatsAppConfig();
+        if (!config) {
+            return { success: false, message: 'WhatsApp not configured' };
+        }
+
+        const formattedPhone = formatPhoneNumber(phone);
+        if (!formattedPhone) {
+            return { success: false, message: 'Invalid phone number' };
+        }
+
+        const messageData = {
+            messaging_product: "whatsapp",
+            to: formattedPhone,
+            type: 'text',
+            text: {
+                body: message
+            }
+        };
+
+        const response = await axios.post(`${config.baseUrl}/${config.phoneNumberId}/messages`, messageData, {
+            headers: {
+                'Authorization': `Bearer ${config.token}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: parseInt(process.env.WHATSAPP_TIMEOUT) || 30000
+        });
+
+        console.log('✅ WhatsApp message sent:', response.data);
+        return { success: true, message: 'WhatsApp message sent', messageId: response.data.messages?.[0]?.id };
+
+    } catch (error) {
+        console.error('❌ Error sending WhatsApp message:', error.response?.data || error.message);
+        return { success: false, message: error.response?.data?.message || error.message };
+    }
+};
+
 export default {
     sendWelcomeWhatsApp,
     sendDocumentWhatsApp,
+    sendWhatsAppMessage,
     formatPhoneNumber
 };

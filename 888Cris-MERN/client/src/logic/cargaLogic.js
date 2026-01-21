@@ -90,10 +90,62 @@ export class CargaLogic {
             const resultado = await cargaService.procesarExcel(file);
 
             if (resultado.success) {
-                setDatosExcel(resultado.data.data);
-                setFilasConError(resultado.data.filasConError || []);
+                // Convertir datos normalizados (array de objetos) a formato de tabla (array de arrays)
+                const datosNormalizados = resultado.data.data || [];
+                const filasConErrorData = resultado.data.filasConError || [];
+                
+                // Si hay datos normalizados, convertir a formato de tabla
+                let datosParaTabla = [];
+                if (datosNormalizados.length > 0) {
+                    // Obtener todas las claves únicas de todos los objetos para crear el header
+                    const todasLasClaves = new Set();
+                    datosNormalizados.forEach(obj => {
+                        Object.keys(obj).forEach(key => todasLasClaves.add(key));
+                    });
+                    
+                    // Convertir Set a Array y ordenar para consistencia
+                    const headers = Array.from(todasLasClaves).sort();
+                    
+                    // Crear array de arrays: primera fila = headers, siguientes = datos
+                    datosParaTabla = [headers];
+                    
+                    // Agregar cada fila de datos
+                    datosNormalizados.forEach(obj => {
+                        const fila = headers.map(header => {
+                            const valor = obj[header];
+                            // Convertir null/undefined a string vacío, mantener otros valores
+                            if (valor === null || valor === undefined) return '';
+                            // Si es un objeto, convertirlo a string JSON
+                            if (typeof valor === 'object') return JSON.stringify(valor);
+                            return String(valor);
+                        });
+                        datosParaTabla.push(fila);
+                    });
+                }
+                
+                // Formatear filas con error para mejor visualización
+                const filasConErrorFormateadas = filasConErrorData.map(error => {
+                    if (typeof error === 'object' && error !== null) {
+                        return {
+                            numeroFila: error.row || error.numeroFila || error.fila || 'N/A',
+                            errores: Array.isArray(error.errores) ? error.errores : 
+                                    Array.isArray(error.errors) ? error.errors :
+                                    [error.message || error.error || 'Error desconocido'],
+                            datos: error.datos || error.data || []
+                        };
+                    }
+                    return {
+                        numeroFila: 'N/A',
+                        errores: [String(error)],
+                        datos: []
+                    };
+                });
+                
+                setDatosExcel(datosParaTabla);
+                setFilasConError(filasConErrorFormateadas);
                 setEstadisticasCarga(resultado.data.estadisticas);
-                console.log(`✅ Archivo procesado exitosamente: ${resultado.data.data.length} filas`);
+                console.log(`✅ Archivo procesado exitosamente: ${datosNormalizados.length} filas`);
+                console.log(`📊 Datos convertidos a formato de tabla: ${datosParaTabla.length} filas (incluyendo header)`);
             } else {
                 setError(resultado.error);
                 console.error(`❌ Error procesando archivo: ${resultado.error}`);
@@ -170,8 +222,29 @@ export class CargaLogic {
         setDatosGuardado(null);
 
         try {
+            // Normalizar datosExcel: si viene como tabla (array de arrays),
+            // convertirlo a array de objetos usando la primera fila como headers.
+            let datosParaGuardar = datosExcel;
+
+            if (Array.isArray(datosExcel) && datosExcel.length > 1 && Array.isArray(datosExcel[0])) {
+                const headers = datosExcel[0].map(h =>
+                    (h === null || h === undefined) ? '' : String(h).trim()
+                );
+
+                const filas = datosExcel.slice(1);
+                datosParaGuardar = filas.map((fila) => {
+                    const obj = {};
+                    headers.forEach((header, idx) => {
+                        // Mantener el valor tal cual (string o número);
+                        // el backend se encargará de parsear campos numéricos como precio_unidad.
+                        obj[header] = fila[idx];
+                    });
+                    return obj;
+                });
+            }
+
             const datosCompletos = {
-                datosExcel: datosExcel,
+                datosExcel: datosParaGuardar,
                 infoCliente: infoCliente,
                 infoCarga: infoCarga
             };
@@ -242,7 +315,5 @@ export class CargaLogic {
             setError(resultado.error);
             return { success: false };
         }
-
-        setLoading(false);
     }
 }

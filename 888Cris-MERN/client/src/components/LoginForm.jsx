@@ -61,14 +61,16 @@ const LoginForm = () => {
         // Guardamos los datos del usuario
         localStorage.setItem("user", JSON.stringify({
           id: response.data.user.id,
-          name: response.data.user.username || response.data.user.full_name,
+          name: response.data.user.full_name || response.data.user.username,
           email: response.data.user.email,
           roles: response.data.user.roles
         }));
 
         // Mostrar mensaje de bienvenida
         try {
-          await CargoAlerts.showLoginWelcome(response.data.user.username || response.data.user.email);
+          await CargoAlerts.showLoginWelcome(
+            response.data.user.full_name || response.data.user.username || response.data.user.email
+          );
         } catch (alertError) {
           console.error("Error al mostrar alerta de bienvenida:", alertError);
         }

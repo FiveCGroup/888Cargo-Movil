@@ -307,15 +307,242 @@ const ModalPackingList = ({
                     
                     <div style={{ marginBottom: '15px' }}>
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
-                            Dirección de Destino *
+                            Destino (Ciudad) *
+                        </label>
+                        <input
+                            type="text"
+                            name="destino"
+                            value={infoCarga?.destino || ''}
+                            onChange={onCambioCarga}
+                            required
+                            placeholder="Ej: Medellín, Bogotá, Cali"
+                            disabled={guardadoExitoso}
+                            style={{ 
+                                width: '100%', 
+                                padding: '10px', 
+                                border: '2px solid #ddd', 
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                boxSizing: 'border-box',
+                                backgroundColor: guardadoExitoso ? '#f8f9fa' : 'white',
+                                color: guardadoExitoso ? '#6c757d' : 'inherit',
+                                cursor: guardadoExitoso ? 'not-allowed' : 'text'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                            Dirección de Destino
                         </label>
                         <textarea
                             name="direccion_destino"
                             value={infoCarga?.direccion_destino || ''}
                             onChange={onCambioCarga}
-                            required
                             placeholder="Dirección completa donde se entregará la mercancía"
                             rows="2"
+                            disabled={guardadoExitoso}
+                            style={{ 
+                                width: '100%', 
+                                padding: '10px', 
+                                border: '2px solid #ddd', 
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                resize: 'vertical',
+                                boxSizing: 'border-box',
+                                backgroundColor: guardadoExitoso ? '#f8f9fa' : 'white',
+                                color: guardadoExitoso ? '#6c757d' : 'inherit',
+                                cursor: guardadoExitoso ? 'not-allowed' : 'text'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                            Shipping Mark
+                        </label>
+                        <input
+                            type="text"
+                            name="shipping_mark"
+                            value={infoCarga?.shipping_mark || ''}
+                            onChange={onCambioCarga}
+                            placeholder="Ej: 888ABC"
+                            disabled={guardadoExitoso}
+                            style={{ 
+                                width: '100%', 
+                                padding: '10px', 
+                                border: '2px solid #ddd', 
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                boxSizing: 'border-box',
+                                backgroundColor: guardadoExitoso ? '#f8f9fa' : 'white',
+                                color: guardadoExitoso ? '#6c757d' : 'inherit',
+                                cursor: guardadoExitoso ? 'not-allowed' : 'text'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                            Estado
+                        </label>
+                        <select
+                            name="estado"
+                            value={infoCarga?.estado || 'En bodega China'}
+                            onChange={onCambioCarga}
+                            disabled={guardadoExitoso}
+                            style={{ 
+                                width: '100%', 
+                                padding: '10px', 
+                                border: '2px solid #ddd', 
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                boxSizing: 'border-box',
+                                backgroundColor: guardadoExitoso ? '#f8f9fa' : 'white',
+                                color: guardadoExitoso ? '#6c757d' : 'inherit',
+                                cursor: guardadoExitoso ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            <option value="En bodega China">En bodega China</option>
+                            <option value="En tránsito">En tránsito</option>
+                            <option value="En despacho">En despacho</option>
+                            <option value="Entregada">Entregada</option>
+                            <option value="Pendiente">Pendiente</option>
+                        </select>
+                    </div>
+
+                    <div style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                            Ubicación Actual
+                        </label>
+                        <input
+                            type="text"
+                            name="ubicacion_actual"
+                            value={infoCarga?.ubicacion_actual || 'China'}
+                            onChange={onCambioCarga}
+                            placeholder="Ej: China, Puerto de Cartagena, etc."
+                            disabled={guardadoExitoso}
+                            style={{ 
+                                width: '100%', 
+                                padding: '10px', 
+                                border: '2px solid #ddd', 
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                boxSizing: 'border-box',
+                                backgroundColor: guardadoExitoso ? '#f8f9fa' : 'white',
+                                color: guardadoExitoso ? '#6c757d' : 'inherit',
+                                cursor: guardadoExitoso ? 'not-allowed' : 'text'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                            Fecha de Recepción
+                        </label>
+                        <input
+                            type="datetime-local"
+                            name="fecha_recepcion"
+                            value={infoCarga?.fecha_recepcion || ''}
+                            onChange={onCambioCarga}
+                            disabled={guardadoExitoso}
+                            style={{ 
+                                width: '100%', 
+                                padding: '10px', 
+                                border: '2px solid #ddd', 
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                boxSizing: 'border-box',
+                                backgroundColor: guardadoExitoso ? '#f8f9fa' : 'white',
+                                color: guardadoExitoso ? '#6c757d' : 'inherit',
+                                cursor: guardadoExitoso ? 'not-allowed' : 'text'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                            Fecha de Envío
+                        </label>
+                        <input
+                            type="datetime-local"
+                            name="fecha_envio"
+                            value={infoCarga?.fecha_envio || ''}
+                            onChange={onCambioCarga}
+                            disabled={guardadoExitoso}
+                            style={{ 
+                                width: '100%', 
+                                padding: '10px', 
+                                border: '2px solid #ddd', 
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                boxSizing: 'border-box',
+                                backgroundColor: guardadoExitoso ? '#f8f9fa' : 'white',
+                                color: guardadoExitoso ? '#6c757d' : 'inherit',
+                                cursor: guardadoExitoso ? 'not-allowed' : 'text'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                            Fecha de Arribo
+                        </label>
+                        <input
+                            type="datetime-local"
+                            name="fecha_arribo"
+                            value={infoCarga?.fecha_arribo || ''}
+                            onChange={onCambioCarga}
+                            disabled={guardadoExitoso}
+                            style={{ 
+                                width: '100%', 
+                                padding: '10px', 
+                                border: '2px solid #ddd', 
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                boxSizing: 'border-box',
+                                backgroundColor: guardadoExitoso ? '#f8f9fa' : 'white',
+                                color: guardadoExitoso ? '#6c757d' : 'inherit',
+                                cursor: guardadoExitoso ? 'not-allowed' : 'text'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                            Contenedor Asociado
+                        </label>
+                        <input
+                            type="text"
+                            name="contenedor_asociado"
+                            value={infoCarga?.contenedor_asociado || ''}
+                            onChange={onCambioCarga}
+                            placeholder="Número de contenedor"
+                            disabled={guardadoExitoso}
+                            style={{ 
+                                width: '100%', 
+                                padding: '10px', 
+                                border: '2px solid #ddd', 
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                boxSizing: 'border-box',
+                                backgroundColor: guardadoExitoso ? '#f8f9fa' : 'white',
+                                color: guardadoExitoso ? '#6c757d' : 'inherit',
+                                cursor: guardadoExitoso ? 'not-allowed' : 'text'
+                            }}
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: '15px' }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#555' }}>
+                            Observaciones
+                        </label>
+                        <textarea
+                            name="observaciones"
+                            value={infoCarga?.observaciones || ''}
+                            onChange={onCambioCarga}
+                            placeholder="Notas adicionales sobre la carga"
+                            rows="3"
                             disabled={guardadoExitoso}
                             style={{ 
                                 width: '100%', 

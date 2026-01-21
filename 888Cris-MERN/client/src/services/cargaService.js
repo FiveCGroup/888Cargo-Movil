@@ -147,7 +147,8 @@ class CargaService {
      */
     async generarQRDataParaCarga(idCarga) {
         try {
-            const response = await API.post(`/api/qr/carga/${idCarga}/generate-data`);
+            // La baseURL ya incluye /api, así que no duplicar
+            const response = await API.post(`/qr/carga/${idCarga}/generate-data`);
             return { 
                 success: true, 
                 data: response.data,
@@ -167,7 +168,8 @@ class CargaService {
      */
     async obtenerQRDataDeCarga(idCarga) {
         try {
-            const response = await API.get(`/api/qr/carga/${idCarga}/data`);
+            // La baseURL ya incluye /api, así que no duplicar
+            const response = await API.get(`/qr/carga/${idCarga}/data`);
             return { 
                 success: true, 
                 data: response.data,
@@ -193,7 +195,8 @@ class CargaService {
             if (options.markAsPrinted) params.append('markAsPrinted', 'true');
 
             const queryString = params.toString();
-            const url = `/api/qr/image/${qrId}${queryString ? '?' + queryString : ''}`;
+            // La baseURL ya incluye /api, así que no duplicar
+            const url = `/qr/image/${qrId}${queryString ? '?' + queryString : ''}`;
             
             const response = await API.get(url, { responseType: 'blob' });
             const imageUrl = window.URL.createObjectURL(new Blob([response.data]));
@@ -217,7 +220,8 @@ class CargaService {
      */
     async validarQREscaneado(datosEscaneados) {
         try {
-            const response = await API.post('/api/qr/validate-scanned', {
+            // La baseURL ya incluye /api, así que no duplicar
+            const response = await API.post('/qr/validate-scanned', {
                 scannedData: datosEscaneados
             });
             return { 
@@ -240,7 +244,8 @@ class CargaService {
     async guardarPackingListConQROptimizado(datosCompletos) {
         try {
             // Guardar el packing list normal primero
-            const response = await API.post('/api/carga/guardar-con-qr', datosCompletos);
+            // La baseURL ya incluye /api, así que no duplicar
+            const response = await API.post('/carga/guardar-con-qr', datosCompletos);
             
             if (response.data && response.data.success && response.data.data?.carga?.id) {
                 const idCarga = response.data.data.carga.id;

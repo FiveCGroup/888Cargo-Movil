@@ -245,6 +245,8 @@ const RegisterForm = () => {
     phoneNumber: "",
     country: "Colombia",
     phoneLength: countryCodes.find(c => c.code === '+57')?.phoneLength || 10,
+    city: "",
+    shippingMark: "",
     password: "",
     confirmarPassword: "",
     acceptWhatsapp: false,
@@ -310,6 +312,8 @@ const RegisterForm = () => {
         phone: fullPhoneNumber,       // enviar también campo alternativo
         mobile: fullPhoneNumber,      // enviar también mobile por compatibilidad
         country,
+        city: formData.city,
+        shippingMark: formData.shippingMark,
         password,
         acceptWhatsapp: formData.acceptWhatsapp, // consentimiento que exige la UI
         username: email // opcional, por si el backend usa username
@@ -474,6 +478,34 @@ const RegisterForm = () => {
           })()}
         </div>
       </div>
+      </div>
+
+      <div className="form-group">
+        <input
+          name="city"
+          value={formData.city}
+          onChange={handleChange}
+          type="text"
+          placeholder="Ciudad"
+          className={`form-input${formErrors.city ? ' input-error' : ''}`}
+        />
+        {formErrors.city && <p className="error-message">{formErrors.city}</p>}
+      </div>
+
+      <div className="form-group">
+        <input
+          name="shippingMark"
+          value={formData.shippingMark}
+          onChange={handleChange}
+          type="text"
+          placeholder="Shipping Mark (opcional, se generará automáticamente si se deja vacío)"
+          className={`form-input${formErrors.shippingMark ? ' input-error' : ''}`}
+          maxLength={10}
+        />
+        {formErrors.shippingMark && <p className="error-message">{formErrors.shippingMark}</p>}
+        <small style={{ fontSize: '12px', color: '#666', marginTop: '4px', display: 'block' }}>
+          Si se deja vacío, se generará automáticamente basado en tu nombre
+        </small>
       </div>
 
       <div className="form-group">

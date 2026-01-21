@@ -26,7 +26,7 @@ export class PackingListModel {
         const { nombre_cliente, correo_cliente, telefono_cliente, ciudad_cliente, pais_cliente } = clienteData;
         
         const sql = `
-            INSERT INTO cliente (nombre_cliente, correo_cliente, telefono_cliente, ciudad_cliente, pais_cliente)
+            INSERT INTO clientes (nombre_cliente, correo_cliente, telefono_cliente, ciudad_cliente, pais_cliente)
             VALUES (?, ?, ?, ?, ?)
         `;
         
@@ -35,12 +35,12 @@ export class PackingListModel {
     }
     
     static async obtenerClientePorId(id_cliente) {
-        const sql = `SELECT * FROM cliente WHERE id_cliente = ?`;
+        const sql = `SELECT * FROM clientes WHERE id_cliente = ?`;
         return await get(sql, [id_cliente]);
     }
     
     static async obtenerClientePorCorreo(correo_cliente) {
-        const sql = `SELECT * FROM cliente WHERE correo_cliente = ?`;
+        const sql = `SELECT * FROM clientes WHERE correo_cliente = ?`;
         return await get(sql, [correo_cliente]);
     }
     
@@ -62,7 +62,7 @@ export class PackingListModel {
         const sql = `
             SELECT c.*, cl.nombre_cliente, cl.correo_cliente 
             FROM carga c 
-            LEFT JOIN cliente cl ON c.id_cliente = cl.id_cliente 
+            LEFT JOIN clientes cl ON c.id_cliente = cl.id_cliente 
             WHERE c.id_carga = ?
         `;
         return await get(sql, [id_carga]);
@@ -78,7 +78,7 @@ export class PackingListModel {
     static async crearArticulo(articuloData) {
         const {
             id_carga, fecha, cn, ref_art, descripcion_espanol, descripcion_chino,
-            unidad, precio_unidad, precio_total, material, unidades_empaque,
+            unidad, precio_unidad, precio_total, material, cant_por_caja,
             marca_producto, serial, medida_largo, medida_ancho, medida_alto,
             cbm, gw, imagen_url
         } = articuloData;
@@ -86,7 +86,7 @@ export class PackingListModel {
         const sql = `
             INSERT INTO articulo_packing_list (
                 id_carga, fecha, cn, ref_art, descripcion_espanol, descripcion_chino,
-                unidad, precio_unidad, precio_total, material, unidades_empaque,
+                unidad, precio_unidad, precio_total, material, cant_por_caja,
                 marca_producto, serial, medida_largo, medida_ancho, medida_alto,
                 cbm, gw, imagen_url
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -94,7 +94,7 @@ export class PackingListModel {
         
         const result = await run(sql, [
             id_carga, fecha, cn, ref_art, descripcion_espanol, descripcion_chino,
-            unidad, precio_unidad, precio_total, material, unidades_empaque,
+            unidad, precio_unidad, precio_total, material, cant_por_caja,
             marca_producto, serial, medida_largo, medida_ancho, medida_alto,
             cbm, gw, imagen_url
         ]);
@@ -161,7 +161,7 @@ export class PackingListModel {
                     '; '
                 ) as detalle_cajas
             FROM carga c
-            LEFT JOIN cliente cl ON c.id_cliente = cl.id_cliente
+            LEFT JOIN clientes cl ON c.id_cliente = cl.id_cliente
             LEFT JOIN articulo_packing_list apl ON c.id_carga = apl.id_carga
             LEFT JOIN caja cj ON apl.id_articulo = cj.id_articulo
             WHERE c.id_carga = ?
@@ -204,7 +204,7 @@ export class PackingListModel {
     }
     
     static async validarCorreoClienteUnico(correo_cliente, id_cliente = null) {
-        let sql = `SELECT COUNT(*) as count FROM cliente WHERE correo_cliente = ?`;
+        let sql = `SELECT COUNT(*) as count FROM clientes WHERE correo_cliente = ?`;
         let params = [correo_cliente];
         
         if (id_cliente) {
@@ -235,7 +235,7 @@ export class PackingListModel {
                 cl.ciudad_cliente,
                 cl.pais_cliente
             FROM carga c
-            LEFT JOIN cliente cl ON c.id_cliente = cl.id_cliente
+            LEFT JOIN clientes cl ON c.id_cliente = cl.id_cliente
             WHERE c.codigo_carga LIKE ?
             ORDER BY c.fecha_creacion DESC
         `;
@@ -260,7 +260,7 @@ export class PackingListModel {
                 cl.ciudad_cliente,
                 cl.pais_cliente
             FROM carga c
-            LEFT JOIN cliente cl ON c.id_cliente = cl.id_cliente
+            LEFT JOIN clientes cl ON c.id_cliente = cl.id_cliente
             ORDER BY c.fecha_creacion DESC
         `;
         

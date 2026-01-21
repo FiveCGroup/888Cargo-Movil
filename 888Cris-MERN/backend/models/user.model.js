@@ -3,7 +3,7 @@ import { query, run, get } from '../db.js';
 // Obtener un cliente por correo electrónico
 export async function getClienteByEmail(email) {
   try {
-    const result = await get('SELECT * FROM cliente WHERE correo_cliente = ?', [email]);
+    const result = await get('SELECT * FROM clientes WHERE correo_cliente = ?', [email]);
     return result;
   } catch (error) {
     console.error('Error al buscar cliente por email:', error);
@@ -14,7 +14,7 @@ export async function getClienteByEmail(email) {
 // Obtener un cliente por ID
 export async function getClienteById(id) {
   try {
-    const result = await get('SELECT * FROM cliente WHERE id_cliente = ?', [id]);
+    const result = await get('SELECT * FROM clientes WHERE id_cliente = ?', [id]);
     return result;
   } catch (error) {
     console.error('Error al buscar cliente por ID:', error);
@@ -29,8 +29,7 @@ export async function createCliente(clienteData) {
     correo_cliente,
     telefono_cliente,
     ciudad_cliente,
-    pais_cliente,
-    password
+    pais_cliente
   } = clienteData;
 
   try {
@@ -38,10 +37,10 @@ export async function createCliente(clienteData) {
     const cliente_shippingMark = await generateUniqueShippingMark(nombre_cliente);
 
     const result = await run(
-      `INSERT INTO cliente 
-      (nombre_cliente, correo_cliente, telefono_cliente, ciudad_cliente, pais_cliente, cliente_shippingMark, password) 
-      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [nombre_cliente, correo_cliente, telefono_cliente, ciudad_cliente, pais_cliente, cliente_shippingMark, password]
+      `INSERT INTO clientes 
+      (nombre_cliente, correo_cliente, telefono_cliente, ciudad_cliente, pais_cliente, cliente_shippingMark) 
+      VALUES (?, ?, ?, ?, ?, ?)`,
+      [nombre_cliente, correo_cliente, telefono_cliente, ciudad_cliente, pais_cliente, cliente_shippingMark]
     );
     
     // Obtener el cliente recién creado
@@ -121,7 +120,7 @@ export async function generateUniqueShippingMark(nombreCliente) {
   }
 
   // Obtener existentes en DB
-  const existingRows = await query('SELECT cliente_shippingMark FROM cliente WHERE cliente_shippingMark IS NOT NULL');
+  const existingRows = await query('SELECT cliente_shippingMark FROM clientes WHERE cliente_shippingMark IS NOT NULL');
   const existing = new Set(existingRows.map(r => String(r.cliente_shippingMark).toUpperCase()));
 
   // Probar candidatos en orden de inserción del Set
@@ -187,7 +186,7 @@ export async function updateCliente(id_cliente, clienteData) {
     // Si no viene cliente_shippingMark, intentar mantener el existente; si existe vacío, generar uno nuevo
     let shippingMarkToUse = cliente_shippingMark;
     if (!shippingMarkToUse) {
-      const existing = await get('SELECT cliente_shippingMark FROM cliente WHERE id_cliente = ?', [id_cliente]);
+      const existing = await get('SELECT cliente_shippingMark FROM clientes WHERE id_cliente = ?', [id_cliente]);
       shippingMarkToUse = existing?.cliente_shippingMark;
     }
     if (!shippingMarkToUse) {
@@ -195,9 +194,9 @@ export async function updateCliente(id_cliente, clienteData) {
     }
 
     await run(
-      `UPDATE cliente 
+      `UPDATE clientes 
        SET nombre_cliente = ?, correo_cliente = ?, telefono_cliente = ?, 
-           ciudad_cliente = ?, pais_cliente = ?, cliente_shippingMark = ?, updated_at = CURRENT_TIMESTAMP
+           ciudad_cliente = ?, pais_cliente = ?, cliente_shippingMark = ?
        WHERE id_cliente = ?`,
       [nombre_cliente, correo_cliente, telefono_cliente, ciudad_cliente, pais_cliente, shippingMarkToUse, id_cliente]
     );
@@ -214,7 +213,7 @@ export async function updateCliente(id_cliente, clienteData) {
 // Obtener todos los clientes
 export async function getAllClientes() {
   try {
-    const result = await query('SELECT * FROM cliente ORDER BY nombre_cliente');
+    const result = await query('SELECT * FROM clientes ORDER BY nombre_cliente');
     return result;
   } catch (error) {
     console.error('Error al obtener todos los clientes:', error);
@@ -226,7 +225,7 @@ export async function getAllClientes() {
 export async function deleteCliente(id_cliente) {
   try {
     const clienteToDelete = await getClienteById(id_cliente);
-    await run('DELETE FROM cliente WHERE id_cliente = ?', [id_cliente]);
+    await run('DELETE FROM clientes WHERE id_cliente = ?', [id_cliente]);
     return clienteToDelete;
   } catch (error) {
     console.error('Error al eliminar cliente:', error);

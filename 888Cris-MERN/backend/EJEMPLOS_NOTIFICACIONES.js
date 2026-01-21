@@ -7,8 +7,8 @@
 // IMPORTAR SERVICIOS
 // ============================================================
 
-import emailService from "../services/emailService.js";
-import whatsappService from "../services/whatsappService.js";
+import emailService from "./services/emailService.js";
+import whatsappService from "./services/whatsappService.js";
 
 // ============================================================
 // EJEMPLOS CON EMAIL SERVICE
@@ -24,7 +24,7 @@ export const example_sendWelcomeEmail = async () => {
     );
     
     if (result.success) {
-        console.log('✅ Email enviado:', result.message);
+        console.log('✅ Email enviado:', result.messageId);
     } else {
         console.error('❌ Error:', result.message);
     }
@@ -57,8 +57,7 @@ export const example_sendConfirmationEmail = async () => {
 export const example_sendWelcomeWhatsApp = async () => {
     const result = await whatsappService.sendWelcomeWhatsApp(
         '+56912345678',  // Número de teléfono
-        'Juan',          // Nombre
-        'Chile'          // País (opcional) para selección de plantilla
+        'Juan'           // Nombre
     );
     
     if (result.success) {
@@ -112,7 +111,7 @@ export const example_notifyNewLoad = async (user) => {
     const { email, nombre_cliente, telefono_cliente } = user;
     
     // Enviar email (sin esperar)
-    emailService.sendWhatsAppMessage(
+    emailService.sendWelcomeEmail(
         email,
         `Nueva carga registrada: ${user.carga_id}`
     ).catch(err => console.error('Error email:', err));
@@ -146,7 +145,7 @@ export const updateCargoStatus = async (req, res) => {
         
         // Email
         if (process.env.EMAIL_NOTIFICATIONS === 'true') {
-            emailService.sendWhatsAppMessage(
+            emailService.sendWelcomeEmail(
                 user.email,
                 notificationMessage
             ).catch(err => {
@@ -188,7 +187,7 @@ export const sendNotificationWithRetry = async (email, phone, message, maxRetrie
     // Intentar enviar email
     for (let i = 0; i < maxRetries; i++) {
         try {
-            const result = await emailService.sendWhatsAppMessage(email, message);
+            const result = await emailService.sendWelcomeEmail(email, message);
             if (result.success) {
                 emailSent = true;
                 break;
@@ -273,7 +272,7 @@ export const notifySupport = async (req, res) => {
 2. CONFIGURACIÓN:
    - EMAIL_NOTIFICATIONS debe estar en true en .env
    - ENABLE_WHATSAPP_NOTIFICATIONS debe estar en true en .env
-   - Si están en false, las funciones retornan {success: true} sin enviar
+   - Si están en false, las funciones retornan {success: false} sin enviar
    
 3. FORMATOS DE TELÉFONO:
    - Acepta: "+56912345678", "912345678", "+1-415-xxx-yyyy"

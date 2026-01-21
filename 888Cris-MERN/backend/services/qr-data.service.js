@@ -39,7 +39,7 @@ export class QRDataService extends BaseService {
 
 
             // Obtener datos completos del artículo asociado
-            const { get: getArticulo } = await import('../db.js');
+            const { get: getArticulo, query } = await import('../db.js');
             const articulo = await getArticulo('SELECT * FROM articulo_packing_list WHERE id_articulo = ?', [caja.id_articulo]);
             console.log(`🔍 Datos del artículo obtenidos:`, JSON.stringify(articulo, null, 2));
 
@@ -56,12 +56,13 @@ export class QRDataService extends BaseService {
                 codigo_carga: caja.codigo_carga,
                 descripcion: caja.descripcion_contenido || articulo?.descripcion_espanol || articulo?.descripcion || '-',
                 ref_art: caja.ref_art || articulo?.ref_art || articulo?.codigo_producto || '-',
-                destino: carga?.direccion_destino || '-',
+                destino: carga?.destino || carga?.direccion_destino || '-',
+                direccion_destino: carga?.direccion_destino || null,
                 peso: caja.gw || articulo?.gw || '-',
                 cbm: caja.cbm || articulo?.cbm || '-',
                 imagen_url: articulo?.imagen_url || null,
                 timestamp: new Date().toISOString(),
-                version: '2.2' // Versión con destino y campos simplificados
+                version: '2.3' // Versión con destino correcto (ciudad) y dirección
             };
 
             console.log(`🔍 Contenido QR final:`, JSON.stringify(qrContent, null, 2));
@@ -508,7 +509,7 @@ export class QRDataService extends BaseService {
             const { get } = await import('../db.js');
 
             // Obtener datos de la carga y cliente
-            const carga = await get(`SELECT c.codigo_carga, c.fecha_creacion, c.ciudad_destino, cli.nombre_cliente, cli.cliente_shippingMark FROM carga c LEFT JOIN cliente cli ON c.id_cliente = cli.id_cliente WHERE c.id_carga = ?`, [idCarga]);
+            const carga = await get(`SELECT c.codigo_carga, c.fecha_creacion, c.ciudad_destino, cli.nombre_cliente, cli.cliente_shippingMark FROM carga c LEFT JOIN clientes cli ON c.id_cliente = cli.id_cliente WHERE c.id_carga = ?`, [idCarga]);
             const codigoCarga = carga?.codigo_carga || idCarga;
             const nombreCliente = carga?.nombre_cliente || '';
             const clienteShippingMark = carga?.cliente_shippingMark || '';

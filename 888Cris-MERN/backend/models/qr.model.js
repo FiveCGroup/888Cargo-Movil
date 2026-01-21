@@ -52,7 +52,7 @@ export async function getQRById(id_qr) {
       LEFT JOIN caja c ON q.id_caja = c.id_caja
       LEFT JOIN articulo_packing_list a ON c.id_articulo = a.id_articulo
       LEFT JOIN carga car ON a.id_carga = car.id_carga
-      LEFT JOIN cliente cl ON car.id_cliente = cl.id_cliente
+      LEFT JOIN clientes cl ON car.id_cliente = cl.id_cliente
       WHERE q.id_qr = ?
     `, [id_qr]);
     return result;
@@ -75,7 +75,7 @@ export async function getQRByCodigo(codigo_qr) {
       LEFT JOIN caja c ON q.id_caja = c.id_caja
       LEFT JOIN articulo_packing_list a ON c.id_articulo = a.id_articulo
       LEFT JOIN carga car ON a.id_carga = car.id_carga
-      LEFT JOIN cliente cl ON car.id_cliente = cl.id_cliente
+      LEFT JOIN clientes cl ON car.id_cliente = cl.id_cliente
       WHERE q.codigo_qr = ?
     `, [codigo_qr]);
     return result;
@@ -230,7 +230,7 @@ export async function createQRForCaja(id_caja) {
       FROM caja c
       LEFT JOIN articulo_packing_list a ON c.id_articulo = a.id_articulo
       LEFT JOIN carga car ON a.id_carga = car.id_carga
-      LEFT JOIN cliente cl ON car.id_cliente = cl.id_cliente
+      LEFT JOIN clientes cl ON car.id_cliente = cl.id_cliente
       WHERE c.id_caja = ?
     `, [id_caja]);
 

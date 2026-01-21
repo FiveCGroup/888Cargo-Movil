@@ -22,8 +22,11 @@ export const crearUsuario = async (userData, requesterId) => {
 
   const passwordHash = await bcrypt.hash(userData.password || '123456', 10);
 
+  // Usar el nombre completo del cliente para username en lugar del correo
+  const username = userData.username || userData.full_name || userData.email.split('@')[0];
+
   const { id: newUserId } = await users.create({
-    username: userData.username || userData.email.split('@')[0],
+    username: username,
     email: userData.email,
     password: passwordHash,
     full_name: userData.full_name || '',

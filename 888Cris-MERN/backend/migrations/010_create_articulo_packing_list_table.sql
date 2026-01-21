@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS articulo_packing_list (
   precio_unidad REAL,
   precio_total REAL,
   material TEXT,
-  unidades_empaque INTEGER,
+  cant_por_caja INTEGER,
   marca_producto TEXT,
   serial TEXT,
   medida_largo REAL,

@@ -12,7 +12,8 @@ const { users, roles, user_roles, recovery_tokens, clientes } = databaseReposito
  * Registro de usuario (cliente por defecto)
  */
 export const register = async (userData) => {
-  const existing = await users.findByEmail(userData.email);
+  const normalizedEmail = (userData.email || '').trim().toLowerCase();
+  const existing = await users.findByEmail(normalizedEmail);
   if (existing) throw new Error('Email ya registrado');
 
   // Validar que el teléfono no esté duplicado si está proporcionado
@@ -28,11 +29,25 @@ export const register = async (userData) => {
 
   const passwordHash = await bcrypt.hash(userData.password, 10);
 
+  const fullNameFromParts = `${userData.name || ''} ${userData.lastname || ''}`.trim();
+  const fullNameFromPayload = (userData.full_name || '').trim();
+  const emailFallbackName = normalizedEmail ? normalizedEmail.split('@')[0] : '';
+  const usernamePayload = (userData.username || '').trim();
+  const resolvedFullName =
+    fullNameFromPayload ||
+    fullNameFromParts ||
+    (usernamePayload && usernamePayload !== normalizedEmail ? usernamePayload : '') ||
+    emailFallbackName;
+  const resolvedUsername =
+    resolvedFullName ||
+    (usernamePayload && usernamePayload !== normalizedEmail ? usernamePayload : '') ||
+    emailFallbackName;
+
   const { id: userId } = await users.create({
-    username: userData.username || userData.email.split('@')[0],
-    email: userData.email,
+    username: resolvedUsername,
+    email: normalizedEmail,
     password: passwordHash,
-    full_name: userData.full_name || '',
+    full_name: resolvedFullName,
     phone: userData.phone || '',
     country: userData.country || 'Colombia'
   });
@@ -46,8 +61,8 @@ export const register = async (userData) => {
   // Crear registro en la tabla `clientes` para mantener sincronía
   try {
     const clienteData = {
-      nombre_cliente: userData.full_name || (userData.username || userData.email.split('@')[0]),
-      correo_cliente: userData.email,
+      nombre_cliente: resolvedFullName || resolvedUsername,
+      correo_cliente: normalizedEmail,
       telefono_cliente: userData.phone || '',
       pais_cliente: userData.country || 'Colombia',
       ciudad_cliente: userData.city || null,
@@ -66,14 +81,13 @@ export const register = async (userData) => {
   void (async () => {
     try {
       const tasks = [];
-      if (userData.email) {
-        tasks.push(sendWelcomeEmail(userData.email, userData.full_name));
-        tasks.push(sendRegistrationConfirmation(userData.email, userData.full_name, userData.username || userData.email.split('@')[0]));
+      if (normalizedEmail) {
+        tasks.push(sendWelcomeEmail(normalizedEmail, resolvedFullName));
+        tasks.push(sendRegistrationConfirmation(normalizedEmail, resolvedFullName, resolvedUsername));
       }
       const phone = userData.phone || '';
       if (phone) {
-        const fullName = `${userData.full_name}`.trim();
-        tasks.push(whatsappService.sendWelcomeWhatsApp(phone, fullName, userData.country || ''));
+        tasks.push(whatsappService.sendWelcomeWhatsApp(phone, resolvedFullName));
       }
       if (tasks.length === 0) return;
       const results = await Promise.allSettled(tasks);
@@ -85,7 +99,7 @@ export const register = async (userData) => {
     }
   })();
 
-  return { success: true, user: { id: userId, name: userData.full_name, email: userData.email } };
+  return { success: true, user: { id: userId, name: resolvedFullName, email: normalizedEmail, username: resolvedUsername } };
 };
 
 /**

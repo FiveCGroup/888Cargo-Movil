@@ -49,7 +49,7 @@ export async function getCajaById(id_caja) {
       FROM caja c
       LEFT JOIN articulo_packing_list a ON c.id_articulo = a.id_articulo
       LEFT JOIN carga car ON a.id_carga = car.id_carga
-      LEFT JOIN cliente cl ON car.id_cliente = cl.id_cliente
+      LEFT JOIN clientes cl ON car.id_cliente = cl.id_cliente
       WHERE c.id_caja = ?
     `, [id_caja]);
     return result;

@@ -65,8 +65,8 @@ export const validarFormularioCarga = (infoCliente, infoCarga) => {
         errores.push('El código del packing list es requerido');
     }
     
-    if (!infoCarga.direccion_destino?.trim()) {
-        errores.push('La dirección de destino es requerida');
+    if (!infoCarga.destino?.trim()) {
+        errores.push('El destino (ciudad) es requerido');
     }
 
     return {

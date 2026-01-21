@@ -42,13 +42,25 @@ export const validarEscaneoQR = async (codigoQR, userId = null) => {
 
 // 2. Generar PDF completo de una carga (el que necesitas para el botón "Descargar PDF")
 export const generarPDFParaCarga = async (cargaId) => {
-  // Obtener todos los QRs de la carga
+  // Obtener todos los QRs de la carga con información del cliente
   const qrs = await qr.executeQuery(`
-    SELECT q.*, c.numero_caja, c.total_cajas, a.ref_art, a.descripcion_espanol, car.codigo_carga, car.nombre_cliente
+    SELECT 
+      q.*, 
+      c.numero_caja, 
+      c.total_cajas, 
+      a.ref_art, 
+      a.descripcion_espanol, 
+      car.codigo_carga,
+      car.destino,
+      car.shipping_mark,
+      cl.nombre_cliente,
+      cl.correo_cliente,
+      cl.telefono_cliente
     FROM qr q
     JOIN caja c ON q.id_caja = c.id_caja
     JOIN articulo_packing_list a ON c.id_articulo = a.id_articulo
     JOIN carga car ON a.id_carga = car.id_carga
+    LEFT JOIN clientes cl ON car.id_cliente = cl.id_cliente
     WHERE car.id_carga = ?
     ORDER BY c.numero_caja
   `, [cargaId]);
@@ -63,23 +75,45 @@ export const generarPDFParaCarga = async (cargaId) => {
       doc.on('data', chunk => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
 
+      // Obtener información de la carga para el encabezado
+      const cargaInfo = qrs[0];
+      const nombreCliente = cargaInfo.nombre_cliente || 'N/A';
+
       // Título
       doc.fontSize(24).text('888Cargo - Etiquetas QR', { align: 'center' });
       doc.moveDown();
-      doc.fontSize(16).text(`Carga: ${qrs[0].codigo_carga}`, { align: 'center' });
+      doc.fontSize(16).text(`Carga: ${cargaInfo.codigo_carga}`, { align: 'center' });
+      if (cargaInfo.shipping_mark) {
+        doc.fontSize(14).text(`Shipping Mark: ${cargaInfo.shipping_mark}`, { align: 'center' });
+      }
+      doc.fontSize(12).text(`Cliente: ${nombreCliente}`, { align: 'center' });
+      if (cargaInfo.destino) {
+        doc.fontSize(12).text(`Destino: ${cargaInfo.destino}`, { align: 'center' });
+      }
       doc.moveDown(2);
 
       for (let i = 0; i < qrs.length; i++) {
         const item = qrs[i];
-        const parsed = JSON.parse(item.datos_qr);
+        
+        // Parsear datos del QR si están disponibles
+        let parsed = null;
+        try {
+          parsed = item.datos_qr ? JSON.parse(item.datos_qr) : null;
+        } catch (e) {
+          console.warn(`⚠️ Error parseando datos_qr del QR ${item.id_qr}:`, e.message);
+        }
 
-        // Generar QR con logo
-        const qrBuffer = await generateQRWithLogo(item.datos_qr, logoPath, { width: 300 });
+        // IMPORTANTE: Usar solo el codigo_qr para generar el QR, no el JSON completo
+        // El JSON completo puede ser demasiado grande para un QR code
+        const qrContent = item.codigo_qr || `QR-${item.id_qr}`;
+        
+        // Generar QR con logo usando solo el código
+        const qrBuffer = await generateQRWithLogo(qrContent, logoPath, { width: 300 });
 
-        // Cada QR en una página
+        // Cada QR en una página nueva (excepto el primero)
         if (i > 0) doc.addPage();
 
-        doc.fontSize(14).text(`Caja ${item.numero_caja} de ${item.total_cajas}`);
+        doc.fontSize(14).text(`Caja ${item.numero_caja} de ${item.total_cajas}`, { align: 'center' });
         doc.moveDown();
 
         doc.image(qrBuffer, {
@@ -89,13 +123,34 @@ export const generarPDFParaCarga = async (cargaId) => {
         });
 
         doc.moveDown();
-        doc.fontSize(12).text(`Ref: ${item.ref_art || 'N/A'}`);
-        doc.text(`Desc: ${parsed.descripcion || 'Sin descripción'}`);
-        doc.text(`Cliente: ${item.nombre_cliente || 'N/A'}`);
+        doc.fontSize(12);
+        
+        // Información adicional
+        if (item.ref_art) {
+          doc.text(`Ref. Artículo: ${item.ref_art}`);
+        }
+        
+        const descripcion = parsed?.descripcion || item.descripcion_espanol || 'Sin descripción';
+        doc.text(`Descripción: ${descripcion}`);
+        
+        if (nombreCliente !== 'N/A') {
+          doc.text(`Cliente: ${nombreCliente}`);
+        }
+        
+        if (cargaInfo.destino) {
+          doc.text(`Destino: ${cargaInfo.destino}`);
+        }
+        
+        if (item.codigo_qr) {
+          doc.fontSize(10).fillColor('gray');
+          doc.text(`Código QR: ${item.codigo_qr}`, { align: 'center' });
+          doc.fillColor('black');
+        }
       }
 
       doc.end();
     } catch (error) {
+      console.error('❌ Error generando PDF:', error);
       reject(error);
     }
   });

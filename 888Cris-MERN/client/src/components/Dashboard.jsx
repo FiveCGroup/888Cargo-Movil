@@ -31,16 +31,24 @@ const Dashboard = () => {
     const fetchUserProfile = async () => {
       try {
         const response = await API.get("/profile");
-        setUser(response.data);
+        setUser(response.data?.user || response.data);
       } catch (error) {
         console.error("Error al obtener perfil:", error);
+        // Si el token está expirado (401), redirigir al login
+        if (error.response && error.response.status === 401) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          navigate('/auth');
+          return;
+        }
+        // Para otros errores, mantener al usuario en el dashboard pero sin datos del perfil
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, []);
+  }, [navigate]);
 
   // Función para cerrar sesión - Movida al componente Navbar
   // const handleLogout = async () => {

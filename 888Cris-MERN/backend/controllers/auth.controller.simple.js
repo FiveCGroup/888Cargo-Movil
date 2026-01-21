@@ -2,7 +2,8 @@
 // Versión simplificada para diagnóstico
 import { createAccessToken } from "../libs/jwt.js";
 import bcrypt from "bcrypt";
-import { userRepository } from "../repositories/index.js";
+import { userRepository, clienteRepository } from "../repositories/index.js";
+import { generateUniqueShippingMark } from "../models/user.model.js";
 
 // Importar servicios de notificación - opcionales
 let emailService, whatsappService;
@@ -27,7 +28,7 @@ export const register = async (req, res) => {
     try {
         console.log("Request data:", req.body);
         
-        const { name, lastname, email, phone, country, password } = req.body;
+        const { name, lastname, email, phone, country, city, shippingMark, password } = req.body;
 
         // Validación básica
         if (!name || !lastname || !email || !password) {
@@ -50,12 +51,14 @@ export const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Mapear los campos al esquema de la tabla `users`
-        const username = `${name}_${lastname}`.toLowerCase().replace(/\s+/g, '_');
+        // Usar el nombre completo del cliente para username en lugar del formato name_lastname
+        const fullName = `${name} ${lastname}`;
+        const username = fullName; // Usar nombre completo en lugar de formato name_lastname
         const userData = {
             username,
             email: normalizedEmail,
             password: hashedPassword,
-            full_name: `${name} ${lastname}`,
+            full_name: fullName,
             phone: phone || '',
             country: country || '',
             status: 'active'
@@ -64,6 +67,39 @@ export const register = async (req, res) => {
         // Crear el nuevo usuario usando el repository genérico
         const result = await userRepository.create(userData);
         const newUser = { id: result.id, ...userData };
+
+        // Crear registro en la tabla clientes
+        try {
+            // Generar shippingMark si no se proporcionó
+            let finalShippingMark = shippingMark;
+            if (!finalShippingMark || finalShippingMark.trim() === '') {
+                finalShippingMark = await generateUniqueShippingMark(fullName);
+                console.log("ShippingMark generado automáticamente:", finalShippingMark);
+            } else {
+                // Validar que el shippingMark proporcionado no exista
+                const existingShippingMark = await clienteRepository.findByShippingMark(finalShippingMark);
+                if (existingShippingMark) {
+                    // Si existe, generar uno nuevo
+                    finalShippingMark = await generateUniqueShippingMark(fullName);
+                    console.log("ShippingMark ya existe, generado uno nuevo:", finalShippingMark);
+                }
+            }
+
+            const clienteData = {
+                nombre_cliente: fullName,
+                correo_cliente: normalizedEmail,
+                telefono_cliente: phone || '',
+                pais_cliente: country || '',
+                ciudad_cliente: city || '',
+                cliente_shippingMark: finalShippingMark
+            };
+
+            const createdCliente = await clienteRepository.create(clienteData);
+            console.log("Cliente creado exitosamente en tabla clientes:", createdCliente);
+        } catch (clienteError) {
+            console.error("Error al crear cliente en tabla clientes (no crítico):", clienteError.message);
+            // No lanzamos el error para no interrumpir el registro del usuario
+        }
 
         // Generar token
         const token = await createAccessToken({ id: newUser.id });
@@ -96,7 +132,7 @@ export const register = async (req, res) => {
         
         // WhatsApp de bienvenida (async, no bloquea)
         if (whatsappService && phone) {
-            whatsappService.sendWelcomeWhatsApp(phone, name, country)
+            whatsappService.sendWelcomeWhatsApp(phone, name)
                 .catch(err => console.error('⚠️ WhatsApp bienvenida error:', err.message));
         }
         

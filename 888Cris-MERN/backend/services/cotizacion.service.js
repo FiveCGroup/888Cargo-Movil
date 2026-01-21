@@ -29,46 +29,56 @@ function normalizeInput(payload) {
 }
 
 export const calcularMaritimo = (payload) => {
-  const peso = Number(payload.peso_kg ?? payload.peso ?? 0);
+  const { largo_cm, ancho_cm, alto_cm, peso_kg, destino } = normalizeInput(payload);
+  const peso = Number(peso_kg ?? 0);
   const volumen = Number(payload.volumen_m3 ?? 0) || (
-    Number(payload.largo_cm || 0) *
-    Number(payload.ancho_cm || 0) *
-    Number(payload.alto_cm || 0)
+    Number(largo_cm || 0) *
+    Number(ancho_cm || 0) *
+    Number(alto_cm || 0)
   ) / 1000000;
 
-  const destino = payload.destino || 'China';
+  const destinoFinal = destino || 'China';
   const cfg = LOGISTICA_CONFIG;
 
   const volumenReal = Number(volumen.toFixed(3));
   const volumenCobrable = Math.max(volumenReal, cfg.MINIMO_MARITIMO_M3);
   const pesoVolumetrico = Number((volumenReal * cfg.FACTOR_VOLUMETRICO.MARITIMO).toFixed(2));
-  const tarifaObj = cfg.TARIFAS_USD.MARITIMO_LCL[destino] || cfg.TARIFAS_USD.MARITIMO_LCL.China;
+  const tarifaObj = cfg.TARIFAS_USD.MARITIMO_LCL[destinoFinal] || cfg.TARIFAS_USD.MARITIMO_LCL.China;
   const tarifaUSD = tarifaObj.promedio;
 
+  // Cargos adicionales (aplicados a ambas opciones)
+  const porcentajeSeguro = 0.005;
+  const cargoHandlingUSD = 20;
+  const cargoDocsUSD = 10;
+
   // Opción A: solo volumen (considera FCL si aplica)
-  let costoPorVolumenUSD = volumenCobrable * tarifaUSD;
+  let costoPorVolumenBaseUSD = volumenCobrable * tarifaUSD;
   let costoFclUSD = null;
   if (volumenReal >= cfg.CAPACIDAD_CONTENEDOR_M3) {
     const descuentoFcl = 0.30;
     costoFclUSD = (tarifaUSD * cfg.CAPACIDAD_CONTENEDOR_M3) * (1 - descuentoFcl);
-    if (costoFclUSD < costoPorVolumenUSD) costoPorVolumenUSD = costoFclUSD;
+    if (costoFclUSD < costoPorVolumenBaseUSD) costoPorVolumenBaseUSD = costoFclUSD;
   }
+  
+  // Calcular cargos para Opción A
+  const seguroOpcionA = Number((costoPorVolumenBaseUSD * porcentajeSeguro).toFixed(2));
+  const totalOpcionA = Number((costoPorVolumenBaseUSD + seguroOpcionA + cargoHandlingUSD + cargoDocsUSD).toFixed(2));
 
   // Opción B: volumen + peso (añade componente por peso)
   const factorPesoUSD = 0.10; // configurable
   const costoPorPesoUSD = Number((peso * factorPesoUSD).toFixed(2));
-  const costoVolumenMasPesoUSD = Number(((volumenCobrable * tarifaUSD) + costoPorPesoUSD).toFixed(2));
+  const costoVolumenMasPesoBaseUSD = Number(((volumenCobrable * tarifaUSD) + costoPorPesoUSD).toFixed(2));
+  
+  // Calcular cargos para Opción B
+  const seguroOpcionB = Number((costoVolumenMasPesoBaseUSD * porcentajeSeguro).toFixed(2));
+  const totalOpcionB = Number((costoVolumenMasPesoBaseUSD + seguroOpcionB + cargoHandlingUSD + cargoDocsUSD).toFixed(2));
 
-  // Selección: mayor de ambas opciones
-  const baseSeleccionadaUSD = Math.max(costoPorVolumenUSD, costoVolumenMasPesoUSD);
-  const elegido = costoPorVolumenUSD >= costoVolumenMasPesoUSD ? 'volumen' : 'volumen+peso';
-
-  // Cargos adicionales
-  const porcentajeSeguro = 0.005;
-  const cargoHandlingUSD = 20;
-  const cargoDocsUSD = 10;
-  const seguroUSD = Number((baseSeleccionadaUSD * porcentajeSeguro).toFixed(2));
-  const totalUSD = Number((baseSeleccionadaUSD + seguroUSD + cargoHandlingUSD + cargoDocsUSD).toFixed(2));
+  // Selección: mayor de ambas opciones (comparando los totales con cargos)
+  const totalUSD = Math.max(totalOpcionA, totalOpcionB);
+  const elegido = totalOpcionA >= totalOpcionB ? 'volumen' : 'volumen+peso';
+  const baseSeleccionadaUSD = elegido === 'volumen' ? costoPorVolumenBaseUSD : costoVolumenMasPesoBaseUSD;
+  const seguroUSD = elegido === 'volumen' ? seguroOpcionA : seguroOpcionB;
+  
   const totalCOP = Math.round(totalUSD * cfg.TRM_COP_USD);
 
   const detalleCalculo = {
@@ -79,29 +89,38 @@ export const calcularMaritimo = (payload) => {
     tarifaUSD,
     tipoCobro: 'USD/m³',
     factorUsado: cfg.FACTOR_VOLUMETRICO.MARITIMO,
-    costoPorVolumenUSD: Number(costoPorVolumenUSD.toFixed(2)),
-    costoPorVolumenMasPesoUSD: Number(costoVolumenMasPesoUSD.toFixed(2)),
+    // Valores base (sin cargos)
+    costoPorVolumenBaseUSD: Number(costoPorVolumenBaseUSD.toFixed(2)),
+    costoPorVolumenMasPesoBaseUSD: Number(costoVolumenMasPesoBaseUSD.toFixed(2)),
     costoPorPesoUSD,
+    // Valores totales (con cargos) - estos son los que se muestran en la comparativa
+    costoPorVolumenUSD: totalOpcionA, // Total con cargos para Opción A
+    costoPorVolumenMasPesoUSD: totalOpcionB, // Total con cargos para Opción B
     elegido,
     cargos: {
       seguroUSD,
       handlingUSD: cargoHandlingUSD,
       docsUSD: cargoDocsUSD,
-      fclApplied: costoFclUSD != null && costoFclUSD < (volumenReal * tarifaUSD)
+      fclApplied: costoFclUSD != null && costoFclUSD < (volumenReal * tarifaUSD),
+      seguroOpcionA,
+      seguroOpcionB
     },
     explicacion: elegido === 'volumen'
-      ? 'Se eligió la opción por volumen (mayor o igual).'
-      : 'Se eligió la opción volumen + peso (mayor).'
+      ? `Se eligió la opción por volumen (mayor o igual). Total: $${totalOpcionA.toFixed(2)} USD vs $${totalOpcionB.toFixed(2)} USD`
+      : `Se eligió la opción volumen + peso (mayor). Total: $${totalOpcionB.toFixed(2)} USD vs $${totalOpcionA.toFixed(2)} USD`
   };
 
   return {
+    tipo: 'maritimo',
+    destino: destinoFinal,
+    largo_cm,
+    ancho_cm,
+    alto_cm,
     volumen_m3: Number(volumenReal.toFixed(3)),
     peso_kg: Number(peso.toFixed(2)),
     valor_usd: totalUSD,
     valor_cop: totalCOP,
     detalleCalculo,
-    destino,
-    tipo: 'maritimo',
     trm: cfg.TRM_COP_USD,
     tiempo_estimado: '25-35 días'
   };
@@ -131,34 +150,69 @@ export const calcularAereo = (payload) => {
   };
 
   return {
+    tipo: 'aereo',
+    destino,
+    largo_cm,
+    ancho_cm,
+    alto_cm,
     volumen_m3: Number(volumen.toFixed(3)),
     peso_kg,
     valor_usd: Number(costoUSD.toFixed(2)),
     valor_cop: costoCOP,
     detalleCalculo,
-    destino,
     trm: LOGISTICA_CONFIG.TRM_COP_USD,
     tiempo_estimado: '3-7 días'
   };
 };
 
 // Persistencia: intenta usar un modelo si existe, pero no rompe si no
-const tryGetModel = () => {
+const tryGetModel = async () => {
   try {
-    const mod = require('../models/Cotizacion.js'); // may throw
-    return mod && (mod.default || mod);
+    const mod = await import('../models/cotizacion.model.js');
+    return mod?.Cotizacion || mod?.default || null;
   } catch (e) {
-    return null;
+    try {
+      const mod = await import('../models/Cotizacion.js');
+      return mod?.Cotizacion || mod?.default || null;
+    } catch {
+      return null;
+    }
   }
 };
 
-export const guardarCotizacion = async (userId, resultado) => {
-  const Model = tryGetModel();
+export const guardarCotizacion = async (userId, resultado, payload = {}) => {
+  const Model = await tryGetModel();
   if (!Model) {
     // no hay modelo; solo devuelve null para mantener compatibilidad
     return null;
   }
+  const { largo_cm, ancho_cm, alto_cm, peso_kg, destino } = normalizeInput(payload);
+  const detalle = resultado.detalleCalculo || {};
+  const tarifaUSD = detalle.tarifaUSD ?? null;
+  const pesoVolumetrico = detalle.pesoVolumetrico ?? null;
+  const pesoCobrable = detalle.pesoCobrable ?? null;
+  const volumenCobrable = detalle.volumenCobrable ?? null;
   // adaptar según la API de tu modelo/ORM
+  if (typeof Model.crear === 'function') {
+    return Model.crear({
+      user_id: userId,
+      tipo: resultado.tipo || null,
+      destino: resultado.destino || destino || null,
+      largo_cm,
+      ancho_cm,
+      alto_cm,
+      peso_kg: resultado.peso_kg ?? peso_kg ?? 0,
+      volumen_m3: resultado.volumen_m3 ?? 0,
+      peso_volumetrico: pesoVolumetrico ?? 0,
+      peso_cobrable: pesoCobrable ?? null,
+      volumen_cobrable: volumenCobrable ?? null,
+      tarifa_usd: tarifaUSD ?? 0,
+      valor_usd: resultado.valor_usd ?? 0,
+      valor_cop: resultado.valor_cop ?? 0,
+      trm: resultado.trm ?? LOGISTICA_CONFIG.TRM_COP_USD,
+      detalle_calculo: detalle
+    });
+  }
   if (typeof Model.create === 'function') {
     return Model.create({
       user_id: userId,
@@ -184,7 +238,7 @@ export const guardarCotizacion = async (userId, resultado) => {
 };
 
 export const obtenerHistorial = async (userId, limit = 10) => {
-  const Model = tryGetModel();
+  const Model = await tryGetModel();
   if (!Model) return [];
   if (typeof Model.obtenerPorUsuario === 'function') {
     return Model.obtenerPorUsuario(userId, limit);
@@ -197,7 +251,7 @@ export const obtenerHistorial = async (userId, limit = 10) => {
 };
 
 export const obtenerPorId = async (id) => {
-  const Model = tryGetModel();
+  const Model = await tryGetModel();
   if (!Model) return null;
   if (typeof Model.obtenerPorId === 'function') return Model.obtenerPorId(id);
   if (typeof Model.findByPk === 'function') return Model.findByPk(id);
@@ -205,7 +259,7 @@ export const obtenerPorId = async (id) => {
 };
 
 export const eliminar = async (id) => {
-  const Model = tryGetModel();
+  const Model = await tryGetModel();
   if (!Model) return false;
   if (typeof Model.eliminar === 'function') {
     return Model.eliminar(id);

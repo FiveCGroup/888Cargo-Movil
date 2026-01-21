@@ -30,7 +30,7 @@ export async function getAllCargas() {
     const result = await query(`
       SELECT c.*, cli.nombre_cliente 
       FROM carga c
-      LEFT JOIN cliente cli ON c.id_cliente = cli.id_cliente
+      LEFT JOIN clientes cli ON c.id_cliente = cli.id_cliente
       ORDER BY c.fecha_creacion DESC
     `);
     return result;
