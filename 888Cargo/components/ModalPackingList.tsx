@@ -1,9 +1,12 @@
 import React from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { InfoCliente, InfoCarga } from '../utils/cargaUtils';
 import { modalPackingListStyles as styles } from '../styles/components/ModalPackingList.styles';
 import { IconSizes, IconColors } from '../constants/Icons';
+
+const ESTADOS_CARGA = ['En bodega China', 'En tránsito', 'En despacho', 'Entregada', 'Pendiente'];
 
 interface ModalPackingListProps {
   mostrar: boolean;
@@ -71,8 +74,9 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
       Alert.alert('Error', 'El código del packing list es requerido');
       return;
     }
-    if (!infoCarga.direccion_destino.trim()) {
-      Alert.alert('Error', 'La dirección de destino es requerida');
+    const destinoObligatorio = (infoCarga.direccion_destino?.trim() || infoCarga.destino?.trim());
+    if (!destinoObligatorio) {
+      Alert.alert('Error', 'La dirección o ciudad de destino es requerida');
       return;
     }
 
@@ -191,15 +195,130 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
             </View>
 
             <View style={styles.campo}>
+              <Text style={styles.label}>Destino (Ciudad) *</Text>
+              <TextInput
+                style={[styles.input, bloquearCampos && styles.inputBloqueado]}
+                value={infoCarga.destino ?? ''}
+                onChangeText={(valor) => onCambioCarga('destino', valor)}
+                placeholder="Ej: Medellín, Bogotá, Cali"
+                placeholderTextColor={IconColors.muted}
+                editable={!bloquearCampos}
+              />
+            </View>
+
+            <View style={styles.campo}>
               <Text style={styles.label}>Dirección de Destino *</Text>
               <TextInput
                 style={[styles.input, styles.inputMultiline, bloquearCampos && styles.inputBloqueado]}
                 value={infoCarga.direccion_destino}
                 onChangeText={(valor) => onCambioCarga('direccion_destino', valor)}
-                placeholder="Ciudad o dirección de destino de la carga"
+                placeholder="Dirección completa donde se entregará la mercancía"
                 placeholderTextColor={IconColors.muted}
                 multiline
                 numberOfLines={2}
+                editable={!bloquearCampos}
+              />
+            </View>
+
+            <View style={styles.campo}>
+              <Text style={styles.label}>Shipping Mark</Text>
+              <TextInput
+                style={[styles.input, bloquearCampos && styles.inputBloqueado]}
+                value={infoCarga.shipping_mark ?? ''}
+                onChangeText={(valor) => onCambioCarga('shipping_mark', valor)}
+                placeholder="Ej: 888ABC"
+                placeholderTextColor={IconColors.muted}
+                editable={!bloquearCampos}
+              />
+            </View>
+
+            <View style={styles.campo}>
+              <Text style={styles.label}>Estado</Text>
+              <View style={[styles.input, { minHeight: Platform.OS === 'ios' ? 36 : 48, justifyContent: 'center' }]}>
+                <Picker
+                  selectedValue={infoCarga.estado ?? 'En bodega China'}
+                  onValueChange={(valor) => onCambioCarga('estado', valor)}
+                  enabled={!bloquearCampos}
+                  style={{ color: IconColors.primary }}
+                  mode="dropdown"
+                >
+                  {ESTADOS_CARGA.map((e) => (
+                    <Picker.Item key={e} label={e} value={e} />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+
+            <View style={styles.campo}>
+              <Text style={styles.label}>Ubicación Actual</Text>
+              <TextInput
+                style={[styles.input, bloquearCampos && styles.inputBloqueado]}
+                value={infoCarga.ubicacion_actual ?? ''}
+                onChangeText={(valor) => onCambioCarga('ubicacion_actual', valor)}
+                placeholder="Ej: China, Puerto de Cartagena"
+                placeholderTextColor={IconColors.muted}
+                editable={!bloquearCampos}
+              />
+            </View>
+
+            <View style={styles.campo}>
+              <Text style={styles.label}>Fecha de Recepción</Text>
+              <TextInput
+                style={[styles.input, bloquearCampos && styles.inputBloqueado]}
+                value={infoCarga.fecha_recepcion ?? ''}
+                onChangeText={(valor) => onCambioCarga('fecha_recepcion', valor)}
+                placeholder="YYYY-MM-DD HH:mm"
+                placeholderTextColor={IconColors.muted}
+                editable={!bloquearCampos}
+              />
+            </View>
+
+            <View style={styles.campo}>
+              <Text style={styles.label}>Fecha de Envío</Text>
+              <TextInput
+                style={[styles.input, bloquearCampos && styles.inputBloqueado]}
+                value={infoCarga.fecha_envio ?? ''}
+                onChangeText={(valor) => onCambioCarga('fecha_envio', valor)}
+                placeholder="YYYY-MM-DD HH:mm"
+                placeholderTextColor={IconColors.muted}
+                editable={!bloquearCampos}
+              />
+            </View>
+
+            <View style={styles.campo}>
+              <Text style={styles.label}>Fecha de Arribo</Text>
+              <TextInput
+                style={[styles.input, bloquearCampos && styles.inputBloqueado]}
+                value={infoCarga.fecha_arribo ?? ''}
+                onChangeText={(valor) => onCambioCarga('fecha_arribo', valor)}
+                placeholder="YYYY-MM-DD HH:mm"
+                placeholderTextColor={IconColors.muted}
+                editable={!bloquearCampos}
+              />
+            </View>
+
+            <View style={styles.campo}>
+              <Text style={styles.label}>Contenedor Asociado</Text>
+              <TextInput
+                style={[styles.input, bloquearCampos && styles.inputBloqueado]}
+                value={infoCarga.contenedor_asociado ?? ''}
+                onChangeText={(valor) => onCambioCarga('contenedor_asociado', valor)}
+                placeholder="Número de contenedor"
+                placeholderTextColor={IconColors.muted}
+                editable={!bloquearCampos}
+              />
+            </View>
+
+            <View style={styles.campo}>
+              <Text style={styles.label}>Observaciones</Text>
+              <TextInput
+                style={[styles.input, styles.inputMultiline, bloquearCampos && styles.inputBloqueado]}
+                value={infoCarga.observaciones ?? ''}
+                onChangeText={(valor) => onCambioCarga('observaciones', valor)}
+                placeholder="Notas adicionales sobre la carga"
+                placeholderTextColor={IconColors.muted}
+                multiline
+                numberOfLines={3}
                 editable={!bloquearCampos}
               />
             </View>
@@ -263,10 +382,10 @@ const ModalPackingList: React.FC<ModalPackingListProps> = ({
               </View>
               <Text style={styles.exitoTitulo}>¡Packing List Guardado!</Text>
               <Text style={styles.exitoMensaje}>
-                Se ha guardado exitosamente con el código: {datosGuardado.codigo_carga}
+                Se ha guardado exitosamente con el código: {datosGuardado.carga?.codigo ?? datosGuardado.codigo_carga ?? '—'}
               </Text>
               <Text style={styles.exitoDetalle}>
-                ID de la carga: {datosGuardado.idCarga}
+                ID de la carga: {datosGuardado.carga?.id ?? datosGuardado.idCarga ?? '—'}
               </Text>
             </View>
           )}

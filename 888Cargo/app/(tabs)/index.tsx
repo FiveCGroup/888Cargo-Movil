@@ -18,10 +18,6 @@ export default function HomeScreen() {
         router.push('/(tabs)/scanner');
     };
 
-    const handleNavigateToProfile = () => {
-        router.push('/(tabs)/profile');
-    };
-
     const handleNavigateToDocumentacion = () => {
         router.push('/(tabs)/documentacion');
     };
@@ -30,14 +26,23 @@ export default function HomeScreen() {
         router.push('/(tabs)/cotizaciones');
     };
 
+    const handleNavigateToControlCargas = () => {
+        router.push('/(tabs)/control-cargas');
+    };
+
+    const handleNavigateToLocker = () => {
+        router.push('/(tabs)/locker');
+    };
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <Dashboard
                 onNavigateToCargas={handleNavigateToCargas}
                 onNavigateToQRScanner={handleNavigateToQRScanner}
-                onNavigateToProfile={handleNavigateToProfile}
                 onNavigateToDocumentacion={handleNavigateToDocumentacion}
                 onNavigateToCotizaciones={handleNavigateToCotizaciones}
+                onNavigateToControlCargas={handleNavigateToControlCargas}
+                onNavigateToLocker={handleNavigateToLocker}
             />
         </View>
     );

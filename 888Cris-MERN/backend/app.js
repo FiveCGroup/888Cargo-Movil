@@ -43,11 +43,11 @@ app.use(cors({
         const allowedOrigins = [
             "http://localhost:5173",
             "http://localhost:5174",
-            "http://192.168.58.113:5173",
-            "http://192.168.58.113:5174",
+            "http://192.168.58.109:5173",
+            "http://192.168.58.109:5174",
             "http://10.0.2.2:4000",
             "http://localhost:8081",
-            "http://192.168.58.113:8081",
+            "http://192.168.58.109:8081",
         ];
 
         if (!origin || allowedOrigins.includes(origin)) {

@@ -49,6 +49,16 @@ export interface InfoCarga {
   codigo_carga: string;
   direccion_destino: string;
   archivo_original?: string;
+  /** Ciudad/destino (como en la web) */
+  destino?: string;
+  shipping_mark?: string;
+  estado?: string;
+  ubicacion_actual?: string;
+  fecha_recepcion?: string;
+  fecha_envio?: string;
+  fecha_arribo?: string;
+  contenedor_asociado?: string;
+  observaciones?: string;
 }
 
 export interface ValidacionResult {
@@ -83,9 +93,9 @@ export const validarFormularioCarga = (infoCliente: InfoCliente, infoCarga: Info
   if (!infoCarga.codigo_carga?.trim()) {
     errores.push('El código del packing list es requerido');
   }
-  
-  if (!infoCarga.direccion_destino?.trim()) {
-    errores.push('La dirección de destino es requerida');
+  const destinoObligatorio = (infoCarga.direccion_destino?.trim() || infoCarga.destino?.trim());
+  if (!destinoObligatorio) {
+    errores.push('La dirección o ciudad de destino es requerida');
   }
 
   return {
@@ -109,8 +119,11 @@ export const prepararDatosFormulario = (datosExcel: any[][], archivoSeleccionado
 
   const datosCarga: Partial<InfoCarga> = {
     codigo_carga: generarCodigoUnico(),
-    direccion_destino: primeraFila[3] || '', // Ciudad destino del Excel si está disponible
-    archivo_original: archivoSeleccionado?.name || ''
+    direccion_destino: primeraFila[3] || '',
+    destino: primeraFila[3] || '',
+    archivo_original: archivoSeleccionado?.name || '',
+    estado: 'En bodega China',
+    ubicacion_actual: 'China'
   };
 
   return {

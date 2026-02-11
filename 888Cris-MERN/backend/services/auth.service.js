@@ -59,22 +59,36 @@ export const register = async (userData) => {
   }
 
   // Crear registro en la tabla `clientes` para mantener sincronía
+  // IMPORTANTE: Verificar si el cliente ya existe antes de crear para evitar duplicados
   try {
-    const clienteData = {
-      nombre_cliente: resolvedFullName || resolvedUsername,
-      correo_cliente: normalizedEmail,
-      telefono_cliente: userData.phone || '',
-      pais_cliente: userData.country || 'Colombia',
-      ciudad_cliente: userData.city || null,
-      direccion_entrega: userData.address || null,
-      cliente_shippingMark: userData.shippingMark || null
-    };
+    // Verificar si ya existe un cliente con este correo
+    const existingCliente = await clientes.findOne({ correo_cliente: normalizedEmail });
+    
+    if (existingCliente) {
+      // El cliente ya existe, no crear duplicado
+      console.log('[Auth] Cliente ya existe con id:', existingCliente.id_cliente || existingCliente.id);
+    } else {
+      // El cliente no existe, crearlo
+      const clienteData = {
+        nombre_cliente: resolvedFullName || resolvedUsername,
+        correo_cliente: normalizedEmail,
+        telefono_cliente: userData.phone || '',
+        pais_cliente: userData.country || 'Colombia',
+        ciudad_cliente: userData.city || null,
+        direccion_entrega: userData.address || null,
+        cliente_shippingMark: userData.shippingMark || null
+      };
 
-    const createdCliente = await clientes.create(clienteData);
-    // Opcional: si deseas mantener relación explícita, podrías guardar createdCliente.id en otra tabla.
-    console.log('[Auth] Cliente creado con id:', createdCliente.id);
+      const createdCliente = await clientes.create(clienteData);
+      console.log('[Auth] Cliente creado con id:', createdCliente.id_cliente || createdCliente.id);
+    }
   } catch (err) {
-    console.error('[Auth] Falló creación de cliente (no crítico):', err.message);
+    // Si el error es por restricción única, el cliente ya existe (esto es esperado)
+    if (err.message && err.message.includes('UNIQUE constraint')) {
+      console.log('[Auth] Cliente ya existe (detectado por restricción UNIQUE)');
+    } else {
+      console.error('[Auth] Falló creación/verificación de cliente (no crítico):', err.message);
+    }
   }
 
   // Enviar notificaciones en background; no bloquea el flujo existente

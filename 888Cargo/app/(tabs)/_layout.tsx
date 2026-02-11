@@ -105,9 +105,15 @@ export default function TabLayout() {
       {/* Tabs ocultos pero accesibles por navegación */}
       <Tabs.Screen
         name="documentacion"
-        options={{
-          href: null, // Ocultar del tab bar
-        }}
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="control-cargas"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="locker"
+        options={{ href: null }}
       />
     </Tabs>
   );

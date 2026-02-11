@@ -110,7 +110,7 @@ const Dashboard = () => {
 
           <div
             className="dashboard-card"
-            //onClick={goToCrearCarga}
+            onClick={() => navigate("/control-cargas")}
           >
             <svg
               className="card-icon"

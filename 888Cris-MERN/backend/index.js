@@ -54,7 +54,7 @@ const app = express();
 // Middlewares - CORS Permisivo en Desarrollo
 const isDevelopment = process.env.NODE_ENV !== 'production';
 app.use(cors({
-  origin: isDevelopment ? true : ['http://localhost:5173', 'http://192.168.58.113:5173', 'exp://*'],
+  origin: isDevelopment ? true : ['http://localhost:5173', 'http://192.168.58.109:5173', 'exp://*'],
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));

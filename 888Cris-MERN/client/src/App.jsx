@@ -11,6 +11,7 @@ import VisualizarQR from "./pages/VisualizarQR.jsx";
 import PackingListDetail from "./pages/PackingListDetail.jsx";
 import Documentacion from "./pages/Documentacion.jsx";
 import Cotizador from './pages/Cotizador';
+import ControlCargas from './pages/ControlCargas.jsx';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/packing-list/:idCarga" element={<PackingListDetail />} />
           <Route path="/documentacion" element={<Documentacion />} />
           <Route path="/cotizador" element={<Cotizador />} />
+          <Route path="/control-cargas" element={<ControlCargas />} />
         </Route>
         
         {/* Atrapa todas las rutas no definidas */}

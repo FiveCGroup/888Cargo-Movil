@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCrearCarga } from '../hooks/useCrearCarga';
 import { CargaLogic } from '../logic/cargaLogic';
-import cargaService from '../services/cargaService';
 import BusquedaPackingList from './BusquedaPackingList';
 import CreacionNuevaCarga from './CreacionNuevaCarga';
 import TablasDatos from './TablasDatos';
@@ -31,7 +30,7 @@ const CrearCarga = () => {
         resultadosBusqueda, setResultadosBusqueda,
         mostrandoResultados, setMostrandoResultados,
         busquedaLoading, setBusquedaLoading,
-        mostrarFormulario, setMostrarFormulario,
+        setMostrarFormulario,
         infoCliente, setInfoCliente,
         infoCarga, setInfoCarga,
         loading, setLoading,

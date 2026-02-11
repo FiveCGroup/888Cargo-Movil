@@ -22,6 +22,8 @@ import {
   guardarConQR,
   obtenerPackingList,
   obtenerCargaPorId,
+  buscarPorCodigo,
+  generarCodigoCarga,
   transformarExcel
 } from '../controllers/carga.controller.js';
 
@@ -38,6 +40,13 @@ import {
   misCargas,
   detalleCarga
 } from '../controllers/cliente.controller.js';
+
+import {
+  listarCargasCliente,
+  obtenerEstadosCargaDetallados,
+  obtenerOpcionesFiltrosDisponibles,
+  obtenerCargaPorId as obtenerCargaControlCargas
+} from '../controllers/controlCargas.controller.js';
 
 import {
   crearUsuarioAdmin,
@@ -296,11 +305,31 @@ router.get('/cotizaciones', authRequired, async (req, res) => {
 router.get('/cliente/mis-cargas', authRequired, misCargas);
 router.get('/cliente/carga/:codigo', authRequired, detalleCarga);
 
+// RUTAS CONTROL DE CARGAS (Módulo Control de Cargas)
+// Obtener todas las cargas del cliente autenticado con filtros opcionales
+// Query params: ?estado=En%20bodega&ubicacion=China&contenedor=CONT123
+router.get('/control-cargas/cargas', authRequired, listarCargasCliente);
+
+// Obtener información de una carga específica
+router.get('/control-cargas/carga/:id', authRequired, obtenerCargaControlCargas);
+
+// Obtener estados detallados de una carga (historial completo)
+router.get('/control-cargas/carga/:id/estados', authRequired, obtenerEstadosCargaDetallados);
+
+// Obtener opciones disponibles para los filtros (estados, ubicaciones, contenedores)
+router.get('/control-cargas/filtros/opciones', authRequired, obtenerOpcionesFiltrosDisponibles);
+
 // RUTAS CARGA
 // Endpoints existentes
 router.post('/carga/excel', authRequired, upload.single('file'), procesarExcel);
 router.post('/carga/:cargaId/generar-qr', authRequired, generarQRs);
 router.get('/carga/mis-cargas', authRequired, getMisCargas);
+
+// Búsqueda por código (web y móvil)
+router.get('/carga/buscar/:codigo', authRequired, buscarPorCodigo);
+
+// Generar código único para packing list (móvil)
+router.get('/carga/generar-codigo', authRequired, generarCodigoCarga);
 
 // Aliases de compatibilidad con frontend (mantener rutas antiguas usadas por cliente)
 router.post('/carga/procesar-excel', authRequired, upload.single('file'), procesarExcel);

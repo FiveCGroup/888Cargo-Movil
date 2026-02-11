@@ -38,16 +38,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const loadAuthState = async () => {
+        const timeoutMs = 12000; // máximo 12 s para no dejar la pantalla azul colgada
+        let done = false;
+        const timeoutId = setTimeout(() => {
+            if (done) return;
+            done = true;
+            console.warn('⏱️ [Auth] Timeout cargando estado, mostrando login');
+            setAuthState({
+                isLoading: false,
+                isAuthenticated: false,
+                isAuthInitialized: true,
+                token: null,
+                user: null,
+                error: null
+            });
+        }, timeoutMs);
+
         try {
             console.log('🔄 Cargando estado de autenticación inicial...');
-            
             const state = await AuthService.getAuthState();
-            
-            console.log('✅ Estado cargado:', { 
-                isAuthenticated: state.isAuthenticated, 
-                hasToken: !!state.token 
-            });
-
+            if (done) return;
+            done = true;
+            clearTimeout(timeoutId);
+            console.log('✅ Estado cargado:', { isAuthenticated: state.isAuthenticated, hasToken: !!state.token });
             setAuthState({
                 isLoading: false,
                 isAuthenticated: state.isAuthenticated,
@@ -57,6 +70,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 error: null
             });
         } catch (error) {
+            if (done) return;
+            done = true;
+            clearTimeout(timeoutId);
             console.error('❌ Error cargando estado de auth:', error);
             setAuthState({
                 isLoading: false,
@@ -64,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 isAuthInitialized: true,
                 token: null,
                 user: null,
-                error: 'Error al cargar autenticación'
+                error: null
             });
         }
     };

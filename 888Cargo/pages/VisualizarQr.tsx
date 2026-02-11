@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 // Servicios
 import CargaService from '../services/cargaService';
@@ -122,14 +122,26 @@ const VisualizarQr: React.FC = () => {
   const cargarInfoCarga = useCallback(async () => {
     try {
       const resultado = await CargaService.obtenerCargaMeta(idCarga!);
-      
-      if (resultado.success) {
-        setCargaInfo(resultado.data);
-      }
+      if (!resultado?.success || !resultado.data) return;
+      const { carga, cliente } = resultado.data;
+      // Normalizar: el backend devuelve { data: { carga, cliente } }, la UI espera un objeto plano
+      const info = {
+        codigo_carga: carga?.codigo_carga ?? carga?.codigo ?? '',
+        nombre_cliente: cliente?.nombre_cliente ?? cliente?.nombre ?? '—',
+        correo_cliente: cliente?.correo_cliente ?? cliente?.email ?? '',
+        telefono_cliente: cliente?.telefono_cliente ?? cliente?.phone ?? '',
+        fecha_creacion: carga?.fecha_creacion ?? carga?.created_at ?? carga?.fecha_inicio ?? '',
+        destino: carga?.destino ?? carga?.ciudad_destino ?? '',
+        estado: carga?.estado ?? '',
+        ubicacion_actual: carga?.ubicacion_actual ?? '',
+        shipping_mark: carga?.shipping_mark ?? '',
+        direccion_destino: carga?.direccion_destino ?? ''
+      };
+      setCargaInfo(info);
     } catch (error) {
       console.error('Error al cargar info de carga:', error);
     }
-  }, [idCarga]); // Add idCarga as dependency
+  }, [idCarga]);
 
   // Effect to load data when idCarga changes
   useEffect(() => {
@@ -153,9 +165,10 @@ const VisualizarQr: React.FC = () => {
 
       // Guardar el PDF en el sistema de archivos móvil
       const fileUri = FileSystem.documentDirectory + resultado.data.filename;
-      
+      const encoding = (FileSystem as any).EncodingType?.Base64 ?? 'base64';
+
       await FileSystem.writeAsStringAsync(fileUri, resultado.data.base64, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding,
       });
       
       console.log('✅ [VisualizarQr] PDF guardado en:', fileUri);
@@ -275,11 +288,19 @@ const VisualizarQr: React.FC = () => {
         {/* Información de la carga */}
         {cargaInfo && (
           <View style={styles.infoCarga}>
-            <Text style={styles.codigoCarga}>{cargaInfo.codigo_carga}</Text>
-            <Text style={styles.nombreCliente}>{cargaInfo.nombre_cliente}</Text>
-            <Text style={styles.fechaCarga}>
-              Creado: {new Date(cargaInfo.fecha_creacion).toLocaleDateString('es-CO')}
-            </Text>
+            <Text style={styles.codigoCarga}>{cargaInfo.codigo_carga || '—'}</Text>
+            <Text style={styles.nombreCliente}>{cargaInfo.nombre_cliente || '—'}</Text>
+            {cargaInfo.destino ? (
+              <Text style={styles.fechaCarga}>Destino: {cargaInfo.destino}</Text>
+            ) : null}
+            {cargaInfo.estado ? (
+              <Text style={styles.fechaCarga}>Estado: {cargaInfo.estado}</Text>
+            ) : null}
+            {cargaInfo.fecha_creacion ? (
+              <Text style={styles.fechaCarga}>
+                Creado: {new Date(cargaInfo.fecha_creacion).toLocaleDateString('es-CO')}
+              </Text>
+            ) : null}
           </View>
         )}
 

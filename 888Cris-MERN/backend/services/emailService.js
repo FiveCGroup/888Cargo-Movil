@@ -27,10 +27,10 @@ const getEmailConfig = () => {
   // Configuración según proveedor
   let host, port, secure;
   
-  if (provider === 'gmail') {
-    host = 'smtp.gmail.com';
-    port = 587;
-    secure = false;
+  if (provider === 'Titan') {
+    host = 'smtp.titan.email';
+    port = 465;
+    secure = true;
   } else if (provider === 'outlook') {
     host = 'smtp-mail.outlook.com';
     port = 587;

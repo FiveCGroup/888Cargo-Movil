@@ -1112,15 +1112,63 @@ export const guardarConQR = async (req, res) => {
         cliente_shippingMark: infoClientePayload.cliente_shippingMark || infoClientePayload.shippingMark || infoClientePayload.shipping_mark || null,
       };
       try {
-        const created = await databaseRepository.clientes.create(
-          newClienteData
-        );
-        id_cliente_payload = created.id_cliente || created.id || created.lastID;
+        // IMPORTANTE: Verificar si el cliente ya existe antes de crear para evitar duplicados
+        const correoCliente = newClienteData.correo_cliente;
+        let existingCliente = null;
+        
+        if (correoCliente) {
+          existingCliente = await databaseRepository.clientes.findOne({
+            correo_cliente: correoCliente
+          });
+        }
+        
+        if (existingCliente) {
+          // El cliente ya existe, usar su ID
+          id_cliente_payload = existingCliente.id_cliente || existingCliente.id;
+          console.log(
+            "[Carga] Cliente ya existe, usando id_cliente existente:",
+            id_cliente_payload
+          );
+        } else {
+          // El cliente no existe, crearlo
+          const created = await databaseRepository.clientes.create(
+            newClienteData
+          );
+          id_cliente_payload = created.id_cliente || created.id || created.lastID;
+          console.log(
+            "[Carga] Cliente creado automáticamente con id:",
+            id_cliente_payload
+          );
+        }
       } catch (createErr) {
-        console.warn(
-          "[Carga] No se pudo crear cliente automáticamente:",
-          createErr.message
-        );
+        // Si el error es por restricción única, intentar obtener el cliente existente
+        if (createErr.message && createErr.message.includes('UNIQUE constraint')) {
+          const correoCliente = newClienteData.correo_cliente;
+          if (correoCliente) {
+            try {
+              const existingCliente = await databaseRepository.clientes.findOne({
+                correo_cliente: correoCliente
+              });
+              if (existingCliente) {
+                id_cliente_payload = existingCliente.id_cliente || existingCliente.id;
+                console.log(
+                  "[Carga] Cliente encontrado después de error UNIQUE, usando id:",
+                  id_cliente_payload
+                );
+              }
+            } catch (findErr) {
+              console.warn(
+                "[Carga] No se pudo encontrar cliente después de error UNIQUE:",
+                findErr.message
+              );
+            }
+          }
+        } else {
+          console.warn(
+            "[Carga] No se pudo crear cliente automáticamente:",
+            createErr.message
+          );
+        }
       }
     }
 
@@ -1221,6 +1269,7 @@ export const guardarConQR = async (req, res) => {
 
       // Normalizar y mapear campos esperados por la BD
       const filasConError = [];
+      let suma_cajas_packing = 0; // Suma del campo "CAJAS" del packing list para carga.total_cajas
       //Este es el for por cada artículo (fila) del archivo de Excel
       for (const it of items) {
       try {
@@ -1430,9 +1479,10 @@ export const guardarConQR = async (req, res) => {
           Number(
             it.cajas ?? it.CAJAS ?? 1
           ) || 1;
-        // CANT POR CAJA ahora se mapea correctamente a cantidad_en_caja
+        // cantidad_en_caja en cajas debe guardar "CANT POR CAJA" del packing list (prioridad)
+        // Orden: cant_por_caja (CANT POR CAJA) -> cantidad_en_caja -> cantidad_por_caja
         const cantidad_en_caja = parseNullableNumber(
-          it.cantidad_en_caja ?? it.cantidad_por_caja ?? null
+          it.cant_por_caja ?? it.cantidad_en_caja ?? it.cantidad_por_caja ?? null
         );
         
         // CANT. TOTAL es la cantidad total
@@ -1447,7 +1497,7 @@ export const guardarConQR = async (req, res) => {
           ) || 1
         );
         
-        // Si no hay cantidad_en_caja pero hay cantidad y cajas, calcular
+        // Si no hay valor de CANT POR CAJA, calcular desde cantidad total y número de cajas
         const cantidad_en_caja_final = cantidad_en_caja !== null && cantidad_en_caja !== undefined
           ? cantidad_en_caja
           : (cantidad !== null && cantidad !== undefined && numCajas > 0
@@ -1609,13 +1659,15 @@ export const guardarConQR = async (req, res) => {
             id_articulo: articuloId,
             numero_caja: i,
             total_cajas: mis_cajas,
-            cantidad_en_caja: cantidad_en_caja_final, // Usar la cantidad_en_caja calculada correctamente
+            cantidad_en_caja: cantidad_en_caja_final, // CANT POR CAJA del packing list; fallback: calculado desde cantidad/total cajas
             descripcion_contenido: descripcion_espanol || ref_art || null,
             cbm: cbm_art ? Number(cbm_art) : null,
             gw: gw_art ? Number(gw_art) : null,
             observaciones: it.observaciones || it.obs || null,
           });
         }
+        // Acumular suma del campo "CAJAS" del packing list (solo filas guardadas correctamente)
+        suma_cajas_packing += mis_cajas;
       } catch (err) {
         console.error(
           "[Carga] Error creando artículo/cajas para fila:",
@@ -1659,21 +1711,21 @@ export const guardarConQR = async (req, res) => {
           if (cbm_total_excel_presente) {
             cbm_total_final = totalesExcel.cbm_total;
           }
-          if (totalesExcel.total_cajas !== null && totalesExcel.total_cajas !== undefined) {
-            total_cajas_final = totalesExcel.total_cajas;
-          }
           console.log(`[Carga] Totales extraídos del Excel:`, { 
             gw_total_final, 
             cbm_total_final, 
-            total_cajas_final,
+            suma_cajas_packing,
             gw_excel_presente: gw_total_excel_presente,
             cbm_excel_presente: cbm_total_excel_presente
           });
         }
         
-        // Si no hay totales del Excel (null/undefined), calcular desde las cajas
+        // total_cajas: suma del campo "CAJAS" del packing list (cada fila)
+        total_cajas_final = suma_cajas_packing;
+        
+        // Si no hay totales del Excel (gw/cbm), calcular desde las cajas
         if (!gw_total_excel_presente || !cbm_total_excel_presente) {
-          console.log(`[Carga] Calculando totales desde las cajas (Excel no tiene totales o están incompletos)...`);
+          console.log(`[Carga] Calculando gw/cbm desde las cajas (Excel no tiene totales o están incompletos)...`);
           const { query } = await import('../db.js');
           const cajasQuery = `
             SELECT 
@@ -1688,24 +1740,33 @@ export const guardarConQR = async (req, res) => {
           const totalesCalculados = await query(cajasQuery, [cargaId]);
           const totalesData = totalesCalculados && totalesCalculados.length > 0 ? totalesCalculados[0] : { total_cajas: 0, gw_total: 0, cbm_total: 0 };
           
-          // Usar totales calculados solo si no están presentes en el Excel
           if (!gw_total_excel_presente) {
             gw_total_final = totalesData.gw_total > 0 ? totalesData.gw_total : null;
           }
           if (!cbm_total_excel_presente) {
             cbm_total_final = totalesData.cbm_total > 0 ? totalesData.cbm_total : null;
           }
-          if (total_cajas_final === 0 || (totalesExcel && totalesExcel.total_cajas === null)) {
+          
+          // Si no hubo filas con CAJAS, usar COUNT(*) de caja como fallback para total_cajas
+          if (total_cajas_final === 0) {
             total_cajas_final = totalesData.total_cajas || 0;
           }
           
           console.log(`[Carga] Totales finales:`, { 
             gw_total_final, 
             cbm_total_final, 
-            total_cajas_final,
+            total_cajas_final: total_cajas_final,
             fuente_gw: gw_total_excel_presente ? 'Excel' : 'Calculado',
-            fuente_cbm: cbm_total_excel_presente ? 'Excel' : 'Calculado'
+            fuente_cbm: cbm_total_excel_presente ? 'Excel' : 'Calculado',
+            fuente_total_cajas: suma_cajas_packing > 0 ? 'Suma CAJAS packing' : 'COUNT(caja)'
           });
+        } else {
+          if (total_cajas_final === 0) {
+            const { query } = await import('../db.js');
+            const r = await query(`SELECT COUNT(*) as n FROM caja c INNER JOIN articulo_packing_list a ON c.id_articulo = a.id_articulo WHERE a.id_carga = ?`, [cargaId]);
+            total_cajas_final = (r && r[0] && r[0].n) ? r[0].n : 0;
+          }
+          console.log(`[Carga] Totales finales:`, { gw_total_final, cbm_total_final, total_cajas_final, fuente_total_cajas: suma_cajas_packing > 0 ? 'Suma CAJAS packing' : 'COUNT(caja)' });
         }
         
         // Actualizar la carga con los totales
@@ -1970,6 +2031,80 @@ export const obtenerPackingList = async (req, res) => {
     });
   } catch (error) {
     console.error("Error obteniendo packing list:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Generar código único para packing list (compatibilidad móvil)
+export const generarCodigoCarga = async (req, res) => {
+  try {
+    const fecha = new Date();
+    const timestamp = fecha.getTime();
+    const random = Math.floor(Math.random() * 1000);
+    const codigo_carga = `PL-${fecha.getFullYear()}${String(fecha.getMonth() + 1).padStart(2, "0")}${String(fecha.getDate()).padStart(2, "0")}-${random}-${String(timestamp).slice(-4)}`;
+    return res.json({ success: true, codigo_carga });
+  } catch (error) {
+    console.error("Error generando código de carga:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Buscar packing lists por código (compatibilidad web y móvil)
+export const buscarPorCodigo = async (req, res) => {
+  try {
+    const codigo = req.params.codigo?.trim();
+    if (!codigo)
+      return res
+        .status(400)
+        .json({ success: false, message: "Falta código de carga" });
+
+    const mod = await import('../models/packingList.model.js');
+    const PackingListModel = mod.PackingListModel;
+    const filas = await PackingListModel.buscarCargasPorCodigo(codigo);
+    if (!filas || filas.length === 0)
+      return res.json({
+        success: true,
+        data: [],
+        mensaje: "No se encontraron packing lists con ese código",
+      });
+
+    const resultado = [];
+    for (const row of filas) {
+      const idCarga = row.id_carga;
+      const estadisticas = await PackingListModel.obtenerEstadisticasCarga(idCarga);
+      resultado.push({
+        id_carga: row.id_carga,
+        codigo_carga: row.codigo_carga,
+        fecha_inicio: row.fecha_inicio,
+        fecha_fin: row.fecha_fin,
+        ciudad_destino: row.ciudad_destino,
+        archivo_original: row.archivo_original,
+        fecha_creacion: row.fecha_creacion,
+        cliente: {
+          id_cliente: row.id_cliente,
+          nombre_cliente: row.nombre_cliente,
+          correo_cliente: row.correo_cliente,
+          telefono_cliente: row.telefono_cliente,
+          ciudad_cliente: row.ciudad_cliente,
+          pais_cliente: row.pais_cliente,
+        },
+        estadisticas: {
+          total_articulos: estadisticas?.total_articulos ?? 0,
+          articulos_creados: estadisticas?.total_articulos ?? 0,
+          precio_total_carga: estadisticas?.precio_total_carga ?? 0,
+          cbm_total: estadisticas?.cbm_total ?? 0,
+          peso_total: estadisticas?.peso_total ?? 0,
+          total_cajas: estadisticas?.total_cajas ?? 0,
+        },
+      });
+    }
+    return res.json({
+      success: true,
+      data: resultado,
+      mensaje: `Se encontraron ${resultado.length} packing list(s)`,
+    });
+  } catch (error) {
+    console.error("Error buscando packing list por código:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

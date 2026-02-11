@@ -24,6 +24,7 @@ const CrearCarga = () => {
     codigoCarga, setCodigoCarga,
     archivoSeleccionado, setArchivoSeleccionado,
     datosExcel, setDatosExcel,
+    datosExcelObjetos, setDatosExcelObjetos,
     filasConError, setFilasConError,
     estadisticasCarga, setEstadisticasCarga,
     resultadosBusqueda, setResultadosBusqueda,
@@ -221,28 +222,63 @@ const CrearCarga = () => {
 
       console.log('[ANALYTICS] [CrearCarga] Resultado del procesamiento:', resultado);
 
-      if (resultado.success && resultado.data) {
-        // Los datos vienen directamente en resultado.data, estadísticas están en resultado.estadisticas
-        const datosExcel = resultado.data;
-        const estadisticas = (resultado as any).estadisticas;
-        const filasConError = (resultado as any).filasConError || [];
+      if (resultado.success && (resultado.data || (resultado as any).data)) {
+        // El servicio devuelve: { success, data: array, estadisticas, filasConError }
+        const datosNormalizados = Array.isArray(resultado.data) ? resultado.data : ((resultado as any).data && Array.isArray((resultado as any).data) ? (resultado as any).data : []);
+        const estadisticas = (resultado as any).estadisticas ?? null;
+        const filasConError = (resultado as any).filasConError ?? [];
         
         console.log('[ANALYTICS] [CrearCarga] Datos procesados:', {
-          datosExcel: datosExcel?.length || 0,
+          datosNormalizados: datosNormalizados?.length || 0,
           estadisticas,
           filasConError: filasConError?.length || 0
         });
         
-        setDatosExcel(datosExcel || []);
+        // Convertir objetos normalizados a formato tabla (array de arrays) para TablasDatos
+        // TablasDatos espera: [headers, ...filas] donde headers es array de strings
+        let datosParaTabla: any[][] = [];
+        if (datosNormalizados && datosNormalizados.length > 0) {
+          // Obtener todas las claves únicas de todos los objetos para crear el header
+          const todasLasClaves = new Set<string>();
+          datosNormalizados.forEach((obj: any) => {
+            Object.keys(obj).forEach(key => todasLasClaves.add(key));
+          });
+          
+          // Convertir Set a Array y ordenar para consistencia
+          const headers = Array.from(todasLasClaves).sort();
+          
+          // Crear array de arrays: primera fila = headers, siguientes = datos
+          datosParaTabla = [headers];
+          
+          // Agregar cada fila de datos
+          datosNormalizados.forEach((obj: any) => {
+            const fila = headers.map(header => {
+              const valor = obj[header];
+              // Convertir null/undefined a string vacío, mantener otros valores
+              if (valor === null || valor === undefined) return '';
+              // Si es un objeto, convertirlo a string JSON (para arrays como imagen_embedded_all)
+              if (typeof valor === 'object') return JSON.stringify(valor);
+              return String(valor);
+            });
+            datosParaTabla.push(fila);
+          });
+        }
+        
+        // Guardar tabla para visualización en TablasDatos
+        setDatosExcel(datosParaTabla);
+        // IMPORTANTE: Guardar también los objetos originales para preservar arrays intactos al guardar
+        // Usaremos estos objetos al guardar en BD para evitar pérdida de datos
+        setDatosExcelObjetos(datosNormalizados || []);
+        
         setFilasConError(filasConError);
         setEstadisticasCarga(estadisticas || {
-          totalFilas: datosExcel?.length || 0,
-          filasValidas: (datosExcel?.length || 1) - 1,
+          totalFilas: datosNormalizados?.length || 0,
+          filasValidas: (datosNormalizados?.length || 1) - 1,
           filasConError: filasConError?.length || 0
         });
         
-        // Preparar formulario con datos del Excel
-        await prepararFormularioDesdeExcel();
+        // Preparar formulario con datos del Excel (pasar datos recién procesados para evitar estado desactualizado)
+        await prepararFormularioDesdeExcel(datosParaTabla);
         
         showSuccess(
           'Éxito', 
@@ -254,9 +290,9 @@ const CrearCarga = () => {
         setError(errorMsg);
         showError('Error', errorMsg);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('[CrearCarga] Excel processing failed:', error);
-      const errorMsg = 'Error al procesar el archivo Excel';
+      const errorMsg = error?.message || 'Error al procesar el archivo Excel';
       setError(errorMsg);
       showError('Error', errorMsg);
     } finally {
@@ -266,7 +302,8 @@ const CrearCarga = () => {
 
   // Funciones de formulario
   const handleMostrarFormulario = () => {
-    if (datosExcel.length === 0) {
+    // Verificar tanto tabla como objetos originales
+    if (datosExcel.length === 0 && datosExcelObjetos.length === 0) {
       showError('Error', 'Primero debes cargar un archivo Excel');
       return;
     }
@@ -314,7 +351,11 @@ const CrearCarga = () => {
       return;
     }
 
-    if (datosExcel.length <= 1) {
+    // Verificar que hay datos para guardar
+    const tieneDatosTabla = datosExcel.length > 1;
+    const tieneObjetosOriginales = datosExcelObjetos.length > 0;
+    
+    if (!tieneDatosTabla && !tieneObjetosOriginales) {
       showError('Error', 'No hay datos válidos para guardar');
       return;
     }
@@ -326,41 +367,86 @@ const CrearCarga = () => {
       // Preparar datos en el formato correcto para el nuevo endpoint
       const metadata = {
         codigo_carga: infoCarga.codigo_carga,
-        id_cliente: 1, // Por defecto, ajustar según tu lógica
-        direccion_destino: infoCarga.direccion_destino || '',
-        ciudad_destino: infoCarga.direccion_destino || '', // Usar dirección destino como ciudad por ahora
-        archivo_original: archivoSeleccionado?.name || 'archivo.xlsx'
+        id_cliente: 1,
+        direccion_destino: infoCarga.direccion_destino || infoCarga.destino || '',
+        ciudad_destino: infoCarga.destino || infoCarga.direccion_destino || '',
+        archivo_original: archivoSeleccionado?.name || 'archivo.xlsx',
+        nombre_cliente: infoCliente.nombre_cliente,
+        correo_cliente: infoCliente.correo_cliente,
+        telefono_cliente: infoCliente.telefono_cliente,
+        direccion_entrega: infoCliente.direccion_entrega,
+        destino: infoCarga.destino || infoCarga.direccion_destino || '',
+        shipping_mark: infoCarga.shipping_mark || '',
+        estado: infoCarga.estado || 'En bodega China',
+        ubicacion_actual: infoCarga.ubicacion_actual || 'China',
+        fecha_recepcion: infoCarga.fecha_recepcion || null,
+        fecha_envio: infoCarga.fecha_envio || null,
+        fecha_arribo: infoCarga.fecha_arribo || null,
+        contenedor_asociado: infoCarga.contenedor_asociado || null,
+        observaciones: infoCarga.observaciones || null
       };
 
-      console.log('💾 [CrearCarga] Guardando con nuevo formato...');
-      console.log('[DATA] [CrearCarga] Datos Excel:', datosExcel.length, 'filas');
-      console.log('[INFO] [CrearCarga] Metadata:', metadata);
+      // PRIORIDAD: Usar objetos originales si están disponibles (preserva arrays como imagen_embedded_all)
+      // Si no, reconstruir desde la tabla
+      let datosParaGuardar: any[] = [];
+      
+      if (tieneObjetosOriginales) {
+        // Usar objetos originales preservados (evita pérdida de datos)
+        datosParaGuardar = datosExcelObjetos;
+        console.log('💾 [CrearCarga] Usando objetos originales preservados:', datosParaGuardar.length, 'objetos');
+      } else if (tieneDatosTabla) {
+        // Reconstruir objetos desde tabla (fallback)
+        const headers = datosExcel[0] || [];
+        const filas = datosExcel.slice(1);
+        datosParaGuardar = filas.map((fila: any[]) => {
+          const obj: any = {};
+          headers.forEach((header: string, idx: number) => {
+            let valor = fila[idx];
+            // Intentar parsear strings JSON (para arrays como imagen_embedded_all)
+            if (typeof valor === 'string' && valor.trim().startsWith('[') && valor.trim().endsWith(']')) {
+              try {
+                const parsed = JSON.parse(valor);
+                if (Array.isArray(parsed)) {
+                  valor = parsed; // Restaurar array
+                }
+              } catch (e) {
+                // Si no es JSON válido, mantener como string
+                console.warn(`[CrearCarga] No se pudo parsear JSON para ${header}:`, e);
+              }
+            }
+            obj[header] = valor;
+          });
+          return obj;
+        });
+        console.log('⚠️ [CrearCarga] Reconstruyendo objetos desde tabla (fallback):', datosParaGuardar.length, 'objetos');
+      }
 
-      // Usar el nuevo método con formato correcto
-      const resultado = await CargaService.guardarPackingListConQR(datosExcel, metadata);
+      console.log('💾 [CrearCarga] Guardando con nuevo formato...');
+      console.log('[DATA] [CrearCarga] Datos para guardar:', datosParaGuardar.length, 'objetos');
+      console.log('[INFO] [CrearCarga] Metadata:', metadata);
+      console.log('[INFO] [CrearCarga] Info Cliente:', infoCliente);
+      console.log('[INFO] [CrearCarga] Info Carga:', infoCarga);
+
+      // Usar el nuevo método con formato correcto - enviar objetos, no tabla
+      const resultado = await CargaService.guardarPackingListConQR(datosParaGuardar, metadata);
 
       if (resultado.success) {
         setGuardadoExitoso(true);
         setDatosGuardado(resultado.data);
         
-        // Extraer estadísticas correctas del backend
-        const estadisticas = resultado.data.estadisticas || {};
-        const articulos_creados = estadisticas.articulos_creados || 0;
-        const cajas_creadas = estadisticas.cajas_generadas || 0;
-        const qrs_creados = estadisticas.qrs_generados || 0;
+        // Extraer estadísticas de la respuesta del backend (carga, qrs, etc.)
+        const data = resultado.data || {};
+        const qrsInfo = data.qrs || {};
+        const qrs_creados = qrsInfo.generados ?? 0;
+        const articulos_creados = data.estadisticas?.articulos_creados ?? 0;
+        const cajas_creadas = data.estadisticas?.cajas_generadas ?? 0;
         
-        console.log('[ANALYTICS] [CrearCarga] Estadísticas procesadas:', {
-          articulos_creados,
-          cajas_creadas,
-          qrs_creados,
-          estadisticas_completas: estadisticas
-        });
+        console.log('[ANALYTICS] [CrearCarga] Respuesta guardado:', { data, qrs_creados });
         
         showSuccess(
           'Éxito', 
           `Packing list guardado correctamente!\n\n` +
-          `• Artículos: ${articulos_creados}\n` +
-          `• Cajas: ${cajas_creadas}\n` +
+          (articulos_creados || cajas_creadas ? `• Artículos: ${articulos_creados}\n• Cajas: ${cajas_creadas}\n` : '') +
           `🏷️ QRs generados: ${qrs_creados}`,
           [
             { text: 'Ver QRs', onPress: handleVisualizarQR },
@@ -444,7 +530,7 @@ const CrearCarga = () => {
                   {((archivoSeleccionado.size || 0) / (1024 * 1024)).toFixed(2)} MB
                 </Text>
               </View>
-              {datosExcel.length > 0 && (
+              {(datosExcel.length > 0 || datosExcelObjetos.length > 0) && (
                 <TouchableOpacity
                   style={cargasStyles.botonFormulario}
                   onPress={handleMostrarFormulario}
@@ -488,6 +574,7 @@ const CrearCarga = () => {
             filasConError={filasConError} 
           />
         )}
+        {/* Nota: TablasDatos usa datosExcel que es la tabla convertida para visualización */}
       </ScrollView>
 
       {/* Modal de datos del packing list */}

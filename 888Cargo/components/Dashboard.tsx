@@ -33,15 +33,18 @@ interface DashboardProps {
     onNavigateToQRScanner?: () => void;
     onNavigateToProfile?: () => void;
     onNavigateToDocumentacion?: () => void;
-    onNavigateToCotizaciones?: () => void; // ← AGREGADO
+    onNavigateToCotizaciones?: () => void;
+    onNavigateToControlCargas?: () => void;
+    onNavigateToLocker?: () => void;
 }
 
 export default function Dashboard({
     onNavigateToCargas,
     onNavigateToQRScanner,
-    onNavigateToProfile,
     onNavigateToDocumentacion,
-    onNavigateToCotizaciones // ← AGREGADO
+    onNavigateToCotizaciones,
+    onNavigateToControlCargas,
+    onNavigateToLocker,
 }: DashboardProps) {
     const { user } = useAuthContext();
     const [pressedCard, setPressedCard] = useState<number | null>(null);
@@ -50,55 +53,44 @@ export default function Dashboard({
     const themeStyles = createThemeStyles(colorScheme ?? 'light');
     const colors = Colors[colorScheme ?? 'light'];
 
+    // Módulos alineados con el home web: Documentación, Cotizaciones, Escanear QR, Gestión de carga, Locker, Control de carga
     const dashboardCards: DashboardCard[] = [
         {
             title: 'Cotizaciones',
             iconName: 'calculate',
             iconLibrary: 'MaterialIcons',
-            onPress: onNavigateToCotizaciones // ← AGREGADO PRIMERO
+            onPress: onNavigateToCotizaciones,
         },
         {
             title: 'Gestión de Cargas',
             iconName: 'inventory-2',
             iconLibrary: 'MaterialIcons',
-            onPress: onNavigateToCargas
+            onPress: onNavigateToCargas,
+        },
+        {
+            title: 'Control de carga',
+            iconName: 'assignment',
+            iconLibrary: 'MaterialIcons',
+            onPress: onNavigateToControlCargas,
+        },
+        {
+            title: 'Locker',
+            iconName: 'lock',
+            iconLibrary: 'MaterialIcons',
+            onPress: onNavigateToLocker,
         },
         {
             title: 'Escanear QR',
             iconName: 'qr-code-scanner',
             iconLibrary: 'MaterialIcons',
-            onPress: onNavigateToQRScanner
+            onPress: onNavigateToQRScanner,
         },
         {
-            title: 'Mi Perfil',
-            iconName: 'person',
-            iconLibrary: 'MaterialIcons',
-            onPress: onNavigateToProfile
-        },
-        {
-            title: '📚 Documentación',
+            title: 'Documentación',
             iconName: 'menu-book',
             iconLibrary: 'MaterialIcons',
-            onPress: onNavigateToDocumentacion
+            onPress: onNavigateToDocumentacion,
         },
-        {
-            title: 'Configuración',
-            iconName: 'settings',
-            iconLibrary: 'MaterialIcons',
-            onPress: () => Alert.alert('Info', 'Configuración pendiente')
-        },
-        {
-            title: 'Reportes',
-            iconName: 'analytics',
-            iconLibrary: 'MaterialIcons',
-            onPress: () => Alert.alert('Info', 'Reportes pendiente')
-        },
-        {
-            title: 'Ayuda',
-            iconName: 'help',
-            iconLibrary: 'MaterialIcons',
-            onPress: () => Alert.alert('Ayuda', 'Contacta soporte: soporte@888cargo.com')
-        }
     ];
 
     return (

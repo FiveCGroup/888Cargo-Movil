@@ -4,11 +4,9 @@ import '../styles/global/buttons.css';
 const CreacionNuevaCarga = ({ 
     onDescargarFormato, 
     onSubirArchivo, 
-    onGuardarCarga, 
     onGuardarPackingList,
     loading, 
     datosExcel, 
-    codigoCarga 
 }) => {
     return (
         <div>

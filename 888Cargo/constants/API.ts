@@ -1,23 +1,25 @@
 // ===================================
 // 888CARGO MOBILE - CONFIGURACIÓN API
 // ===================================
+// Para Expo Go en celular: el dispositivo debe poder alcanzar el backend.
+// Configura en .env (carpeta 888Cargo): EXPO_PUBLIC_API_URL_LOCAL=http://TU_IP_PC:4000/api
+// Ejemplo: EXPO_PUBLIC_API_URL_LOCAL=http://192.168.1.10:4000/api
+// Obtén la IP de tu PC (ipconfig en Windows, ifconfig en Mac/Linux). Celular y PC en la misma WiFi.
 
 // Configuración dinámica basada en variables de entorno
 export const getApiUrl = () => {
   const environment = process.env.EXPO_PUBLIC_ENVIRONMENT || 'development';
   
-  // Si hay una URL específica configurada, usarla
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
   
-  // Fallback según el entorno
   switch (environment) {
     case 'production':
       return process.env.EXPO_PUBLIC_API_URL_PROD || 'https://api.888cargo.com/api';
     case 'development':
     default:
-      return process.env.EXPO_PUBLIC_API_URL_LOCAL || 'http://192.168.58.115:4000/api';
+      return process.env.EXPO_PUBLIC_API_URL_LOCAL || 'http://192.168.58.109:4000/api';
   }
 };
 

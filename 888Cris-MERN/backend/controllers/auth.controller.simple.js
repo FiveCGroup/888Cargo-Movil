@@ -69,35 +69,50 @@ export const register = async (req, res) => {
         const newUser = { id: result.id, ...userData };
 
         // Crear registro en la tabla clientes
+        // IMPORTANTE: Verificar si el cliente ya existe antes de crear para evitar duplicados
         try {
-            // Generar shippingMark si no se proporcionó
-            let finalShippingMark = shippingMark;
-            if (!finalShippingMark || finalShippingMark.trim() === '') {
-                finalShippingMark = await generateUniqueShippingMark(fullName);
-                console.log("ShippingMark generado automáticamente:", finalShippingMark);
+            // Verificar si ya existe un cliente con este correo
+            const existingCliente = await clienteRepository.findOne({ correo_cliente: normalizedEmail });
+            
+            if (existingCliente) {
+                // El cliente ya existe, no crear duplicado
+                console.log("Cliente ya existe en tabla clientes con id:", existingCliente.id_cliente || existingCliente.id);
             } else {
-                // Validar que el shippingMark proporcionado no exista
-                const existingShippingMark = await clienteRepository.findByShippingMark(finalShippingMark);
-                if (existingShippingMark) {
-                    // Si existe, generar uno nuevo
+                // El cliente no existe, crearlo
+                // Generar shippingMark si no se proporcionó
+                let finalShippingMark = shippingMark;
+                if (!finalShippingMark || finalShippingMark.trim() === '') {
                     finalShippingMark = await generateUniqueShippingMark(fullName);
-                    console.log("ShippingMark ya existe, generado uno nuevo:", finalShippingMark);
+                    console.log("ShippingMark generado automáticamente:", finalShippingMark);
+                } else {
+                    // Validar que el shippingMark proporcionado no exista
+                    const existingShippingMark = await clienteRepository.findByShippingMark(finalShippingMark);
+                    if (existingShippingMark) {
+                        // Si existe, generar uno nuevo
+                        finalShippingMark = await generateUniqueShippingMark(fullName);
+                        console.log("ShippingMark ya existe, generado uno nuevo:", finalShippingMark);
+                    }
                 }
+
+                const clienteData = {
+                    nombre_cliente: fullName,
+                    correo_cliente: normalizedEmail,
+                    telefono_cliente: phone || '',
+                    pais_cliente: country || '',
+                    ciudad_cliente: city || '',
+                    cliente_shippingMark: finalShippingMark
+                };
+
+                const createdCliente = await clienteRepository.create(clienteData);
+                console.log("Cliente creado exitosamente en tabla clientes:", createdCliente);
             }
-
-            const clienteData = {
-                nombre_cliente: fullName,
-                correo_cliente: normalizedEmail,
-                telefono_cliente: phone || '',
-                pais_cliente: country || '',
-                ciudad_cliente: city || '',
-                cliente_shippingMark: finalShippingMark
-            };
-
-            const createdCliente = await clienteRepository.create(clienteData);
-            console.log("Cliente creado exitosamente en tabla clientes:", createdCliente);
         } catch (clienteError) {
-            console.error("Error al crear cliente en tabla clientes (no crítico):", clienteError.message);
+            // Si el error es por restricción única, el cliente ya existe (esto es esperado)
+            if (clienteError.message && clienteError.message.includes('UNIQUE constraint')) {
+                console.log("Cliente ya existe (detectado por restricción UNIQUE)");
+            } else {
+                console.error("Error al crear/verificar cliente en tabla clientes (no crítico):", clienteError.message);
+            }
             // No lanzamos el error para no interrumpir el registro del usuario
         }
 

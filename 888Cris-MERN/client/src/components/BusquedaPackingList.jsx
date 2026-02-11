@@ -12,7 +12,6 @@ const BusquedaPackingList = ({
     busquedaLoading, 
     mostrandoResultados, 
     resultadosBusqueda,
-    botonRegreso 
 }) => {
     return (
         <div className="busqueda-container">
